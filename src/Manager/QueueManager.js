@@ -59,6 +59,14 @@ this.jeesjs = this.jeesjs || {};
     QueueManager._options 	= {
 		size: 100
 	};
+    /**
+	 * 文件队列配置属性
+	 * @property _handler
+	 * @static
+	 * @type {Function}
+	 * @protected
+	 */
+    QueueManager._handler	= function(){};
 // public static methods:  
     /**
 	 * 初始化模块管理器
@@ -84,7 +92,8 @@ this.jeesjs = this.jeesjs || {};
     	this._queue.setMaxConnections( this._options.size );
     	
     	if( typeof _f === 'function' ){
-    		this._queue.addEventListener( "complete", _f );
+    		this._handler = _f;
+    		this._queue.addEventListener( "complete", this._handler );
     	}
     	
     	this._queue.installPlugin( createjs.Sound );
@@ -102,11 +111,12 @@ this.jeesjs = this.jeesjs || {};
 	 * 开始预加载文件
 	 * @method load
      * @static
+     * @param {Function} _f 加载完毕的回调事件
 	 */
 	QueueManager.load = function(){
-		if( this._list.length == 0 ) this._handle_complete();
-		else
-			this._queue.loadManifest( this._list );
+		if( this._list.length == 0 ){
+			this._handler();
+    	}else this._queue.loadManifest( this._list );
 	}
 	/**
 	 * 添加一个预加载文件
