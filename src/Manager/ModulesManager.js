@@ -74,23 +74,27 @@ this.jeesjs = this.jeesjs || {};
 		_m.enter();
 	};
 	/**
-	 * 退出最上层层级的最上层模块，退出后如果存在上个模块，则恢复上个模块的执行。
+	 * 退出最上层层级的最上层模块，退出的模块如果存在上个模块，则调用上个模块的恢复。
 	 * @method leave
 	 * @static
 	 */
 	ModulesManager.leave = function(){
-		if( this._modules.length > 0 ){
-			var mods = this._modules[ this._modules.length - 1 ];
-			if( mods.length > 0 ) {
-				mods.pop().leave();
-			}
-			if( mods.length > 0 ) mods[ mods.length - 1 ].recovery();
-			else{
-				this._modules.pop();
-				if( this._modules.length > 0 ){
-					mods = this._modules[ this._modules.length - 1 ];
-					if( mods.length > 0 ) mods[ mods.length - 1 ].recovery();
-				}
+		var len = this._modules.length;
+		if( len == 0 ) return;
+		var mods = this._modules[ len - 1 ];
+		len = mods.length;
+		if( len == 0 ) return;
+		if( len > 1 ){
+			//当层最上级退出和恢复
+			mods.pop().leave();
+			mods[ mods.length - 1 ].recovery();
+		}else{
+			//当层最上级退出和上层最上级恢复
+			mods = this._modules.pop();
+			mods.pop().leave();
+			if( this._modules.length > 0 ){
+				mods = this._modules[ this._modules.length - 1 ];
+				mods[ mods.length - 1 ].recovery();
 			}
 		}
 	};
