@@ -1,6 +1,6 @@
 /*
  * Author: Aiyoyoyo
- * https://www.jeesupport.com/assets/jeesjs/src/QueueManager.js
+ * https://www.jeesupport.com/assets/jeesjs/src/Manager/QueueManager.js
  * License: MIT license
  */
 
