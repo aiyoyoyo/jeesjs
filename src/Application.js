@@ -25,7 +25,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @type {Number}
 	 * @protected
 	 */
-	Application._time 				= 0;
+	Application._time 	= 0;
 	/**
 	 * 画布控件
 	 * @property _canvas
@@ -98,6 +98,7 @@ this.jeesjs = this.jeesjs || {};
 		
     	jeesjs.MM.init();
     	jeesjs.QM.init({}, this._handle_queue_complete );
+    	jeesjs.CM.init();
     	
     	if (typeof _o === 'object') {
             for (var i in _o) {
