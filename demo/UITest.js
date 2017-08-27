@@ -5,44 +5,72 @@ function UITest(){
 			console.log( _e.target.id );
 		}
 		
-//		var w = new jeesjs.Widget();
-//		w.setSize( 100, 100 );
+		function test_widget(){
+			var w = new jeesjs.Widget();
+			jeesjs.CM.addWidget( w );
+		}
 		
-		var p = new jeesjs.Panel();
-//		p.setSize( 200 ,200 );
-		p.onClick( test );
+		function test_panel(){
+			var p = new jeesjs.Panel();
+			jeesjs.CM.addWidget( p );
+		}
+		function test_panel2(){
+			var p = new jeesjs.Panel();
+			p.onClick( test );
+//			p.unClick();
+			jeesjs.CM.addWidget( p );
+		}
+		function test_panel3(){
+			var p = new jeesjs.Panel();
+			var p2 = new jeesjs.Panel( p );
+			var p3 = new jeesjs.Panel( p2 );
+			
+			p.onClick( test );
+			
+			p2.setColor( "#ffff00" );
+			p2.setPosition( 50, 50 );
+			p2.onClick( test );
+			
+			p3.setColor( "#ff0000" );
+			p3.setPosition( 10, 10 );
+			p3.onClick( test );
+			
+			jeesjs.CM.addWidget( p );
+//			p.setSize(300,300 );
+//			p.setPosition(100, 100);
+		}
 		
-//		w.addChild( p );
+		function test_textbox(){
+			var p = new jeesjs.Panel();
+			var t = new jeesjs.TextBox( p );
+			
+			p.setColor( "#ff0000" );
+			
+			t.setPosition( 10, 10 );
+			t.setColor( "#ffff00" );
+			t.setFontSize( 12 );
+			t.setFont( "微软雅黑" );
+//			t.setAlign( jeesjs.TextBox.ALIGN_START  );
+//			t.setAlign( jeesjs.TextBox.ALIGN_END );
+//			t.setAlign( jeesjs.TextBox.ALIGN_LEFT 	 );
+//			t.setAlign( jeesjs.TextBox.ALIGN_RIGHT  );
+//			t.setAlign( jeesjs.TextBox.ALIGN_CENTER );
+//			t.setBaseline( jeesjs.TextBox.BASELINE_TOP 		 );
+//			t.setBaseline( jeesjs.TextBox.BASELINE_HANGING	);
+//			t.setBaseline( jeesjs.TextBox.BASELINE_MIDDLE 		 );
+//			t.setBaseline( jeesjs.TextBox.BASELINE_ALPHABETIC  );
+//			t.setBaseline( jeesjs.TextBox.BASELINE_IDEOGRAPHIC );
+//			t.setBaseline( jeesjs.TextBox.BASELINE_BOTTOM 	 );
+//			t.setMaxWidth( 50 );
+			t.setLineWidth( 48 );
+			t.setText( "过长的中文" );
+			t.onClick( test );
+			jeesjs.CM.addWidget( p );
+		}
 		
-		var p2 = new jeesjs.Panel( p );
-		p2.setColor( "#ffff00" );
-//		p2.setSize( 200 ,200 );
-		p2.setPosition( 50, 50 );
-		p2.onClick( test );
-//		p2.unClick();
+		function test_image(){
 		
-		var p3 = new jeesjs.Panel( p2 );
-		p3.setColor( "#ff0000" );
-		p3.setPosition( 10, 10 );
-		p3.onClick( test );
-		
-		jeesjs.CM.addWidget( p );
-		
-
-//		p.addWidget( p3 );
-//		jeesjs.CM.addWidget( p2, p );
-//		jeesjs.CM.addWidget( p, w );
-//		var d0 = new createjs.Bitmap( jeesjs.QM.getSource( "jpg" ) );
-//		jeesjs.APP._contar.addChild( d0 );
-		
-//		var d1 = new createjs.Bitmap( jeesjs.QM.getSource( "png" ) );
-//		jeesjs.APP._contar.addChild( d1 );
-//		d1.x = 200;
-//		d1.alpha = 0.5
-//		d1.visible = true;
-//		
-//		d0.addChild( d1 );
-//		jeesjs.CM.addWidget( d0 );
+		}
 	};
 	Mod_Test.leave = function() { console.log("--Mod_Test leave"); };
 	Mod_Test.update = function( _t ) { console.log("--Mod_Test update" ); }

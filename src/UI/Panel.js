@@ -20,7 +20,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @constructor
 	 */
     function Panel( _p ){
-    	this.Widget_constructor( _p );
+    	this.Widget_constructor();
 
 // public properties:
     	/**
@@ -49,19 +49,23 @@ this.jeesjs = this.jeesjs || {};
     	 * @property _container
     	 * @type {createjs.Container}
     	 */
-    	this._container = new createjs.Container()
+    	this._container = new createjs.Container();
     	/**
     	 * CreateJS图形控件
     	 * @property __shape
     	 * @type {createjs.Shape}
     	 */
     	this._shape = new createjs.Shape();
-    	
     	this._shape.graphics.beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
-
+ 		
     	this._container.addChild( this._shape );
     	// 保证绘制的内容在容器之内
     	this._container.mask = this._shape;
+    	
+    	if( _p != undefined ){
+    		this._parent = _p;
+    		this._parent.addChild( this.getRoot() );
+    	}
     };
   	var p = createjs.extend( Panel, jeesjs.Widget );
 // public method
@@ -84,34 +88,16 @@ this.jeesjs = this.jeesjs || {};
 	p.setPosition = function( _x, _y ){
 		this.Widget_setPosition( _x, _y );
     	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
-	}
+	};
 	/**
 	 * 设置颜色
 	 * @method setColor
-     * @param {String} _cx
+     * @param {String} _c
 	 */
     p.setColor = function( _c ){
     	this.c = _c;
     	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
-    }
-        /**
-     * 绑定点击事件
-     * @method onClick
-     * @param {Function} _f
-     */
-    p.onClick = function( _f ){
-    	this.Widget_onClick( _f );
-    	this._shape.addEventListener( "click", this._event_map["click"] );
-    }
-    /**
-     * 移除绑定点击事件
-     * @method unClick
-     */
-    p.unClick = function(){
-    	var func = this._event_map["click"];
-    	this.Widget_unClick();
-    	this._shape.removeEventListener( "click", func );
-    }
+    };
 
 	jeesjs.Panel = createjs.promote( Panel, "Widget" );
 })();

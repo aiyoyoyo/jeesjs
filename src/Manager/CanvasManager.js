@@ -45,6 +45,6 @@ this.jeesjs = this.jeesjs || {};
 	CanvasManager.addWidget = function( _w ) {
 		jeesjs.APP._contar.addChild( _w.getRoot() );
 	}
-
+	
 	jeesjs.CM = CanvasManager;
 })();
