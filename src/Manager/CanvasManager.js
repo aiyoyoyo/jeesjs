@@ -42,9 +42,8 @@ this.jeesjs = this.jeesjs || {};
      * @param {Widget} _w 添加的控件
      * @param {Widget} _p 父控件，如果为空则添加到最底层，否则添加到该控件上
 	 */
-	CanvasManager.addWidget = function( _w, _p ) {
-		if( _p != undefined ) _p.addChild( _w );
-		else jeesjs.APP._contar.addChild( _w );
+	CanvasManager.addWidget = function( _w ) {
+		jeesjs.APP._contar.addChild( _w.getRoot() );
 	}
 
 	jeesjs.CM = CanvasManager;

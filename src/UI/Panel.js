@@ -15,25 +15,55 @@ this.jeesjs = this.jeesjs || {};
 // constructor:
 	/**
 	 * @class Panel
-	 * @extends createjs.Shape
-	 * @param {Graphics} _g
+	 * @extends jeesjs.Widget
+	 * @param {Widget} _p
 	 * @constructor
 	 */
-    function Panel( _g ){
-    	this.Shape_constructor( _g );
+    function Panel( _p ){
+    	this.Widget_constructor( _p );
 
 // public properties:
-    	this._container = new jeesjs.Widget();
     	/**
-    	 * 基本颜色
+    	 * 控件默认背景颜色
+    	 * @property c
+    	 * @type {String}
+    	 * @default #000000
     	 */
     	this.c = "#000000";
+    	/**
+    	 * 控件宽度
+    	 * @property w
+    	 * @type {Number}
+    	 * @default 100
+    	 */
+    	this.w = 100;
+    	/**
+    	 * 控件高度
+    	 * @property h
+    	 * @type {Number}
+    	 * @default 100
+    	 */
+    	this.h = 100;
+    	/**
+    	 * CreateJS绘制容器
+    	 * @property _container
+    	 * @type {createjs.Container}
+    	 */
+    	this._container = new createjs.Container()
+    	/**
+    	 * CreateJS图形控件
+    	 * @property __shape
+    	 * @type {createjs.Shape}
+    	 */
+    	this._shape = new createjs.Shape();
     	
-    	this.graphics.beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
-    	
-    	jeesjs.CM.addWidget( this._container );
+    	this._shape.graphics.beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+
+    	this._container.addChild( this._shape );
+    	// 保证绘制的内容在容器之内
+    	this._container.mask = this._shape;
     };
-  	var p = createjs.extend( Panel, createjs.Shape );
+  	var p = createjs.extend( Panel, jeesjs.Widget );
 // public method
   	/**
      * 设置宽高
@@ -42,10 +72,8 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _h
      */
     p.setSize = function( _w, _h ){
-    	this.w = _w;
-    	this.h = _h;
-    	this.setBounds( this.x, this.y, this.w, this.h );
-    	this.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+    	this.Widget_setSize( _w, _h );
+    	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
     };
     /**
      * 设置坐标
@@ -54,10 +82,8 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _y
      */
 	p.setPosition = function( _x, _y ){
-		this.x = _x;
-    	this.y = _y;
-    	this.setBounds( this.x, this.y, this.w, this.h );
-    	this.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+		this.Widget_setPosition( _x, _y );
+    	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
 	}
 	/**
 	 * 设置颜色
@@ -66,29 +92,26 @@ this.jeesjs = this.jeesjs || {};
 	 */
     p.setColor = function( _c ){
     	this.c = _c;
-    	this.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+    	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
     }
-    /**
+        /**
      * 绑定点击事件
      * @method onClick
      * @param {Function} _f
      */
     p.onClick = function( _f ){
-    	if( typeof _f === "function" ){
-    		this.addEventListener( "click", _f );
-    	}
+    	this.Widget_onClick( _f );
+    	this._shape.addEventListener( "click", this._event_map["click"] );
     }
     /**
      * 移除绑定点击事件
      * @method unClick
      */
     p.unClick = function(){
-    	this.off( "click" );
+    	var func = this._event_map["click"];
+    	this.Widget_unClick();
+    	this._shape.removeEventListener( "click", func );
     }
-    
-    p.addChild = function( _w ){
-    	this._container.addChild( _w );
-    }
-    
-	jeesjs.Panel = createjs.promote( Panel, "Shape" );
+
+	jeesjs.Panel = createjs.promote( Panel, "Widget" );
 })();

@@ -19,10 +19,22 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Graphics} _g
 	 * @constructor
 	 */
-    function Widget( _g ){
-    	this.Container_constructor();
-    	
+    function Widget( _p ){
 // public properties:
+    	 /**
+    	 * 控件横坐标
+    	 * @property x
+    	 * @type {Number}
+    	 * @default 0
+    	 */
+    	this.x = 0;
+    	/**
+    	 * 控件纵坐标
+    	 * @property y
+    	 * @type {Number}
+    	 * @default 0
+    	 */
+    	this.y = 0;
     	/**
     	 * 控件宽度
     	 * @property w
@@ -38,15 +50,41 @@ this.jeesjs = this.jeesjs || {};
     	 */
     	this.h = 0;
     	/**
-		 * The graphics instance to display.
-		 * @property g
-		 * @type createjs.Graphics
-		 **/
-		this.g = _g ? _g : new createjs.Graphics();
+    	 * 事件的方法池
+    	 * @property _event_map
+    	 * @type {Map}
+    	 */
+    	this._event_map = [];
+		/**
+    	 * CreateJS绘制容器
+    	 * @property _container
+    	 * @type {createjs.Container}
+    	 * @default null
+    	 */
+    	this._container = null;
+    	/**
+    	 * 父控件
+    	 * @property _container
+    	 * @type {createjs.Container}
+    	 * @default null
+    	 */
+    	this._parent = _p ? _p : null;
+    	
+    	if( _p != undefined )
+    		this._parent.getRoot().addChild( this._container );
     };
 	
-    var p = createjs.extend( Widget, createjs.Container );
-// public method    
+    var p = Widget.prototype;
+// public method
+     /**
+     * 返回根容器
+     * @method getRoot
+     * @type {createjs.Container}
+     * @return 
+     */
+    p.getRoot = function(){
+    	return this._container;
+    }
     /**
      * 设置宽高
      * @method setSize
@@ -56,7 +94,7 @@ this.jeesjs = this.jeesjs || {};
     p.setSize = function( _w, _h ){
     	this.w = _w;
     	this.h = _h;
-    	this.setBounds( this.x, this.y, this.w, this.h );
+    	this._container.setBounds( this.x, this.y, this.w, this.h );
     };
     /**
      * 设置坐标
@@ -65,10 +103,28 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _y
      */
 	p.setPosition = function( _x, _y ){
-		this.x = _x;
-    	this.y = _y;
-    	this.setBounds( this.x, this.y, this.w, this.h );
+		this.x = this._parent ? this._parent.x + _x : _x;
+    	this.y = this._parent ? this._parent.y + _y : _y;
+    	this._container.setBounds( this.x, this.y, this.w, this.h );
 	}
-    
-	jeesjs.Widget = createjs.promote( Widget, "Container" );
+    /**
+     * 绑定点击事件
+     * @method onClick
+     * @param {Function} _f
+     */
+    p.onClick = function( _f ){
+    	if( typeof _f === "function" ){
+    		this._event_map[ "click" ] = _f;
+    	}
+    }
+    /**
+     * 移除绑定点击事件
+     * @method unClick
+     */
+    p.unClick = function(){
+    	this._event_map[ "click" ] = null;
+    }
+// private method
+
+	jeesjs.Widget = Widget;
 })();

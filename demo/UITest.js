@@ -9,26 +9,28 @@ function UITest(){
 //		w.setSize( 100, 100 );
 		
 		var p = new jeesjs.Panel();
-		p.setSize( 200 ,200 );
+//		p.setSize( 200 ,200 );
 		p.onClick( test );
 		
 //		w.addChild( p );
 		
-		var p2 = new jeesjs.Panel();
+		var p2 = new jeesjs.Panel( p );
 		p2.setColor( "#ffff00" );
+//		p2.setSize( 200 ,200 );
 		p2.setPosition( 50, 50 );
-		p2.setSize( 200 ,200 );
 		p2.onClick( test );
+//		p2.unClick();
 		
-		p.addChild( p2 );
-//		var w2 = new jeesjs.Widget();
-//		w2.setSize( 200 ,200 );
-//		w2.addChild( p2 );
-//		w.addChild( p2 );
+		var p3 = new jeesjs.Panel( p2 );
+		p3.setColor( "#ff0000" );
+		p3.setPosition( 10, 10 );
+		p3.onClick( test );
 		
-//		jeesjs.CM.addWidget( p );
 		jeesjs.CM.addWidget( p );
 		
+
+//		p.addWidget( p3 );
+//		jeesjs.CM.addWidget( p2, p );
 //		jeesjs.CM.addWidget( p, w );
 //		var d0 = new createjs.Bitmap( jeesjs.QM.getSource( "jpg" ) );
 //		jeesjs.APP._contar.addChild( d0 );
