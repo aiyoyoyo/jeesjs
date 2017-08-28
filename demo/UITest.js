@@ -68,12 +68,42 @@ function UITest(){
 			jeesjs.CM.addWidget( p );
 		}
 		
+		var tmp_p = new jeesjs.Panel();
+//		var tmp_i = new jeesjs.ImageBox( "res/demo.jpg" , tmp_p );
+//		var tmp_i = new jeesjs.ImageBox( jeesjs.QM.getSource( "png" ), tmp_p );
+		var tmp_i = new jeesjs.ImageBox( "png", tmp_p );
 		function test_image(){
-		
+			jeesjs.CM.addWidget( tmp_p );
+			if( tmp_i.getState() ){
+				tmp_p.setSize( tmp_i.getSize().w, tmp_i.getSize().h );
+			}
+			
+			window.setTimeout( function(){
+				if( tmp_i.getState() ){
+					tmp_p.setSize( tmp_i.getSize().w, tmp_i.getSize().h );
+				}
+			}, 500 );
 		}
+		function test_image2(){
+			this._image = new createjs.Bitmap( "res/demo.jpg" );
+			jeesjs.CM.addChild( this._image );
+		}
+		
+		// 组合测试
+		function test_ui(){
+			var p = new jeesjs.Panel();
+			var t = new jeesjs.TextBox( p );
+			var i = new jeesjs.ImageBox( "png", p );
+			
+			t.setColor( "#ffffff" );
+			p.setSize(800, 600);
+			
+			jeesjs.CM.addWidget( p );
+		}
+		test_ui();
 	};
 	Mod_Test.leave = function() { console.log("--Mod_Test leave"); };
-	Mod_Test.update = function( _t ) { console.log("--Mod_Test update" ); }
+	Mod_Test.update = function( _t ) { console.log("--Mod_Test update"); }
 	
 	jeesjs.QM.addSource( "jpg", "res/demo.jpg" );
 	jeesjs.QM.addSource( "png", "res/demo.png" );

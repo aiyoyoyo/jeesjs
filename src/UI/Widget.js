@@ -19,7 +19,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Graphics} _g
 	 * @constructor
 	 */
-    function Widget(){
+    function Widget( _p ){
 // public properties:
     	 /**
     	 * 控件横坐标
@@ -68,18 +68,18 @@ this.jeesjs = this.jeesjs || {};
     	 * @type {createjs.Container}
     	 * @default null
     	 */
-    	this._parent = null;
+    	this._parent = _p ? _p : null;
     };
 	
     var p = Widget.prototype;
 // public method
      /**
      * 返回根容器
-     * @method getRoot
+     * @method getWidget
      * @type {createjs.DisplayObject}
      * @return 
      */
-    p.getRoot = function(){
+    p.getWidget = function(){
     	return this._container;
     }
     /**
@@ -89,7 +89,7 @@ this.jeesjs = this.jeesjs || {};
      */
     p.addChild = function( _d ){
     	if( this.isContainer() )
-    		this.getRoot().addChild( _d );
+    		this.getWidget().addChild( _d );
     	else throw "根节点为非容器类型控件。";
     }
     /**
@@ -110,7 +110,7 @@ this.jeesjs = this.jeesjs || {};
     	this.w = _w;
     	this.h = _h;
     	if( this.isContainer() ){
-    		this.getRoot().setBounds( this.x, this.y, this.w, this.h );
+    		this.getWidget().setBounds( this.x, this.y, this.w, this.h );
     		// TODO 当容器大小变化时，更新子容器的mask
     		// 主要用于容器在添加至绘制面板后的子控件同步变化
     	}
@@ -126,7 +126,7 @@ this.jeesjs = this.jeesjs || {};
 		this.x = this._parent ? this._parent.x + _x : _x;
     	this.y = this._parent ? this._parent.y + _y : _y;
     	if( this.isContainer() ){
-    		this.getRoot().setBounds( this.x, this.y, this.w, this.h );
+    		this.getWidget().setBounds( this.x, this.y, this.w, this.h );
     		// TODO 当容器位置变化时，更新子控件的位置
     		// 主要用于容器在添加至绘制面板后的子控件同步变化
     	}
@@ -153,16 +153,26 @@ this.jeesjs = this.jeesjs || {};
      * @param {Function} _f
      */
     p.onClick = function( _f ){
-    	this._bind_event( "click", this.getRoot(), _f );
+    	this._bind_event( "click", this.getWidget(), _f );
     };
     /**
      * 移除绑定点击事件
      * @method unClick
      */
     p.unClick = function(){
-    	this._unbind_event( "click", this.getRoot() );
+    	this._unbind_event( "click", this.getWidget() );
     };
 // private method
+    /**
+     * 用于子控件初始化结束后调用，保证子控件管理器绘制父控件之前加入。 
+     * @method _init_finish
+     * @param {Widget} _p
+     */
+    p._init_finish = function(){
+    	if( this._parent != undefined ){
+    		this._parent.addChild( this.getWidget() );
+    	}
+    }
     /**
      * @method _bind_event
 	 * @param {String} _e

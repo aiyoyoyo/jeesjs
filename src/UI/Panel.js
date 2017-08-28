@@ -20,7 +20,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @constructor
 	 */
     function Panel( _p ){
-    	this.Widget_constructor();
+    	this.Widget_constructor( _p );
 
 // public properties:
     	/**
@@ -62,10 +62,7 @@ this.jeesjs = this.jeesjs || {};
     	// 保证绘制的内容在容器之内
     	this._container.mask = this._shape;
     	
-    	if( _p != undefined ){
-    		this._parent = _p;
-    		this._parent.addChild( this.getRoot() );
-    	}
+    	this._init_finish();
     };
   	var p = createjs.extend( Panel, jeesjs.Widget );
 // public method

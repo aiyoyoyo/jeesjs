@@ -50,8 +50,8 @@ this.jeesjs = this.jeesjs || {};
 		/**
 		 * CreateJS图形控件
 		 * 
-		 * @property __shape
-		 * @type {createjs.Shape}
+		 * @property _text
+		 * @type {createjs.Text}
 		 */
 		this._text = new createjs.Text( this.t, this.f, this.c );
 		this._text._drawText = this._draw_text;
@@ -61,11 +61,7 @@ this.jeesjs = this.jeesjs || {};
 		this._font_size = 12;
 		this._font = " Arial";
 		
-		// 保证绘制的内容在容器之内
-		if( _p != undefined ){
-    		this._parent = _p;
-    		this._parent.addChild( this.getRoot() );
-    	}
+		this._init_finish();
 	};
 // public static properties
 	TextBox.ALIGN_START 	= "start";
@@ -90,7 +86,7 @@ this.jeesjs = this.jeesjs || {};
      * @type {createjs.DisplayObject}
      * @return 
      */
-    p.getRoot = function(){
+    p.getWidget = function(){
     	return this._text;
     };
 	/**

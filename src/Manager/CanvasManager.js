@@ -36,15 +36,22 @@ this.jeesjs = this.jeesjs || {};
 		this._inited = true;
 	};
 	/**
-	 * 添加一个预加载文件
+	 * 添加一个预加载控件
 	 * @method addWidget
      * @static
      * @param {Widget} _w 添加的控件
-     * @param {Widget} _p 父控件，如果为空则添加到最底层，否则添加到该控件上
 	 */
 	CanvasManager.addWidget = function( _w ) {
-		jeesjs.APP._contar.addChild( _w.getRoot() );
+		jeesjs.APP._contar.addChild( _w.getWidget() );
 	}
-	
+	/**
+	 * 添加一个源控件
+	 * @method addChild
+     * @static
+     * @param {createjs.DisplayObject} _w 添加的控件
+	 */
+	CanvasManager.addChild = function( _w ) {
+		jeesjs.APP._contar.addChild( _w );
+	}
 	jeesjs.CM = CanvasManager;
 })();
