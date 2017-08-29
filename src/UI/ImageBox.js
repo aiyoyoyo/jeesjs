@@ -13,9 +13,10 @@ this.jeesjs = this.jeesjs || {};
 	"use strict";
 	// constructor:
 	/**
+	 * 支持基本的图片格式。
 	 * @class ImageBox
 	 * @extends jeesjs.Widget
-	 * @param {String} _r
+	 * @param {String | Object} _r 参数 "res/demo.jpg"、"resname"、jeesjs.QM.getSource("resname")
 	 * @param {Widget}
 	 *            _p
 	 * @constructor
@@ -89,20 +90,6 @@ this.jeesjs = this.jeesjs || {};
 	p.getState = function(){
 		return this._state;
 	}
-	/**
-	 * 设置坐标
-	 * 
-	 * @method setPosition
-	 * @param {Number}
-	 *            _x
-	 * @param {Number}
-	 *            _y
-	 */
-	p.setPosition = function(_x, _y) {
-		this.Widget_setPosition(_x, _y);
-		this._image.x = this.x;
-		this._image.y = this.y;
-	};
 // private method
 	/**
 	 * @method _handle_finish

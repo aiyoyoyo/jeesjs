@@ -133,11 +133,12 @@ this.jeesjs = this.jeesjs || {};
 		};
 	}
 	/**
-	 * 获取预加载的数据
+	 * 获取预加载的数据，返回格式参考preloadjs的Handling Results部分：
+	 * @link http://www.createjs.com/docs/preloadjs/classes/LoadQueue.html
 	 * @method addSource
      * @static
      * @param {String} _k 源别名
-     * @return {String} 源地址
+     * @return {Object} 源地址
 	 */
 	QueueManager.getSource = function( _k ) {
 		return this._queue.getResult( _k );

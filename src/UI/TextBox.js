@@ -13,13 +13,15 @@ this.jeesjs = this.jeesjs || {};
 	"use strict";
 	// constructor:
 	/**
+	 * TODO: 点击事件必须点击绘制的部分，考虑通过增加底板来实现点击事件。问题：透明底板的点击事件会被忽略。
 	 * @class TextBox
 	 * @extends jeesjs.Widget
+	 * @param (String} _t
 	 * @param {Widget}
 	 *            _p
 	 * @constructor
 	 */
-	function TextBox(_p) {
+	function TextBox(_t,_p) {
 		this.Widget_constructor(_p);
 
 // public properties:
@@ -30,7 +32,7 @@ this.jeesjs = this.jeesjs || {};
 		 * @type {String}
 		 * @default 示例文本
 		 */
-		this.t = "示例文本";
+		this.t = _t ? _t : "";
 		/**
 		 * 控件默认字体
 		 * 

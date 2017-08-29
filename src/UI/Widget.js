@@ -16,7 +16,7 @@ this.jeesjs = this.jeesjs || {};
 	/**
 	 * @class Widget
 	 * @extends createjs.Container
-	 * @param {Graphics} _g
+	 * @param {Widget} _p
 	 * @constructor
 	 */
     function Widget( _p ){
@@ -49,6 +49,13 @@ this.jeesjs = this.jeesjs || {};
     	 * @default 0
     	 */
     	this.h = 0;
+    	/**
+    	 * 控件状态
+    	 * @property e
+    	 * @type {Boolean}
+    	 * @default true
+    	 */
+    	this.e = true;
     	/**
     	 * 事件的方法池
     	 * @property _event_map
@@ -101,6 +108,14 @@ this.jeesjs = this.jeesjs || {};
     	return this._container != null;
     }
     /**
+	 * 获取控件宽高
+	 * @method getSize
+	 * @return {w,h}
+	 */
+	p.getSize = function(){
+		return { w: this.w, h: this.h };
+	};
+    /**
      * 设置宽高
      * @method setSize
      * @param {Number} _w
@@ -113,9 +128,19 @@ this.jeesjs = this.jeesjs || {};
     		this.getWidget().setBounds( this.x, this.y, this.w, this.h );
     		// TODO 当容器大小变化时，更新子容器的mask
     		// 主要用于容器在添加至绘制面板后的子控件同步变化
+    	}else{
+    		this.getWidget().w = this.w;
+    		this.getWidget().h = this.h;
     	}
-    	
     };
+    /**
+	 * 获取控件宽高
+	 * @method getPosition
+	 * @return {x,y}
+	 */
+	p.getPosition = function(){
+		return { x: this.x, h: this.y };
+	}
     /**
      * 设置坐标
      * @method setPosition
@@ -129,23 +154,26 @@ this.jeesjs = this.jeesjs || {};
     		this.getWidget().setBounds( this.x, this.y, this.w, this.h );
     		// TODO 当容器位置变化时，更新子控件的位置
     		// 主要用于容器在添加至绘制面板后的子控件同步变化
+    	}else{
+    		this.getWidget().x = this.x;
+    		this.getWidget().y = this.y;
     	}
 	};
 	/**
-	 * 获取控件宽高
-	 * @method getSize
-	 * @return {w,h}
+	 * 获取控件状态
+	 * @method getEnabled
+	 * @return {Boolean}
 	 */
-	p.getSize = function(){
-		return { w: this.w, h: this.h };
-	};
+	p.getEnabled = function(){
+		return this.e;
+	}
 	/**
-	 * 获取控件宽高
-	 * @method getPosition
-	 * @return {x,y}
+	 * 设置控件状态，主要用于屏蔽事件穿透
+	 * @method setEnabled
+     * @param {Boolean} _e
 	 */
-	p.getPosition = function(){
-		return { x: this.x, h: this.y };
+	p.setEnabled = function( _e ){
+		this.e = _e;
 	}
     /**
      * 绑定点击事件
@@ -161,6 +189,52 @@ this.jeesjs = this.jeesjs || {};
      */
     p.unClick = function(){
     	this._unbind_event( "click", this.getWidget() );
+    };
+    /**
+     * 绑定控件按下事件
+     * @method onMouseDown
+     * @param {Function} _f
+     */
+    p.onMouseDown = function( _f ){
+    	this._bind_event( "mousedown", this.getWidget(), _f );
+    }
+    /**
+     * 解绑控件按下事件
+     * @method unMouseDown
+     */
+    p.unMouseDown = function(){
+    	this._unbind_event( "mousedown", this.getWidget() );
+    };
+    /**
+     * 绑定控件弹起事件
+     * @method onMouseUp
+     * @param {Function} _f
+     */
+    p.onMouseUp = function( _f ){
+    	this._bind_event( "pressup", this.getWidget(), _f );
+    }
+    /**
+     * 解绑控件弹起事件
+     * @method unMouseDown
+     */
+    p.unMouseUp = function(){
+    	this._unbind_event( "pressup", this.getWidget() );
+    };
+    /**
+     * 自定义绑定事件
+     * @method onEvent
+     * @param {String} _e 事件比如："click"等。
+     * @param {Function} _f
+     */
+    p.onEvent = function( _e, _f ){
+    	this._bind_event( _e, this.getWidget(), _f );
+    }
+    /**
+     * 解绑控件弹起事件
+     * @method unEvent
+     */
+    p.unEvent = function( _e ){
+    	this._unbind_event( _e, this.getWidget() );
     };
 // private method
     /**

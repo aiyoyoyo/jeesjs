@@ -51,6 +51,14 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	Application._stages = null;
 	/**
+	 * fps文本控件
+	 * @property _txtfps
+	 * @static
+	 * @type {createjs.Text}
+	 * @protected
+	 */
+	Application._txtfps = null;
+	/**
 	 * 初始模块
 	 * @property _module
 	 * @static
@@ -66,6 +74,13 @@ this.jeesjs = this.jeesjs || {};
 	 **/
 	Application._inited = false;
 	/**
+	 * @property _showfps
+	 * @static
+	 * @type {Boolean}
+	 * @protected
+	 **/
+	Application._showfps = false;
+	/**
 	 * 应用配置属性
 	 * @property _options
 	 * @static
@@ -74,7 +89,7 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	Application._options 	= {
 		canvasId: "gCanvas",
-	    fps		: 15,
+	    fps		: 45,
 		width	: document.documentElement.clientWidth,
 	    height	: document.documentElement.clientHeight,
 	    queueSize : 100
@@ -116,6 +131,10 @@ this.jeesjs = this.jeesjs || {};
     	this._stages = new createjs.Stage( this._canvas );
     	this._stages.addChild( this._contar );
     	
+    	this._txtfps = new createjs.Text();
+    	this._txtfps.color = "yellow";
+    	this._stages.addChild( this._txtfps );
+    	
     	createjs.Touch.enable( this._stages );
     	createjs.Ticker.setFPS( this._options.fps );
     	createjs.Ticker.addEventListener( "tick", this._handle_ticker );
@@ -125,6 +144,15 @@ this.jeesjs = this.jeesjs || {};
     		this._module = _m;
     		
 		jeesjs.QM.load();
+    };
+    /**
+     * @method showFPS
+     * @static
+     * @param {Boolean} _v 
+     */
+    Application.showFPS = function( _v ){
+    	this._showfps = _v;
+    	if( !this._showfps ) this._txtfps.text = "";
     };
 // protected methods:
 	/**
@@ -136,7 +164,7 @@ this.jeesjs = this.jeesjs || {};
 	Application._handle_queue_complete = function() {
 		if( jeesjs.APP._module != null )
 			jeesjs.MM.enter(  jeesjs.APP._module, jeesjs.MM.hierarchy() );
-	}
+	};
 	/**
      * 进入模块后，开始绘制过程
      * @method _handle_ticker
@@ -144,6 +172,7 @@ this.jeesjs = this.jeesjs || {};
      * @param {createjs.Event} _e Tick事件
      */
 	Application._handle_ticker = function( _e ){
+		if( jeesjs.APP._showfps ) jeesjs.APP._txtfps.text = parseInt( createjs.Ticker.getMeasuredFPS());
 		jeesjs.APP._stages.update();
     	if( !_e.paused ){
     		var t = createjs.Ticker.getTime( false );
@@ -151,7 +180,7 @@ this.jeesjs = this.jeesjs || {};
 			jeesjs.APP._time = t;
     		jeesjs.MM.update( tick );
     	}
-	}
+	};
 	
 	jeesjs.APP = Application;
 })();
