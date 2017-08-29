@@ -42,13 +42,11 @@ function UITest(){
 		
 		function test_textbox(){
 			var p = new jeesjs.Panel();
-			var t = new jeesjs.TextBox( p );
-			
-			p.setColor( "#ff0000" );
+			var t = new jeesjs.TextBox( "测试文本", p );
 			
 			t.setPosition( 10, 10 );
 			t.setColor( "#ffff00" );
-			t.setFontSize( 12 );
+			t.setFontSize( 16 );
 			t.setFont( "微软雅黑" );
 //			t.setAlign( jeesjs.TextBox.ALIGN_START  );
 //			t.setAlign( jeesjs.TextBox.ALIGN_END );
@@ -62,17 +60,17 @@ function UITest(){
 //			t.setBaseline( jeesjs.TextBox.BASELINE_IDEOGRAPHIC );
 //			t.setBaseline( jeesjs.TextBox.BASELINE_BOTTOM 	 );
 //			t.setMaxWidth( 50 );
-			t.setLineWidth( 48 );
-			t.setText( "过长的中文" );
+//			t.setLineWidth( 48 );
+//			t.setText( "过长的中文" );
 			t.onClick( test );
 			jeesjs.CM.addWidget( p );
 		}
 		
-		var tmp_p = new jeesjs.Panel();
-//		var tmp_i = new jeesjs.ImageBox( "res/demo.jpg" , tmp_p );
-//		var tmp_i = new jeesjs.ImageBox( jeesjs.QM.getSource( "png" ), tmp_p );
-		var tmp_i = new jeesjs.ImageBox( "png", tmp_p );
 		function test_image(){
+			var tmp_p = new jeesjs.Panel();
+//			var tmp_i = new jeesjs.ImageBox( "res/demo.jpg" , tmp_p );
+//			var tmp_i = new jeesjs.ImageBox( jeesjs.QM.getSource( "png" ), tmp_p );
+			var tmp_i = new jeesjs.ImageBox( "png", tmp_p );
 			jeesjs.CM.addWidget( tmp_p );
 			if( tmp_i.getState() ){
 				tmp_p.setSize( tmp_i.getSize().w, tmp_i.getSize().h );
@@ -89,17 +87,46 @@ function UITest(){
 			jeesjs.CM.addChild( this._image );
 		}
 		
+		function test_button(){
+			var p = new jeesjs.Panel();
+			p.setSize( 400, 400 );
+			
+			var b = new jeesjs.Button( jeesjs.Button.TYPE_CHECK, "btnc", "", p );
+			b.setPosition( 200,200 );
+//			b.setEnabled( false );
+			b.setChecked( true );
+			
+//			b.onMouseDown( test  );
+//			b.onClick( test  );
+			
+			jeesjs.CM.addWidget( p );
+		}
+		
 		// 组合测试
 		function test_ui(){
 			var p = new jeesjs.Panel();
-			var t = new jeesjs.TextBox( p );
 			var i = new jeesjs.ImageBox( "png", p );
+			var t = new jeesjs.TextBox( "测试文本", p );
+			var b = new jeesjs.Button( jeesjs.Button.TYPE_NORMAL, "btn", "", p );
 			
 			t.setColor( "#ffffff" );
+			t.setPosition( 200, 200 );
+			t.setFontSize( 32 );
+			t.onClick( test );
+			
+			b.setPosition( 400,400 );
+			b.onClick( test );
+			
 			p.setSize(800, 600);
 			
 			jeesjs.CM.addWidget( p );
 		}
+//		test_panel();
+//		test_panel2();
+//		test_panel3();
+//		test_textbox();
+//		test_image();
+//		test_button();
 		test_ui();
 	};
 	Mod_Test.leave = function() { console.log("--Mod_Test leave"); };
@@ -107,6 +134,9 @@ function UITest(){
 	
 	jeesjs.QM.addSource( "jpg", "res/demo.jpg" );
 	jeesjs.QM.addSource( "png", "res/demo.png" );
+	jeesjs.QM.addSource( "btn", "res/buttons/btn_green.png" );
+	jeesjs.QM.addSource( "btnc", "res/buttons/btn_check.png" );
 	
 	jeesjs.APP.init( Mod_Test );
+	jeesjs.APP.showFPS( true );
 }
