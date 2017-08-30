@@ -66,9 +66,31 @@ this.jeesjs = this.jeesjs || {};
     };
   	var p = createjs.extend( Panel, jeesjs.Widget );
 // public method
+  	 /**
+     * 自定义绑定事件
+     * @method onEvent
+     * @param {String} _e 事件比如："click"等。
+     * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
+     * @extends
+     */
+    p.onEvent = function( _e, _f ){
+    	if( typeof _f != "function" ) throw "参数_f不是有效的方法类型";
+    	this._bind_event( _e, this._shape, _f );
+    }
+    /**
+     * 解绑控件弹起事件
+     * @extends
+     * @method unEvent
+     * @extends
+     */
+    p.unEvent = function( _e ){
+    	this._unbind_event( _e, this._shape );
+    };
+    
   	/**
      * 设置宽高
      * @method setSize
+     * @extends
      * @param {Number} _w
      * @param {Number} _h
      */
@@ -79,6 +101,7 @@ this.jeesjs = this.jeesjs || {};
     /**
      * 设置坐标
      * @method setPosition
+     * @extends
      * @param {Number} _x
      * @param {Number} _y
      */
@@ -86,6 +109,14 @@ this.jeesjs = this.jeesjs || {};
 		this.Widget_setPosition( _x, _y );
     	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
 	};
+	/**
+	 * 当前背景色
+	 * @method setColor
+     * @param {String} _c
+	 */
+	p.getColor = function(){
+		return this.c;
+	}
 	/**
 	 * 设置颜色
 	 * @method setColor

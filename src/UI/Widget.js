@@ -61,7 +61,13 @@ this.jeesjs = this.jeesjs || {};
     	 * @property _event_map
     	 * @type {Map}
     	 */
-    	this._event_map = [];
+    	this._event_map = {};
+    	/**
+    	 * 事件绑定的方法池
+    	 * @property _handle_map
+    	 * @type {Map}
+    	 */
+    	this._handle_map = {};
 		/**
     	 * CreateJS绘制容器
     	 * @property _container
@@ -139,7 +145,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {x,y}
 	 */
 	p.getPosition = function(){
-		return { x: this.x, h: this.y };
+		return { x: this.x, y: this.y };
 	}
     /**
      * 设置坐标
@@ -161,12 +167,16 @@ this.jeesjs = this.jeesjs || {};
 	};
 	/**
 	 * 获取控件状态
-	 * @method getEnabled
+	 * @method isEnabled
 	 * @return {Boolean}
 	 */
-	p.getEnabled = function(){
+	p.isEnabled = function(){
 		return this.e;
 	}
+	p.getAbsPosition = function(){
+		return { x : this.getWidget().regX, y : this.getWidget().regY };
+	}
+// event method
 	/**
 	 * 设置控件状态，主要用于屏蔽事件穿透
 	 * @method setEnabled
@@ -176,55 +186,10 @@ this.jeesjs = this.jeesjs || {};
 		this.e = _e;
 	}
     /**
-     * 绑定点击事件
-     * @method onClick
-     * @param {Function} _f
-     */
-    p.onClick = function( _f ){
-    	this._bind_event( "click", this.getWidget(), _f );
-    };
-    /**
-     * 移除绑定点击事件
-     * @method unClick
-     */
-    p.unClick = function(){
-    	this._unbind_event( "click", this.getWidget() );
-    };
-    /**
-     * 绑定控件按下事件
-     * @method onMouseDown
-     * @param {Function} _f
-     */
-    p.onMouseDown = function( _f ){
-    	this._bind_event( "mousedown", this.getWidget(), _f );
-    }
-    /**
-     * 解绑控件按下事件
-     * @method unMouseDown
-     */
-    p.unMouseDown = function(){
-    	this._unbind_event( "mousedown", this.getWidget() );
-    };
-    /**
-     * 绑定控件弹起事件
-     * @method onMouseUp
-     * @param {Function} _f
-     */
-    p.onMouseUp = function( _f ){
-    	this._bind_event( "pressup", this.getWidget(), _f );
-    }
-    /**
-     * 解绑控件弹起事件
-     * @method unMouseDown
-     */
-    p.unMouseUp = function(){
-    	this._unbind_event( "pressup", this.getWidget() );
-    };
-    /**
      * 自定义绑定事件
      * @method onEvent
      * @param {String} _e 事件比如："click"等。
-     * @param {Function} _f
+     * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
      */
     p.onEvent = function( _e, _f ){
     	this._bind_event( _e, this.getWidget(), _f );
@@ -248,15 +213,19 @@ this.jeesjs = this.jeesjs || {};
     	}
     }
     /**
+     * 这里参考的写法，主要用于控件禁用状态同时禁用事件。
      * @method _bind_event
 	 * @param {String} _e
 	 * @param {Widget} _w
 	 * @param {Function} _f
 	 * @private
+	 * 参考：http://www.ajexoop.com/wordpress/2016/03/新手写createjs时容易遇到的坑（持续更新）.html
      */
 	p._bind_event = function( _e, _w, _f ){
-		this._event_map[ _e ] = _f;
-    	_w.addEventListener( _e, this._event_map[ _e ] );
+		this._handle_map[ _e ] = _f;
+		var _this = this;
+		this._event_map[ _e ] = _w.addEventListener( _e, function( e ) { _this._handle_event( e ); } );
+//    	this._event_map[ _e ] = _w.on( _e, function( e ) { _this._handle_event( e ); }  );
 	};
 	/**
 	 * @method _unbind_event
@@ -266,8 +235,20 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p._unbind_event = function( _e, _w ){
 		_w.removeEventListener( _e, this._event_map[_e] );
+//		_w.off( _e, this._event_map[ _e ] );
 		this._event_map[ _e ] = null;
+		this._handle_map[ _e ] = null;
+		delete this._event_map[ _e ];
+		delete this._handle_map[ _e ];
 	};
+	/**
+	 * @method _handle_event
+	 * @param {createjs.Event} _e
+	 * @private
+	 */
+    p._handle_event = function( _e ){
+    	if( this.isEnabled() ) this._handle_map[ _e.type ] ( _e, this );
+    };
     
 	jeesjs.Widget = Widget;
 })();

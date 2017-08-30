@@ -59,6 +59,8 @@ this.jeesjs = this.jeesjs || {};
 		this._text._drawText = this._draw_text;
 		
 // private properties:
+		this._font_bold = "";
+		this._font_italic = "";
 		this._font_style = "";
 		this._font_size = 12;
 		this._font = " Arial";
@@ -92,18 +94,12 @@ this.jeesjs = this.jeesjs || {};
     	return this._text;
     };
 	/**
-	 * 设置坐标
-	 * 
-	 * @method setPosition
-	 * @param {Number}
-	 *            _x
-	 * @param {Number}
-	 *            _y
+	 * 当前颜色
+	 * @method getColor
+	 * @return {String}
 	 */
-	p.setPosition = function(_x, _y) {
-		this.Widget_setPosition(_x, _y);
-		this._text.x = this.x;
-		this._text.y = this.y;
+	p.getColor = function(){
+		return this.c;
 	};
 	/**
 	 * 设置颜色
@@ -117,6 +113,34 @@ this.jeesjs = this.jeesjs || {};
 		this._text.color = this.c;
 	};
 	/**
+	 * 当前字体大小
+	 * @method getFont
+	 * @return {String}
+	 */
+	p.getFontSize = function(){
+		return this.f;
+	}
+	/**
+	 * 设置字体样式
+	 * 参考html5字体样式
+	 * @method setFont
+	 * @param {String}
+	 *            _f
+	 */
+	p.setFont = function( _f ){
+		this.f = _f;
+		this._text.font = this._get_font();
+		this._set_size();
+	};
+	/**
+	 * 当前字体大小
+	 * @method getFontSize
+	 * @return {Number}
+	 */
+	p.getFontSize = function(){
+		return this._font_size;
+	}
+	/**
 	 * 设置字体大小
 	 * 
 	 * @method setFontSize
@@ -125,21 +149,18 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.setFontSize = function( _s ){
 		this._font_size = _s;
+		this._set_font();
 		this._text.font = this._get_font();
 		this._set_size();
 	};
 	/**
-	 * 设置字体样式
-	 * 
-	 * @method setFont
-	 * @param {String}
-	 *            _f
+	 * 当前字体基于坐标的水平对齐方式
+	 * @method getAlign
+	 * @return {String}
 	 */
-	p.setFont = function( _f ){
-		this._font = _f;
-		this._text.font = this._get_font();
-		this._set_size();
-	};
+	p.getAlign = function(){
+		return this._text.textAlign;
+	}
 	/**
 	 * 设置文字基于坐标的水平对齐方式
 	 * "start", "end", "left", "right", and "center"
@@ -152,6 +173,14 @@ this.jeesjs = this.jeesjs || {};
 		this._set_size();
 	};
 	/**
+	 * 当前字体基于坐标的垂直对齐方式
+	 * @method getAlign
+	 * @return {String}
+	 */
+	p.getBaseline = function(){
+		return this._text.textBaseline;
+	}
+	/**
 	 * 设置文字基于坐标的垂直对齐方式
 	 * "top", "hanging", "middle", "alphabetic", "ideographic", or "bottom".
 	 * @method setAlign
@@ -163,6 +192,14 @@ this.jeesjs = this.jeesjs || {};
 		this._set_size();
 	};
 	/**
+	 * 当前显示内容的固定宽度
+	 * @method getAlign
+	 * @return {String}
+	 */
+	p.getMaxWidth = function(){
+		return this._text.maxWidth;
+	}
+	/**
 	 * 设置显示内容的固定宽度，内容超出后，会压缩文字宽度至该范围内。
 	 * @method setMaxWidth
 	 * @param {Number} _w
@@ -170,6 +207,14 @@ this.jeesjs = this.jeesjs || {};
 	p.setMaxWidth = function( _w ){
 		this._text.maxWidth = _w;
 		this._set_size();
+	}
+	/**
+	 * 当前显示范围的固定宽度
+	 * @method getAlign
+	 * @return {String}
+	 */
+	p.getLineWidth = function(){
+		return this._text.lineWidth;
 	}
 	/**
 	 * 设置显示范围的固定宽度，超出后自动换行。可以通过字体大小计算出换行位置。
@@ -181,12 +226,59 @@ this.jeesjs = this.jeesjs || {};
 		this._set_size();
 	}
 	/**
+	 * 当前显示的内容
+	 * @method getAlign
+	 * @return {String}
+	 */
+	p.getText = function(){
+		return this.t;
+	}
+	/**
 	 * 设置显示的内容
 	 * @method setText
 	 * @param {String} _t
 	 */
 	p.setText = function( _t ){
-		this._text.text = _t;
+		this.t = _t;
+		this._text.text = this.t;
+		this._set_size();
+	}
+	/**
+	 * 是否使用粗体
+	 * @method isBold
+	 * @return {Boolean}
+	 */
+	p.isBold = function(){
+		return this._font_bold != "";
+	}
+	/**
+	 * 使用粗体
+	 * @method setBold
+	 * @param {Boolean}
+	 */
+	p.setBold = function( _v ){
+		this._font_bold = _v ? " bold" : "";
+		this._set_font();
+		this._text.font = this._get_font();
+		this._set_size();
+	}
+	/**
+	 * 是否使用斜体
+	 * @method isItalic
+	 * @return {Boolean}
+	 */
+	p.isItalic = function(){
+		return this._font_bold != "";
+	}
+	/**
+	 * 使用斜体
+	 * @method setBold
+	 * @param {Boolean}
+	 */
+	p.setItalic = function( _v ){
+		this._font_italic = _v ? " italic" : "";
+		this._set_font();
+		this._text.font = this._get_font();
 		this._set_size();
 	}
 // private method
@@ -197,7 +289,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p._get_font = function(){
-		return this._font_style + " " + this._font_size + "px " + this._font;
+		return this.f; 
 	};
 	/**
 	 * 根据字体属性生成控件的宽高
@@ -209,6 +301,14 @@ this.jeesjs = this.jeesjs || {};
 		this.w = b.width;
 		this.h = b.height;
 	};
+	/**
+	 * 设置字体信息
+	 * @method _set_font
+	 * @private
+	 */
+	p._set_font = function(){
+		this.f = this._font_italic + this._font_bold + " " + this._font_size + "px " + this._font;
+	}
 	/** 
      * Draws multiline text. 修复createjs的text为中文时，自动换行的问题。
      * @method _drawText 

@@ -132,7 +132,8 @@ this.jeesjs = this.jeesjs || {};
     	this._stages.addChild( this._contar );
     	
     	this._txtfps = new createjs.Text();
-    	this._txtfps.color = "yellow";
+    	this._txtfps.color = "red";
+    	this._txtfps.font = "bold 24px arial";
     	this._stages.addChild( this._txtfps );
     	
     	createjs.Touch.enable( this._stages );
@@ -154,6 +155,49 @@ this.jeesjs = this.jeesjs || {};
     	this._showfps = _v;
     	if( !this._showfps ) this._txtfps.text = "";
     };
+    /**
+     * @method getSize
+     * @static
+     * @return {Object}[w,h] 
+     */
+    Application.getSize = function(){
+    	return { w : this._canvas.width, h : this._canvas.height };
+    };
+    Application.setScale = function( _sx, _sy ){
+    	if( _sx ){
+    		this._canvas.width = this._canvas.width * _sx;
+    		this._contar.scaleX = _sx;
+    	}
+    	if( _sy ){
+	    	this._canvas.height = this._canvas.height * _sy;
+	    	this._contar.scaleY = _sx;
+    	}
+    }
+    /**
+	 * 伪随机数生成器/线性同余生成器
+	 * @param {Number} _n 生成1-_n之间的随机数
+	 * @return {Number} 
+	 */
+	Application.Random = ( function(){
+		var seed = new Date().getTime();
+		function r(){
+		    seed = ( seed * 9301 + 49297 ) % 233280;
+		    return seed / 233280.0;
+		}
+		return function( _n ){
+		    return Math.ceil( r() * _n );
+		}
+	})();
+	/**
+	 * 随机生成颜色码
+	 * @return {String} #000000
+	 */
+	Application.RandomColor = function(){
+		var r = this.Random( 256 ).toString( 16 );
+		var g = this.Random( 256 ).toString( 16 );
+		var b = this.Random( 256 ).toString( 16 );
+		return "#" + r + g + b;
+	};
 // protected methods:
 	/**
 	 * 队列加载结束，结束后进入第一个模块
@@ -181,6 +225,5 @@ this.jeesjs = this.jeesjs || {};
     		jeesjs.MM.update( tick );
     	}
 	};
-	
 	jeesjs.APP = Application;
 })();
