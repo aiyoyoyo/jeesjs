@@ -42,7 +42,7 @@ this.jeesjs = this.jeesjs || {};
      * @param {Widget} _w 添加的控件
 	 */
 	CanvasManager.addWidget = function( _w ) {
-		jeesjs.APP._contar.addChild( _w.getWidget() );
+		jeesjs.APP.addChild( _w.getWidget() );
 	}
 	/**
 	 * 添加一个源控件
@@ -51,7 +51,7 @@ this.jeesjs = this.jeesjs || {};
      * @param {createjs.DisplayObject} _w 添加的控件
 	 */
 	CanvasManager.addChild = function( _w ) {
-		jeesjs.APP._contar.addChild( _w );
+		jeesjs.APP.addChild( _w );
 	}
 	jeesjs.CM = CanvasManager;
 })();

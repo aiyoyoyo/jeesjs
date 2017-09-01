@@ -69,8 +69,8 @@ function UITest(){
 		function test_image(){
 			var tmp_p = new jeesjs.Panel();
 //			var tmp_i = new jeesjs.ImageBox( "res/demo.jpg" , tmp_p );
-//			var tmp_i = new jeesjs.ImageBox( jeesjs.QM.getSource( "png" ), tmp_p );
-			var tmp_i = new jeesjs.ImageBox( "png", tmp_p );
+			var tmp_i = new jeesjs.ImageBox( jeesjs.QM.getSource( "png" ), tmp_p );
+//			var tmp_i = new jeesjs.ImageBox( "png", tmp_p );
 			jeesjs.CM.addWidget( tmp_p );
 			if( tmp_i.getState() ){
 				tmp_p.setSize( tmp_i.getSize().w, tmp_i.getSize().h );
@@ -104,30 +104,32 @@ function UITest(){
 			jeesjs.CM.addWidget( p );
 		}
 		
+		function test_sprite(){
+			var meteor = new Star.meteor();
+			jeesjs.CM.addChild( meteor );
+		}
+		
 		// 组合测试
+		this._img = null;
 		function test_ui(){
 			var p = new jeesjs.Panel();
-			var i = new jeesjs.ImageBox( "png", p );
+//			var i = new jeesjs.ImageBox( "png", p );
+			Mod_Test._img = new jeesjs.ImageBox( "png", p );
+			
 			var t = new jeesjs.TextBox( "测试文本", p );
 			var t2 = new jeesjs.TextBox( "测试文本", p );
-
 			var b = new jeesjs.Button( jeesjs.Button.TYPE_NORMAL, "btn", "", p );
 			
 			t.setColor( "#ffff00" );
 			t.setPosition( 150, 150 );
 			t.setFontSize( 32 );
 			t.setItalic( true );
+			t.onEvent( "click", test );
 			
 			t2.setColor( "#00ffff" );
 			t2.setPosition( 200, 200 );
 			t2.setFontSize( 32 );
 			t2.setBold( true );
-			t.onEvent( test );
-			var i = 0;
-			//测试多控件
-			while( i++ < 100 ){
-				
-			}
 			
 			b.setPosition( 400,400 );
 			b.onEvent( "click", test );
@@ -135,6 +137,7 @@ function UITest(){
 			p.setSize(jeesjs.APP.getSize().w, jeesjs.APP.getSize().h);
 			
 			jeesjs.CM.addWidget( p );
+			jeesjs.CM.addWidget( t2 );
 		}
 		
 		this._list = new Array();
@@ -147,30 +150,40 @@ function UITest(){
 			}
 		}
 		this._upd_perf = function(){
-			var x = jeesjs.APP.Random( jeesjs.APP.getSize().w );
-			var y = jeesjs.APP.Random( jeesjs.APP.getSize().h );
-			var index = jeesjs.APP.Random( Mod_Test._list.length );
+			var x = jeesjs.UT.Random( jeesjs.APP.getSize().w );
+			var y = jeesjs.UT.Random( jeesjs.APP.getSize().h );
+			var index = jeesjs.UT.Random( Mod_Test._list.length );
 			var p = Mod_Test._list[index - 1];
-			p.setColor( jeesjs.APP.RandomColor() );
+			p.setColor( jeesjs.UT.RandomColor() );
 			p.setPosition( x, y );
 		}
+		this._upd_image = function( _t ){
+			this._time += _t;
+			if( this._time > 3000 ){
+				this._time = 0;
+				this._img.setRect( 10, 10, 30, 30 );
+			}
+		}
+		this._time = 0;
 //		test_panel();
 //		test_panel2();
 //		test_panel3();
 //		test_textbox();
 //		test_image();
-		test_button();
+//		test_button();
+		test_sprite();
 //		test_ui();
 //		test_perf();
 	};
 	Mod_Test.leave = function() { console.log("--Mod_Test leave"); };
-	Mod_Test.update = function( _t ) { 
-		console.log("--Mod_Test update");
+	Mod_Test.update = function( _t ) {
+//		console.log("--Mod_Test update" , _t );
 //		this._upd_perf();
+		this._upd_image( _t );
 	}
 	
 	jeesjs.QM.addSource( "jpg", "res/demo.jpg" );
-	jeesjs.QM.addSource( "png", "res/demo.png" );
+	jeesjs.QM.addSource( "png", "https://raw.githubusercontent.com/aiyoyoyo/jeesjs/master/demo/res/buttons/btn_check.png" );
 	jeesjs.QM.addSource( "btn", "res/buttons/btn_green.png" );
 	jeesjs.QM.addSource( "btnc", "res/buttons/btn_check.png" );
 	

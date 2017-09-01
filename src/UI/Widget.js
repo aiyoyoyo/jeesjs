@@ -192,6 +192,7 @@ this.jeesjs = this.jeesjs || {};
      * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
      */
     p.onEvent = function( _e, _f ){
+    	if( typeof _f != "function" ) throw "参数_f不是有效的方法类型";
     	this._bind_event( _e, this.getWidget(), _f );
     }
     /**

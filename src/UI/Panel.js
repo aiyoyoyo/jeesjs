@@ -52,7 +52,7 @@ this.jeesjs = this.jeesjs || {};
     	this._container = new createjs.Container();
     	/**
     	 * CreateJS图形控件
-    	 * @property __shape
+    	 * @property _shape
     	 * @type {createjs.Shape}
     	 */
     	this._shape = new createjs.Shape();
@@ -126,6 +126,7 @@ this.jeesjs = this.jeesjs || {};
     	this.c = _c;
     	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
     };
-
+	Object.defineProperties( p , {test:{get:p.getSpeed, set:p.setSpeed}});
+    
 	jeesjs.Panel = createjs.promote( Panel, "Widget" );
 })();

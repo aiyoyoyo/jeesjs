@@ -96,12 +96,9 @@ this.jeesjs = this.jeesjs || {};
 		 * @type {createjs.ButtonHelper}
 		 */
 		this._btn_helper = new createjs.ButtonHelper( this._btn_sprite );
-
-		if( typeof _t === "string" ){
-			this._btn_text = new jeesjs.TextBox( _t );
-		}else if ( typeof _t === "object" ){
-			this._btn_text = _t;
-		}
+		
+		//去掉了参数保护
+		this._btn_text = typeof _t === "object" ? _t : new jeesjs.TextBox( _t != "" ? _t : " "  );
 		this._btn_text.setAlign( jeesjs.TextBox.ALIGN_CENTER );
 		this._btn_text.setBaseline( jeesjs.TextBox.BASELINE_MIDDLE );
 		this._btn_text.setPosition( this.w / 2, this.h / 2 );

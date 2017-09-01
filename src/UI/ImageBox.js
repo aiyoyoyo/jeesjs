@@ -25,13 +25,14 @@ this.jeesjs = this.jeesjs || {};
 		this.Widget_constructor(_p);
 
 // public properties:
+
+// private properties:
 		/**
 		 * 图片源
-		 * @property r
-		 * @type {String}
+		 * @property _source
+		 * @type {String|object}
 		 */
-		this.r = null;
-// private properties:
+		this._source = null;
 		/**
 		 * 图片状态
 		 * @property _state
@@ -46,27 +47,29 @@ this.jeesjs = this.jeesjs || {};
 		 * @type {createjs.Bitmap}
 		 */
 		this._image = null;
+		/**
+		 * 区域对象
+		 * @property _rect
+		 * @type createjs.Rectangle
+		 */
+		this._rect = null;
 		
 		if( typeof _r === "string" && !/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test( _r ) || typeof _r === "object" ){
-			this.r = typeof _r === "object" ? _r : jeesjs.QM.getSource( _r );
-			this._image = new createjs.Bitmap( this.r );
-			
-			var b = this._image.getBounds();
-			this.w = b.width;
-			this.h = b.height;
+			this._source = typeof _r === "object" ? _r : jeesjs.QM.getSource( _r );
+			this._image = new createjs.Bitmap( this._source );
+			this._reset_size();
 			this._state = true;
-			
-			this._init_finish();
         }else{
-        	this.r = _r;
+        	this._source = _r;
         	var tmp = new Image();
         	tmp.data = this;
         	tmp.src = _r;
-        	tmp.onload = this._handle_finish;
+        	tmp.onload = this._onload_finish;
         	
-        	this._image = new createjs.Bitmap( this.r );
-			this._init_finish();
+        	this._image = new createjs.Bitmap( this._source );
         }
+        
+		this._init_finish();
 	};
 // public static properties
 
@@ -90,12 +93,32 @@ this.jeesjs = this.jeesjs || {};
 	p.getState = function(){
 		return this._state;
 	}
+	/**
+	 * 获取图片源
+	 * @method getSource
+	 * @return {Blob}
+	 */
+	p.getSource = function(){
+		return this._source.src;
+	}
+	/**
+	 * 绘制图片的局部
+	 * @method setRect
+	 * @param {Number} _x
+	 * @param {Number} _y
+	 * @param {Number} _w
+	 * @param {Number} _h
+	 */
+	p.setRect = function( _x, _y, _w, _h ){
+		this._rect.setValues( _x, _y, _w, _h );
+		this._image.sourceRect = this._rect ;
+	}
 // private method
 	/**
-	 * @method _handle_finish
+	 * @method _onload_finish
 	 * @private
 	 */
-	p._handle_finish = function( _e ){
+	p._onload_finish = function( _e ){
 		this.data._reset_size();
 		this.data._state = true;
 	};
@@ -107,6 +130,13 @@ this.jeesjs = this.jeesjs || {};
     	var b = this._image.getBounds();
 		this.w = b.width;
 		this.h = b.height;
+		
+		if( this._rect ){
+			this._rect.setValues( 0, 0 , this.w, this.h );
+		}else{
+			this._rect = new createjs.Rectangle( 0, 0 , this.w, this.h );
+		}
+		this._image.sourceRect = this.rect;
     };
     
 	jeesjs.ImageBox = createjs.promote(ImageBox, "Widget");

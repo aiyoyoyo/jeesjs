@@ -20,12 +20,12 @@ this.jeesjs = this.jeesjs || {};
 // private static properties:
 	/**
 	 * 本次回调的时间戳
-	 * @property _time
+	 * @property _timestamp
 	 * @static
-	 * @type {Number}
+	 * @type {Float}
 	 * @protected
 	 */
-	Application._time 	= 0;
+	Application.timestamp = 0;
 	/**
 	 * 画布控件
 	 * @property _canvas
@@ -147,6 +147,15 @@ this.jeesjs = this.jeesjs || {};
 		jeesjs.QM.load();
     };
     /**
+	 * 刷新画布
+	 * @method update
+     * @static
+	 */
+	Application.update = function(){
+		if( this._showfps ) this._txtfps.text = parseInt( createjs.Ticker.getMeasuredFPS() );
+		this._stages.update();
+	};
+	/**
      * @method showFPS
      * @static
      * @param {Boolean} _v 
@@ -157,12 +166,52 @@ this.jeesjs = this.jeesjs || {};
     };
     /**
      * @method getSize
+     * @param {createjs.DisplayObject} _c 
+     * @static
+     */
+    Application.addChild = function( _c ){
+    	this._contar.addChild( _c );
+    }
+    /**
+     * @method getTimestamp
+     * @static
+     * @return {Float}
+     */
+    Application.getTimestamp = function(){
+    	return this._timestamp;
+    };
+    /**
+     * @method setTimestamp
+     * @param {Float}
+     * @static
+     */
+    Application.setTimestamp = function( _t ){
+    	this._timestamp = _t;
+    };
+    /**
+     * @method getSize
      * @static
      * @return {Object}[w,h] 
      */
     Application.getSize = function(){
     	return { w : this._canvas.width, h : this._canvas.height };
     };
+    /**
+     * 获取应用的入口模块
+     * @method getModule
+     * @static
+     * @return {Widget} 
+     */
+    Application.getModule = function(){
+    	return this._module;
+    }
+    /**
+     * @method setScale
+     * @param {Null | Number} _sx 横向缩放倍数
+     * @param {Null | Number} _sy 纵向缩放倍数
+     * @static
+     * @return {Object}[w,h] 
+     */
     Application.setScale = function( _sx, _sy ){
     	if( _sx ){
     		this._canvas.width = this._canvas.width * _sx;
@@ -173,31 +222,6 @@ this.jeesjs = this.jeesjs || {};
 	    	this._contar.scaleY = _sx;
     	}
     }
-    /**
-	 * 伪随机数生成器/线性同余生成器
-	 * @param {Number} _n 生成1-_n之间的随机数
-	 * @return {Number} 
-	 */
-	Application.Random = ( function(){
-		var seed = new Date().getTime();
-		function r(){
-		    seed = ( seed * 9301 + 49297 ) % 233280;
-		    return seed / 233280.0;
-		}
-		return function( _n ){
-		    return Math.ceil( r() * _n );
-		}
-	})();
-	/**
-	 * 随机生成颜色码
-	 * @return {String} #000000
-	 */
-	Application.RandomColor = function(){
-		var r = this.Random( 256 ).toString( 16 );
-		var g = this.Random( 256 ).toString( 16 );
-		var b = this.Random( 256 ).toString( 16 );
-		return "#" + r + g + b;
-	};
 // protected methods:
 	/**
 	 * 队列加载结束，结束后进入第一个模块
@@ -206,8 +230,8 @@ this.jeesjs = this.jeesjs || {};
      * @protected
 	 */
 	Application._handle_queue_complete = function() {
-		if( jeesjs.APP._module != null )
-			jeesjs.MM.enter(  jeesjs.APP._module, jeesjs.MM.hierarchy() );
+		if(  Application.getModule() != null )
+			jeesjs.MM.enter( Application.getModule(), jeesjs.MM.hierarchy() );
 	};
 	/**
      * 进入模块后，开始绘制过程
@@ -216,14 +240,15 @@ this.jeesjs = this.jeesjs || {};
      * @param {createjs.Event} _e Tick事件
      */
 	Application._handle_ticker = function( _e ){
-		if( jeesjs.APP._showfps ) jeesjs.APP._txtfps.text = parseInt( createjs.Ticker.getMeasuredFPS());
-		jeesjs.APP._stages.update();
     	if( !_e.paused ){
     		var t = createjs.Ticker.getTime( false );
-    		var tick = t - jeesjs.APP._time;
-			jeesjs.APP._time = t;
+    		var tick = t - jeesjs.APP.getTimestamp();
+			jeesjs.APP.getTimestamp( t );
     		jeesjs.MM.update( tick );
     	}
+    	
+		jeesjs.APP.update();
 	};
+	
 	jeesjs.APP = Application;
 })();
