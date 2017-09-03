@@ -25,7 +25,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @type {Float}
 	 * @protected
 	 */
-	Application.timestamp = 0;
+	Application._timestamp = 0;
 	/**
 	 * 画布控件
 	 * @property _canvas
@@ -165,6 +165,15 @@ this.jeesjs = this.jeesjs || {};
     	if( !this._showfps ) this._txtfps.text = "";
     };
     /**
+     * 获取配置的FPS数值
+     * @method getFPS
+     * @static
+     * @param {Number}
+     */
+    Application.getFPS = function(){
+    	return this._options.fps;
+    };
+    /**
      * @method getSize
      * @param {createjs.DisplayObject} _c 
      * @static
@@ -243,7 +252,7 @@ this.jeesjs = this.jeesjs || {};
     	if( !_e.paused ){
     		var t = createjs.Ticker.getTime( false );
     		var tick = t - jeesjs.APP.getTimestamp();
-			jeesjs.APP.getTimestamp( t );
+			jeesjs.APP.setTimestamp( t );
     		jeesjs.MM.update( tick );
     	}
     	

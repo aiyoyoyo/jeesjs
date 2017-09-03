@@ -75,6 +75,7 @@ this.jeesjs = this.jeesjs || {};
     	 * @default null
     	 */
     	this._container = null;
+
     	/**
     	 * 父控件
     	 * @property _container
@@ -172,9 +173,6 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.isEnabled = function(){
 		return this.e;
-	}
-	p.getAbsPosition = function(){
-		return { x : this.getWidget().regX, y : this.getWidget().regY };
 	}
 // event method
 	/**

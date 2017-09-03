@@ -19,9 +19,11 @@ this.jeesjs = this.jeesjs || {};
     function UtilTools(){ throw "UtilTools cannot be instantiated."; };
 // private static properties:
 // public static methods:  
-        /**
+    /**
 	 * 伪随机数生成器/线性同余生成器
+	 * @method Random
 	 * @param {Number} _n 生成1-_n之间的随机数
+	 * @static
 	 * @return {Number} 
 	 */
 	UtilTools.Random = ( function(){
@@ -36,6 +38,8 @@ this.jeesjs = this.jeesjs || {};
 	})();
 	/**
 	 * 随机生成颜色码
+	 * @method RandomColor
+	 * @static
 	 * @return {String} #000000
 	 */
 	UtilTools.RandomColor = function(){
