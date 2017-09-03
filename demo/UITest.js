@@ -104,9 +104,26 @@ function UITest(){
 			jeesjs.CM.addWidget( p );
 		}
 		
+		// 组合测试
+		this._spt = null;
 		function test_sprite(){
-			var meteor = new Star.meteor();
-			jeesjs.CM.addChild( meteor );
+			var p = new jeesjs.Panel();
+			p.setSize( 800, 600 );
+			
+			var anime_data ={ count : 64, width: 165, height: 292, type: "run", animations: {
+				run : [0, 26, "run", 1.5],
+				jump : [26,63, "run" ]
+			}};
+			Mod_Test._spt = new jeesjs.ImageSpt( true, "png", anime_data, p );
+//			Mod_Test._spt = new jeesjs.ImageSpt( false, "pnga", { width: 97, height: 103, count: 6,  begin: 0, end: 5, speed: 0.05 }, p );
+//			Mod_Test._spt = new jeesjs.ImageSpt( false, "gifa", { count: 1,  begin: 0, end: 5, speed: 1 }, p );
+			Mod_Test._spt.setPosition( 100, 100 );
+			
+			p.onEvent( "click", function(){
+				Mod_Test._spt.play( "jump" );
+			});
+			
+			jeesjs.CM.addWidget( p );
 		}
 		
 		// 组合测试
@@ -137,7 +154,7 @@ function UITest(){
 			p.setSize(jeesjs.APP.getSize().w, jeesjs.APP.getSize().h);
 			
 			jeesjs.CM.addWidget( p );
-			jeesjs.CM.addWidget( t2 );
+//			jeesjs.CM.addWidget( t2 );
 		}
 		
 		this._list = new Array();
@@ -157,11 +174,15 @@ function UITest(){
 			p.setColor( jeesjs.UT.RandomColor() );
 			p.setPosition( x, y );
 		}
+		this._i = 0;
 		this._upd_image = function( _t ){
 			this._time += _t;
-			if( this._time > 3000 ){
+			if( this._time > 500 ){
 				this._time = 0;
-				this._img.setRect( 10, 10, 30, 30 );
+//				this._img.setRect( 10, 10, 30, 30 );
+				
+				this._spt.setStop( this._i );
+				if( this._i ++ > 19 ) this._i = 0;
 			}
 		}
 		this._time = 0;
@@ -179,15 +200,19 @@ function UITest(){
 	Mod_Test.update = function( _t ) {
 //		console.log("--Mod_Test update" , _t );
 //		this._upd_perf();
-		this._upd_image( _t );
+//		this._upd_image( _t );
 	}
 	
+	jeesjs.QM.addSource( "gifa", "res/anim.gif" );
+	jeesjs.QM.addSource( "pnga", "res/anim.png" );
 	jeesjs.QM.addSource( "jpg", "res/demo.jpg" );
-	jeesjs.QM.addSource( "png", "https://raw.githubusercontent.com/aiyoyoyo/jeesjs/master/demo/res/buttons/btn_check.png" );
+	jeesjs.QM.addSource( "gif", "res/demo.gif" );
+	jeesjs.QM.addSource( "png", "res/demo.png" );
+	jeesjs.QM.addSource( "pngr", "https://raw.githubusercontent.com/aiyoyoyo/jeesjs/master/demo/res/buttons/btn_check.png" );
 	jeesjs.QM.addSource( "btn", "res/buttons/btn_green.png" );
 	jeesjs.QM.addSource( "btnc", "res/buttons/btn_check.png" );
 	
-	jeesjs.APP.init( Mod_Test );
+	jeesjs.APP.init( Mod_Test,{fps: 25} );
 	jeesjs.APP.showFPS( true );
 //	jeesjs.APP.setScale( 1.5, 2  );
 }
