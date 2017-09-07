@@ -20,42 +20,28 @@ this.jeesjs = this.jeesjs || {};
 	 * @constructor
 	 */
     function Widget( _p ){
-// public properties:
-    	 /**
-    	 * 控件横坐标
-    	 * @property x
-    	 * @type {Number}
-    	 * @default 0
-    	 */
-    	this.x = 0;
-    	/**
-    	 * 控件纵坐标
-    	 * @property y
-    	 * @type {Number}
-    	 * @default 0
-    	 */
-    	this.y = 0;
+// private properties:   	
     	/**
     	 * 控件宽度
-    	 * @property w
+    	 * @property _width
     	 * @type {Number}
     	 * @default 0
     	 */
-    	this.w = 0;
+    	this._width = 0;
     	/**
     	 * 控件高度
-    	 * @property h
+    	 * @property _height
     	 * @type {Number}
     	 * @default 0
     	 */
-    	this.h = 0;
+    	this._height = 0;
     	/**
     	 * 控件状态
-    	 * @property e
+    	 * @property _enable
     	 * @type {Boolean}
     	 * @default true
     	 */
-    	this.e = true;
+    	this._enable = true;
     	/**
     	 * 事件的方法池
     	 * @property _event_map
@@ -75,7 +61,13 @@ this.jeesjs = this.jeesjs || {};
     	 * @default null
     	 */
     	this._container = null;
-
+    	/**
+    	 * CreateJs绘制对象
+    	 * @property _object
+    	 * @type {createjs.DisplayObject}
+    	 * @default null
+    	 */
+    	this._object = null;
     	/**
     	 * 父控件
     	 * @property _container
@@ -83,27 +75,27 @@ this.jeesjs = this.jeesjs || {};
     	 * @default null
     	 */
     	this._parent = _p ? _p : null;
+// public properties:
     };
 	
     var p = Widget.prototype;
 // public method
      /**
-     * 返回根容器
-     * @method getWidget
-     * @type {createjs.DisplayObject}
-     * @return 
+     * 返回根容器或者根对象
+     * @method getObject
+     * @return {createjs.Container|createjs.DisplayObject}
      */
-    p.getWidget = function(){
-    	return this._container;
+    p.getObject = function(){
+    	return this._container ? this._container : this._object;
     }
     /**
      * 添加子控件
      * @method addChild
      * @param {createjs.DisplayObject}
      */
-    p.addChild = function( _d ){
+    p.addObject = function( _d ){
     	if( this.isContainer() )
-    		this.getWidget().addChild( _d );
+    		this.getObject().addChild( _d );
     	else throw "根节点为非容器类型控件。";
     }
     /**
@@ -120,7 +112,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {w,h}
 	 */
 	p.getSize = function(){
-		return { w: this.w, h: this.h };
+		return { w: this._width, h: this._height };
 	};
     /**
      * 设置宽高
@@ -129,24 +121,20 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _h
      */
     p.setSize = function( _w, _h ){
-    	this.w = _w;
-    	this.h = _h;
-    	if( this.isContainer() ){
-    		this.getWidget().setBounds( this.x, this.y, this.w, this.h );
-    		// TODO 当容器大小变化时，更新子容器的mask
-    		// 主要用于容器在添加至绘制面板后的子控件同步变化
-    	}else{
-    		this.getWidget().w = this.w;
-    		this.getWidget().h = this.h;
-    	}
+    	this._width = _w;
+    	this._height = _h;
+    	var obj = this.getObject();
+    	obj.w = _w;
+    	obj.h = _h;
     };
     /**
-	 * 获取控件宽高
+	 * 获取控件坐标
 	 * @method getPosition
 	 * @return {x,y}
 	 */
 	p.getPosition = function(){
-		return { x: this.x, y: this.y };
+		var w = this.getObject();
+		return { x: w.x, y: w.y };
 	}
     /**
      * 设置坐标
@@ -155,16 +143,9 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _y
      */
 	p.setPosition = function( _x, _y ){
-		this.x = this._parent ? this._parent.x + _x : _x;
-    	this.y = this._parent ? this._parent.y + _y : _y;
-    	if( this.isContainer() ){
-    		this.getWidget().setBounds( this.x, this.y, this.w, this.h );
-    		// TODO 当容器位置变化时，更新子控件的位置
-    		// 主要用于容器在添加至绘制面板后的子控件同步变化
-    	}else{
-    		this.getWidget().x = this.x;
-    		this.getWidget().y = this.y;
-    	}
+    	var obj = this.getObject();
+		obj.x = _x;
+		obj.y = _y;
 	};
 	/**
 	 * 获取控件状态
@@ -172,33 +153,68 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {Boolean}
 	 */
 	p.isEnabled = function(){
-		return this.e;
-	}
-// event method
+		return this._enable;
+	};
 	/**
 	 * 设置控件状态，主要用于屏蔽事件穿透
 	 * @method setEnabled
      * @param {Boolean} _e
 	 */
 	p.setEnabled = function( _e ){
-		this.e = _e;
+		this._enable = _e;
 	}
+	/**
+	 * 获取控件透明度
+	 * @method getAlpha
+	 * @return {Float} [0, 1]
+	 */
+	p.getAlpha = function(){
+		return this.getObject().alpha;
+	};
+	/**
+	 * 设置控件透明度
+	 * @method setAlpha
+	 * @param {Float} [0, 1]
+	 */
+	p.setAlpha = function( _a ){
+		this.getObject().alpha = _a;
+	};
+	/**
+	 * 控件是否可见
+	 * @method isVisible
+	 * @param {Boolean}
+	 */
+	p.isVisible = function(){
+		return this.getObject().visible;
+	};
+	/**
+	 * 设置控件是否可见
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this.getObject().visible = _v;
+	};
+// event method
     /**
      * 自定义绑定事件
      * @method onEvent
-     * @param {String} _e 事件比如："click"等。
+     * @param {String} _e 事件比如："click"等。具体参考CreateJs官网各控件对应事件类型。
      * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
      */
     p.onEvent = function( _e, _f ){
     	if( typeof _f != "function" ) throw "参数_f不是有效的方法类型";
-    	this._bind_event( _e, this.getWidget(), _f );
+    	// 事件始终绑定到DisplayObejct对象上
+    	if( this._object )
+    		this._bind_event( _e, this._object, _f );
     }
     /**
      * 解绑控件弹起事件
      * @method unEvent
      */
     p.unEvent = function( _e ){
-    	this._unbind_event( _e, this.getWidget() );
+    	if( this._object )
+    		this._unbind_event( _e, this._object );
     };
 // private method
     /**
@@ -208,7 +224,7 @@ this.jeesjs = this.jeesjs || {};
      */
     p._init_finish = function(){
     	if( this._parent != undefined ){
-    		this._parent.addChild( this.getWidget() );
+    		this._parent.addObject( this.getObject() );
     	}
     }
     /**
@@ -224,7 +240,6 @@ this.jeesjs = this.jeesjs || {};
 		this._handle_map[ _e ] = _f;
 		var _this = this;
 		this._event_map[ _e ] = _w.addEventListener( _e, function( e ) { _this._handle_event( e ); } );
-//    	this._event_map[ _e ] = _w.on( _e, function( e ) { _this._handle_event( e ); }  );
 	};
 	/**
 	 * @method _unbind_event
@@ -234,7 +249,6 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p._unbind_event = function( _e, _w ){
 		_w.removeEventListener( _e, this._event_map[_e] );
-//		_w.off( _e, this._event_map[ _e ] );
 		this._event_map[ _e ] = null;
 		this._handle_map[ _e ] = null;
 		delete this._event_map[ _e ];

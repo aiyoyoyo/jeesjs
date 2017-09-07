@@ -13,7 +13,7 @@ this.jeesjs = this.jeesjs || {};
 	"use strict";
 	// constructor:
 	/**
-	 * TODO: 点击事件必须点击绘制的部分，考虑通过增加底板来实现点击事件。问题：透明底板的点击事件会被忽略。
+	 * TODO: 点击事件必须点击绘制的部分，考虑通过增加底板来实现点击事件。
 	 * @class TextBox
 	 * @extends jeesjs.Widget
 	 * @param (String} _t
@@ -23,48 +23,50 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	function TextBox(_t,_p) {
 		this.Widget_constructor(_p);
-
-// public properties:
+// private properties:
+		// 拆分的字体样式-粗体
+		this._font_bold = "";
+		// 拆分的字体样式-斜体体
+		this._font_italic = "";
+		// 拆分的字体样式-字体大小
+		this._font_size = 12;
+		// 拆分的字体样式-字体样式
+		this._font_style = " Arial";
 		/**
 		 * 控件默认文本
 		 * 
-		 * @property t
+		 * @property _text
 		 * @type {String}
 		 * @default 示例文本
 		 */
-		this.t = _t ? _t : "";
-		/**
-		 * 控件默认字体
-		 * 
-		 * @property c
-		 * @type {String}
-		 * @default #000000
-		 */
-		this.f = "12px Arial";
+		this._text = _t ? _t : "";
 		/**
 		 * 控件默认背景颜色
 		 * 
-		 * @property c
+		 * @property _color
 		 * @type {String}
 		 * @default #000000
 		 */
-		this.c = "#000000";
+		this._color = "#ffffff";
+		/**
+		 * 控件默认字体大小、样式等
+		 * 
+		 * @property _font
+		 * @type {String}
+		 * @default #000000
+		 */
+		this._font = this._get_font();
+		
 		/**
 		 * CreateJS图形控件
 		 * 
 		 * @property _text
 		 * @type {createjs.Text}
 		 */
-		this._text = new createjs.Text( this.t, this.f, this.c );
-		this._text._drawText = this._draw_text;
-		
-// private properties:
-		this._font_bold = "";
-		this._font_italic = "";
-		this._font_style = "";
-		this._font_size = 12;
-		this._font = " Arial";
-		
+		this._object = new createjs.Text( this._text, this._font, this._color );
+		this._object._drawText = this._draw_text;
+		this._object.lineHeight = this._font_size;
+// public properties:
 		this._init_finish();
 	};
 // public static properties
@@ -83,23 +85,13 @@ this.jeesjs = this.jeesjs || {};
 	
 	var p = createjs.extend(TextBox, jeesjs.Widget);
 // public method
-	 /**
-     * 返回根容器
-     * @method getRoot
-     * @extends
-     * @type {createjs.DisplayObject}
-     * @return 
-     */
-    p.getWidget = function(){
-    	return this._text;
-    };
 	/**
 	 * 当前颜色
 	 * @method getColor
 	 * @return {String}
 	 */
 	p.getColor = function(){
-		return this.c;
+		return this._color;
 	};
 	/**
 	 * 设置颜色
@@ -109,28 +101,37 @@ this.jeesjs = this.jeesjs || {};
 	 *            _c
 	 */
 	p.setColor = function(_c) {
-		this.c = _c;
-		this._text.color = this.c;
+		this._color = _c;
+		this._object.color = _c;
 	};
 	/**
-	 * 当前字体大小
-	 * @method getFont
-	 * @return {String}
-	 */
-	p.getFontSize = function(){
-		return this.f;
-	}
-	/**
-	 * 设置字体样式
+	 * 设置完整的字体样式
 	 * 参考html5字体样式
 	 * @method setFont
-	 * @param {String}
-	 *            _f
+	 * @param {String} _f ex."12px Arial"
 	 */
 	p.setFont = function( _f ){
-		this.f = _f;
-		this._text.font = this._get_font();
-		this._set_size();
+		this._font = _f;
+		this._object.font = _f;
+	};
+	/**
+	 * 当前字体样式
+	 * @method getFontStyle
+	 * @return {String}
+	 */
+	p.getFontStyle = function(){
+		return this._font_style;
+	}
+	/**
+	 * 设置字体大小
+	 * 
+	 * @method setFontStyle
+	 * @param {String}
+	 *            _s
+	 */
+	p.setFontStyle = function( _s ){
+		this._font_style = _s;
+		this._object.font = this._get_font();
 	};
 	/**
 	 * 当前字体大小
@@ -149,9 +150,9 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.setFontSize = function( _s ){
 		this._font_size = _s;
-		this._set_font();
-		this._text.font = this._get_font();
-		this._set_size();
+		this._object.lineHeight = this._font_size;
+		console.log( this._get_font() );
+		this._object.font = this._get_font();
 	};
 	/**
 	 * 当前字体基于坐标的水平对齐方式
@@ -159,7 +160,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p.getAlign = function(){
-		return this._text.textAlign;
+		return this._object.textAlign;
 	}
 	/**
 	 * 设置文字基于坐标的水平对齐方式
@@ -169,8 +170,7 @@ this.jeesjs = this.jeesjs || {};
 	 *            _a
 	 */
 	p.setAlign = function( _a ){
-		this._text.textAlign = _a;
-		this._set_size();
+		this._object.textAlign = _a;
 	};
 	/**
 	 * 当前字体基于坐标的垂直对齐方式
@@ -178,7 +178,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p.getBaseline = function(){
-		return this._text.textBaseline;
+		return this._object.textBaseline;
 	}
 	/**
 	 * 设置文字基于坐标的垂直对齐方式
@@ -188,8 +188,7 @@ this.jeesjs = this.jeesjs || {};
 	 *            _a
 	 */
 	p.setBaseline = function( _b ){
-		this._text.textBaseline = _b;
-		this._set_size();
+		this._object.textBaseline = _b;
 	};
 	/**
 	 * 当前显示内容的固定宽度
@@ -197,7 +196,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p.getMaxWidth = function(){
-		return this._text.maxWidth;
+		return this._object.maxWidth;
 	}
 	/**
 	 * 设置显示内容的固定宽度，内容超出后，会压缩文字宽度至该范围内。
@@ -205,8 +204,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Number} _w
 	 */
 	p.setMaxWidth = function( _w ){
-		this._text.maxWidth = _w;
-		this._set_size();
+		this._object.maxWidth = _w;
 	}
 	/**
 	 * 当前显示范围的固定宽度
@@ -214,7 +212,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p.getLineWidth = function(){
-		return this._text.lineWidth;
+		return this._object.lineWidth;
 	}
 	/**
 	 * 设置显示范围的固定宽度，超出后自动换行。可以通过字体大小计算出换行位置。
@@ -222,8 +220,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Number} _w
 	 */
 	p.setLineWidth = function( _w ){
-		this._text.lineWidth = _w;
-		this._set_size();
+		this._object.lineWidth = _w;
 	}
 	/**
 	 * 当前显示的内容
@@ -231,7 +228,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p.getText = function(){
-		return this.t;
+		return this._text;
 	}
 	/**
 	 * 设置显示的内容
@@ -239,9 +236,8 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {String} _t
 	 */
 	p.setText = function( _t ){
-		this.t = _t;
-		this._text.text = this.t;
-		this._set_size();
+		this._text = _t;
+		this._object.text = _t;
 	}
 	/**
 	 * 是否使用粗体
@@ -258,9 +254,7 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.setBold = function( _v ){
 		this._font_bold = _v ? " bold" : "";
-		this._set_font();
 		this._text.font = this._get_font();
-		this._set_size();
 	}
 	/**
 	 * 是否使用斜体
@@ -277,9 +271,7 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.setItalic = function( _v ){
 		this._font_italic = _v ? " italic" : "";
-		this._set_font();
 		this._text.font = this._get_font();
-		this._set_size();
 	}
 // private method
 	/**
@@ -289,25 +281,8 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {String}
 	 */
 	p._get_font = function(){
-		return this.f; 
-	};
-	/**
-	 * 根据字体属性生成控件的宽高
-	 * @method _set_size
-	 * @private
-	 */
-	p._set_size = function(){
-		var b = this._text.getBounds();
-		this.w = b.width;
-		this.h = b.height;
-	};
-	/**
-	 * 设置字体信息
-	 * @method _set_font
-	 * @private
-	 */
-	p._set_font = function(){
-		this.f = this._font_italic + this._font_bold + " " + this._font_size + "px " + this._font;
+		this._font = this._font_italic + this._font_bold + " " + this._font_size + "px " + this._font_style;
+		return this._font;
 	}
 	/** 
      * Draws multiline text. 修复createjs的text为中文时，自动换行的问题。

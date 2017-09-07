@@ -87,7 +87,7 @@ this.jeesjs = this.jeesjs || {};
             }
         }
 		
-    	this._queue = new createjs.LoadQueue( true,"","Anonymous" );
+    	this._queue = new createjs.LoadQueue( false,"","Anonymous" );
     	this._queue.maintainScriptOrder = true;
     	this._queue.setMaxConnections( this._options.size );
     	

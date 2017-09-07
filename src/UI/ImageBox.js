@@ -41,13 +41,6 @@ this.jeesjs = this.jeesjs || {};
 		 */
 		this._state = false;
 		/**
-		 * CreateJS图形控件
-		 * 
-		 * @property _image
-		 * @type {createjs.Bitmap}
-		 */
-		this._image = null;
-		/**
 		 * 区域对象
 		 * @property _rect
 		 * @type createjs.Rectangle
@@ -56,7 +49,7 @@ this.jeesjs = this.jeesjs || {};
 		
 		if( typeof _r === "string" && !/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test( _r ) || typeof _r === "object" ){
 			this._source = typeof _r === "object" ? _r : jeesjs.QM.getSource( _r );
-			this._image = new createjs.Bitmap( this._source );
+			this._object = new createjs.Bitmap( this._source );
 			this._reset_size();
 			this._state = true;
         }else{
@@ -66,7 +59,7 @@ this.jeesjs = this.jeesjs || {};
         	tmp.src = _r;
         	tmp.onload = this._onload_finish;
         	
-        	this._image = new createjs.Bitmap( this._source );
+        	this._object = new createjs.Bitmap( this._source );
         }
         
 		this._init_finish();
@@ -75,16 +68,6 @@ this.jeesjs = this.jeesjs || {};
 
 	var p = createjs.extend(ImageBox, jeesjs.Widget);
 // public method
-	 /**
-     * 返回根容器
-     * @method getRoot
-     * @extends
-     * @type {createjs.DisplayObject}
-     * @return 
-     */
-    p.getWidget = function(){
-    	return this._image;
-    };	
     /**
 	 * 获取图片的加载状态
 	 * @method getState
@@ -111,7 +94,26 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.setRect = function( _x, _y, _w, _h ){
 		this._rect.setValues( _x, _y, _w, _h );
-		this._image.sourceRect = this._rect ;
+		this._object.sourceRect = this._rect;
+	}
+	/**
+	 * 等比缩放某个组件
+	 * @method setScale
+	 * @param {Number} _sx
+	 * @param {Number} _sy
+	 */
+	p.setScale = function( _sx, _sy ) {
+		if( _sx != undefined )
+			this._object.scaleX = _sx;
+		if( _sy != undefined )
+			this._object.scaleY = _sy;
+		
+		var b = this._object.getBounds();
+		this._width = b.width * _sx;
+		this._height = b.height * _sy;
+	}
+	p.setTile = function( _w, _h ){
+		this._object.tileW = _w;
 	}
 // private method
 	/**
@@ -127,16 +129,16 @@ this.jeesjs = this.jeesjs || {};
 	 * @private
 	 */
     p._reset_size = function(){
-    	var b = this._image.getBounds();
-		this.w = b.width;
-		this.h = b.height;
+    	var b = this._object.getBounds();
+		this._width = b.width;
+		this._height = b.height;
 		
 		if( this._rect ){
-			this._rect.setValues( 0, 0 , this.w, this.h );
+			this._rect.setValues( 0, 0 , this._width, this._height );
 		}else{
-			this._rect = new createjs.Rectangle( 0, 0 , this.w, this.h );
+			this._rect = new createjs.Rectangle( 0, 0 , this._width, this._height );
 		}
-		this._image.sourceRect = this.rect;
+		this._object.sourceRect = this.rect;
     };
     
 	jeesjs.ImageBox = createjs.promote(ImageBox, "Widget");

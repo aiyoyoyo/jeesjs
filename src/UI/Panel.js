@@ -14,6 +14,7 @@ this.jeesjs = this.jeesjs || {};
 	"use strict";
 // constructor:
 	/**
+	 * 基本面板，容器类型，可以添加其他的Widget。缺点：目前父容器改变位置的话，子容器位置是不变的。没有做相对路径的功能。
 	 * @class Panel
 	 * @extends jeesjs.Widget
 	 * @param {Widget} _p
@@ -21,72 +22,53 @@ this.jeesjs = this.jeesjs || {};
 	 */
     function Panel( _p ){
     	this.Widget_constructor( _p );
-
+// private properties:
+    	/**
+    	 * 控件宽度
+    	 * @property _width
+    	 * @type {Number}
+    	 * @extends
+    	 * @default 0
+    	 */
+    	this._width = 200;
+    	/**
+    	 * 控件高度
+    	 * @property _height
+    	 * @type {Number}
+    	 * @extends
+    	 * @default 0
+    	 */
+    	this._height = 200;
 // public properties:
     	/**
     	 * 控件默认背景颜色
-    	 * @property c
+    	 * @property _bgcolor
     	 * @type {String}
     	 * @default #000000
     	 */
-    	this.c = "#000000";
-    	/**
-    	 * 控件宽度
-    	 * @property w
-    	 * @type {Number}
-    	 * @default 100
-    	 */
-    	this.w = 100;
-    	/**
-    	 * 控件高度
-    	 * @property h
-    	 * @type {Number}
-    	 * @default 100
-    	 */
-    	this.h = 100;
+    	this._bg_color = "#000000";
     	/**
     	 * CreateJS绘制容器
     	 * @property _container
     	 * @type {createjs.Container}
+    	 * @extends
     	 */
     	this._container = new createjs.Container();
     	/**
     	 * CreateJS图形控件
-    	 * @property _shape
+    	 * @property _widget
     	 * @type {createjs.Shape}
     	 */
-    	this._shape = new createjs.Shape();
-    	this._shape.graphics.beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
- 		
-    	this._container.addChild( this._shape );
-    	// 保证绘制的内容在容器之内
-    	this._container.mask = this._shape;
+    	this._object = new createjs.Shape();
     	
-    	this._init_finish();
+    	this._container.addChild( this._object );								//
+    	this._container.mask = this._object;									//保证绘制的内容在容器之内
+    	
+    	this._init_finish();													// 添加至父容器
+    	this._reset_bg();
     };
   	var p = createjs.extend( Panel, jeesjs.Widget );
 // public method
-  	 /**
-     * 自定义绑定事件
-     * @method onEvent
-     * @param {String} _e 事件比如："click"等。
-     * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
-     * @extends
-     */
-    p.onEvent = function( _e, _f ){
-    	if( typeof _f != "function" ) throw "参数_f不是有效的方法类型";
-    	this._bind_event( _e, this._shape, _f );
-    }
-    /**
-     * 解绑控件弹起事件
-     * @extends
-     * @method unEvent
-     * @extends
-     */
-    p.unEvent = function( _e ){
-    	this._unbind_event( _e, this._shape );
-    };
-    
   	/**
      * 设置宽高
      * @method setSize
@@ -96,7 +78,7 @@ this.jeesjs = this.jeesjs || {};
      */
     p.setSize = function( _w, _h ){
     	this.Widget_setSize( _w, _h );
-    	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+    	this._reset_bg();
     };
     /**
      * 设置坐标
@@ -107,26 +89,58 @@ this.jeesjs = this.jeesjs || {};
      */
 	p.setPosition = function( _x, _y ){
 		this.Widget_setPosition( _x, _y );
-    	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+		this._object.x = _x;
+		this._object.y = _y;
+    	this._reset_bg();
 	};
 	/**
 	 * 当前背景色
-	 * @method setColor
-     * @param {String} _c
+	 * @method getColor
+     * return {String} "#00ff00"
 	 */
 	p.getColor = function(){
-		return this.c;
-	}
+		return this._bg_color;
+	};
 	/**
 	 * 设置颜色
 	 * @method setColor
      * @param {String} _c
 	 */
     p.setColor = function( _c ){
-    	this.c = _c;
-    	this._shape.graphics.clear().beginFill( this.c ).drawRect( this.x, this.y, this.w, this.h );
+    	this._bg_color = _c;
+    	this._reset_bg();
     };
-	Object.defineProperties( p , {test:{get:p.getSpeed, set:p.setSpeed}});
+    /**
+     * 平铺图片到背景
+     * @method setTile
+     * @param {String} _r
+     * @param {Number} _t 平铺类型 0-铺满 1-水平 2-垂直 
+     * @param {Number} _x
+     * @param {Number} _y
+     * @param {Number} _w
+     * @param {Number} _h
+     */
+    p.setTile = function( _r, _t, _x, _y, _w, _h ){
+    	var t_t = _t ? _t : 0;
+    	var t_x = _x ? _x : 0;
+    	var t_y = _y ? _y : 0;
+    	var t_w = _w ? _w : this._width;
+    	var t_h = _h ? _h : this._height;
+    	
+    	if( typeof _r === "string" )
+	    	this._object.graphics.beginBitmapFill( jeesjs.QM.getSource( _r ) ).drawRect( t_x, t_y, t_w, t_h );
+    };
+// private method
+    /**
+     * 设置背景颜色
+	 * @method _reset_bg
+	 * @private
+     */
+    p._reset_bg = function(){
+    	var posi = this.getPosition();
+    	var size = this.getSize();
+    	this._object.graphics.clear().beginFill( this._bg_color ).drawRect( posi.x, posi.y, size.w, size.h );
+    };
     
 	jeesjs.Panel = createjs.promote( Panel, "Widget" );
 })();

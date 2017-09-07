@@ -112,7 +112,7 @@ function UITest(){
 			
 			var anime_data ={ count : 64, width: 165, height: 292, type: "run", animations: {
 				run : [0, 26, "run", 1.5],
-				jump : [26,63, "run" ]
+				jump : [26,63, "run"]
 			}};
 			Mod_Test._spt = new jeesjs.ImageSpt( true, "png", anime_data, p );
 //			Mod_Test._spt = new jeesjs.ImageSpt( false, "pnga", { width: 97, height: 103, count: 6,  begin: 0, end: 5, speed: 0.05 }, p );

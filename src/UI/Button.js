@@ -27,21 +27,23 @@ this.jeesjs = this.jeesjs || {};
 
 // public properties:
 		//这部分用于临时数据
-		var r = jeesjs.QM.getSource( _r ); 	//图片源
-		var bg = new createjs.Bitmap( r );	//图片对象
-		var b = bg.getBounds();				//获取图片信息
+		var r = jeesjs.QM.getSource( _r ); 			//图片源
+		var bg = new createjs.Bitmap( r );			//图片对象
+		var b = bg.getBounds();						//获取图片信息
+		var t = _typ ? _typ : Button.TYPE_NORMAL;	//按钮类型
+		var c = Button.TYPE_CHECK === t;			//是否使用8态
 		/**
 		 * 按钮宽度
-		 * @property w
+		 * @property _width
 		 * @type {Number}
 		 */
-		this.w = b.width;				//拆分按钮的宽度=图片宽度
+		this._width = b.width;				//拆分按钮的宽度=图片宽度
 		/**
 		 * 按钮高度
-		 * @property h
+		 * @property _height
 		 * @type {Number}
 		 */
-		this.h = b.height / _typ;		//拆分按钮的高度=图片高度/4|8 态
+		this._height = b.height / t;		//拆分按钮的高度=图片高度/4|8 态
 // private properties:
 		/**
 		 * 按钮显示的文本
@@ -51,11 +53,11 @@ this.jeesjs = this.jeesjs || {};
 		this._btn_text = null;
 		/**
 		 * 选中状态
-		 * @property _c
+		 * @property _checked
 		 * @type {Boolean}
 		 * @default false
 		 */
-		this._c = false;
+		this._checked = false;
 		/**
 		 * 基本容器
 		 * @property _container
@@ -64,7 +66,6 @@ this.jeesjs = this.jeesjs || {};
 		 */
 		this._container = new createjs.Container();
 		
-		var btn_c = Button.TYPE_CHECK === _typ;	//是否使用8态
 		/**
 		 * 构建按钮图片的数据对象
 		 * 数据定义参考createjs.SpriteSheet
@@ -73,9 +74,9 @@ this.jeesjs = this.jeesjs || {};
 		 */
 		this._btn_data = {
 			"images" : [ r ],
-			"frames" : { width : this.w, height : this.h, count : _typ },
+			"frames" : { width : this._width, height : this._height, count : _typ },
 			"animations" : { out : 0, over : 1, down : 2, disable : 3, 
-				checked_out : btn_c ? 4 : 0, checked_over : btn_c ? 5 : 1, checked_down : btn_c ? 6 : 2, checked_disable : btn_c ? 7 : 3 
+				checked_out : c ? 4 : 0, checked_over : c ? 5 : 1, checked_down : c ? 6 : 2, checked_disable : c ? 7 : 3 
 			}
 		};
 		/**
@@ -86,30 +87,31 @@ this.jeesjs = this.jeesjs || {};
 		this._btn_sheet = new createjs.SpriteSheet( this._btn_data );	
 		/**
 		 * 按钮绘制精灵
-		 * @property _btn_sprite
+		 * @property _object
 		 * @type {createjs.Sprite}
 		 */
-		this._btn_sprite = new createjs.Sprite( this._btn_sheet );
+		this._object = new createjs.Sprite( this._btn_sheet );
 		/**
 		 * 精灵辅助配置
 		 * @property _btn_helper
 		 * @type {createjs.ButtonHelper}
 		 */
-		this._btn_helper = new createjs.ButtonHelper( this._btn_sprite );
+		this._btn_helper = new createjs.ButtonHelper( this._object );
 		
 		//去掉了参数保护
 		this._btn_text = typeof _t === "object" ? _t : new jeesjs.TextBox( _t != "" ? _t : " "  );
 		this._btn_text.setAlign( jeesjs.TextBox.ALIGN_CENTER );
 		this._btn_text.setBaseline( jeesjs.TextBox.BASELINE_MIDDLE );
-		this._btn_text.setPosition( this.w / 2, this.h / 2 );
+		this._btn_text.setPosition( this._width / 2, this._height / 2 );
 		
-		this._container.addChild( this._btn_sprite );
-		this._container.addChild( this._btn_text.getWidget() );
+		this._container.addChild( this._object );
+		this._container.addChild( this._btn_text.getObject() );
 		
         this._init_finish();
         
-		this.onEvent( "mousedown", this._handle_mousedown );
-		this.onEvent( "pressup", this._handle_pressup );
+        var _this = this;
+        this._object.addEventListener( "mousedown", function( e ){ _this._handle_mousedown( e, _this ); });
+        this._object.addEventListener( "pressup", function( e ){ _this._handle_pressup( e, _this ); });
 	};
 // public static properties
 	Button.TYPE_NORMAL		= 4;
@@ -117,26 +119,6 @@ this.jeesjs = this.jeesjs || {};
 	
 	var p = createjs.extend(Button, jeesjs.Widget);
 // public method
-	/**
-     * 自定义绑定事件
-     * @method onEvent
-     * @param {String} _e 事件比如："click"等。
-     * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
-     * @extends
-     */
-    p.onEvent = function( _e, _f ){
-    	if( typeof _f != "function" ) throw "参数_f不是有效的方法类型";
-    	this._bind_event( _e, this._btn_sprite, _f );
-    }
-    /**
-     * 解绑控件弹起事件
-     * @extends
-     * @method unEvent
-     * @extends
-     */
-    p.unEvent = function( _e ){
-    	this._unbind_event( _e, this._btn_sprite );
-    };
     /**
      * 设置坐标
      * @method setPosition
@@ -146,8 +128,6 @@ this.jeesjs = this.jeesjs || {};
      */
 	p.setPosition = function( _x, _y ){
 		this.Widget_setPosition( _x, _y );
-    	this.getWidget().x = this.x;
-    	this.getWidget().y = this.y;
 	};
 	/**
 	 * 设置状态
@@ -166,7 +146,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {Boolean}
 	 */
 	p.isChecked = function(){
-		return this._c;
+		return this._checked;
 	}
 	/**
 	 * 设置是否选中
@@ -174,7 +154,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Boolean} _c
 	 */
 	p.setChecked = function( _c ){
-		this._c = _c;
+		this._checked = _c;
 		if( this.isChecked() ){
 			this._btn_helper.target.gotoAndPlay( this.isEnabled() ? "checked_out" : "checked_disable" );
 			this._btn_helper.overLabel = "checked_over";
@@ -212,7 +192,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @private
 	 */
 	p._handle_mousedown = function( _e, _w ){
-		if( !_w.isEnabled() ) return;
+		if( !this.isEnabled() ) return;
 		var pos = _w._btn_text.getPosition();
 		var offset = _w._btn_text.getFontSize() / 10;
 		_w._btn_text.setPosition( pos.x - offset, pos.y - offset );

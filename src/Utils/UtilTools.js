@@ -22,7 +22,8 @@ this.jeesjs = this.jeesjs || {};
     /**
 	 * 伪随机数生成器/线性同余生成器
 	 * @method Random
-	 * @param {Number} _n 生成1-_n之间的随机数
+	 * @param {Number} _n 生成1~_n之间的随机数
+	 * @param {Number} _m 生成_m~-n之间的随机数
 	 * @static
 	 * @return {Number} 
 	 */
@@ -32,8 +33,8 @@ this.jeesjs = this.jeesjs || {};
 		    seed = ( seed * 9301 + 49297 ) % 233280;
 		    return seed / 233280.0;
 		}
-		return function( _n ){
-		    return Math.ceil( r() * _n );
+		return function( _n, _m ){
+		    return Math.ceil( r() * _n  ) + ( _m ? _m : 0 );
 		}
 	})();
 	/**

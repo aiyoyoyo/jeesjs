@@ -121,10 +121,10 @@ this.jeesjs = this.jeesjs || {};
 		this._spt_sheet = new createjs.SpriteSheet( this._spt_data );
 		/**
 		 * 按钮绘制精灵
-		 * @property _btn_sprite
+		 * @property _object
 		 * @type {createjs.Sprite}
 		 */
-		this._sprite = new createjs.Sprite( this._spt_sheet, this._options.type );
+		this._object = new createjs.Sprite( this._spt_sheet, this._options.type );
 // public properties:
 		
 		this._init_finish();
@@ -133,24 +133,14 @@ this.jeesjs = this.jeesjs || {};
 
 	var p = createjs.extend(ImageSpt, jeesjs.Widget);
 // public method
-	/**
-     * 返回根容器
-     * @method getRoot
-     * @extends
-     * @type {createjs.DisplayObject}
-     * @return 
-     */
-    p.getWidget = function(){
-    	return this._sprite;
-    };
     /**
      * 播放动画，如果是帧数，会重置播放的动作到默认动作[normal]下面。
      * @method play
      * @param {String|Number} _n 指定播放哪个动作或者那一帧
      */
     p.play = function( _n ){
-    	if( _n ) this._sprite.gotoAndPlay( _n );
-    	else this._sprite.play ();
+    	if( _n ) this._object.gotoAndPlay( _n );
+    	else this._object.play ();
     };
     /**
      * 停止播放
@@ -158,8 +148,8 @@ this.jeesjs = this.jeesjs || {};
      * @param {String|Number} _n 指定停止或者停止到那一帧
      */
     p.stop = function( _i ){
-    	if( _i ) this._sprite.gotoAndStop( _i );
-    	else this._sprite.stop ();
+    	if( _i ) this._object.gotoAndStop( _i );
+    	else this._object.stop ();
     };
 // private method
 	
