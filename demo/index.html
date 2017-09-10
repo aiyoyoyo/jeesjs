@@ -1,3 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, height=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script src="../../../assets/createjs/easeljs-0.8.2.min.js"></script>
+<script src="../../../assets/createjs/tweenjs-0.6.2.min.js"></script>
+<script src="../../../assets/createjs/preloadjs-0.6.2.min.js"></script>
+<script src="../../../assets/createjs/soundjs-0.6.2.min.js"></script>
+<!-- 
+<script src="../lib/jeesjs-1.0.0.min.js"></script>
+ -->
+<script src="../src/Module/Module.js"></script>
+<script src="../src/Utils/UtilTools.js"></script>
+<script src="../src/Manager/CanvasManager.js"></script>
+<script src="../src/Manager/ModulesManager.js"></script>
+<script src="../src/Manager/QueueManager.js"></script>
+<script src="../src/Application.js"></script>
+<script src="../src/UI/Widget.js"></script>
+<script src="../src/UI/Button.js"></script>
+<script src="../src/UI/ImageBox.js"></script>
+<script src="../src/UI/ImageSpt.js"></script>
+<script src="../src/UI/Panel.js"></script>
+<script src="../src/UI/TextBox.js"></script>
+<script src="mod/mod_index.js"></script>
+<script src="mod/mod_topbar.js"></script>
+<script src="mod/mod_blank.js"></script>
+<script src="mod/mod_ui.js"></script>
+<script src="mod/mod_button.js"></script>
+<script src="mod/mod_imagebox.js"></script>
+<script src="mod/mod_imagespt.js"></script>
+<script src="mod/mod_panel.js"></script>
+<script src="mod/mod_textbox.js"></script>
+<link href="../lib/jeesjs.min.css" rel="stylesheet" />
+</head>
 
-<a href="button.html">按钮</a>
-<a href="textbox.html">按钮</a>
+<body>
+	<canvas id="gCanvas"></canvas>
+	<script type="text/javascript">
+		Mod_Index.init();
+		jeesjs.APP.init( Mod_Index );
+		jeesjs.APP.showFPS( true );
+	</script>
+</body>
+</html>
