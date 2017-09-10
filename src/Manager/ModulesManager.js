@@ -164,10 +164,10 @@ this.jeesjs = this.jeesjs || {};
 				var tmp = mods[j];
 				if( tmp.id === _id ){
 					tmp.leave();
-					mods.splice( i, 1 );
+					mods.splice( j, 1 );
 					cur_mod = j;
 					if( mods.length == 0 ){
-						ModulesManager._modules.pop();
+						this._modules.pop();
 					}
 					find = true;
 					break;
@@ -175,6 +175,7 @@ this.jeesjs = this.jeesjs || {};
 			}
 			if( find ) break;
 		}
+		
 		if( cur_mod == 0 && cur_lvl == this.hierarchy() ){
 			var mods = this._modules[ this.hierarchy() - 1 ];
 			if( mods != undefined )
