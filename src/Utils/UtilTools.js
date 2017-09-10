@@ -51,7 +51,7 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	UtilTools.RandomColor = (function() {
 		function rc2hex(){
-			var c = this.Random(256);
+			var c = jeesjs.UT.Random(256);
 			if( c < 10 ) return "0" + c;
 		    return c.toString(16);
 		};
