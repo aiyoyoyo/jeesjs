@@ -45,6 +45,15 @@ this.jeesjs = this.jeesjs || {};
 		jeesjs.APP.addChild( _w.getObject() );
 	}
 	/**
+	 * 移除控件
+	 * @method removeWidget
+     * @static
+     * @param {Widget} _w 要移除的控件
+	 */
+	CanvasManager.removeWidget = function( _w ) {
+		jeesjs.APP.removeChild( _w.getObject() );
+	}
+	/**
 	 * 添加一个源控件
 	 * @method addChild
      * @static

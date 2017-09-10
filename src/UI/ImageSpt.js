@@ -62,28 +62,25 @@ this.jeesjs = this.jeesjs || {};
 	        }
         
         var r = jeesjs.QM.getSource( _r ); 	//图片源
-        var bg = new createjs.Bitmap( r );	//图片对象
-		var b = bg.getBounds();				//获取图片信息
-		
 // public properties:
 		/**
 		 * 图片资源宽度
 		 * @property sourceWidth
 		 * @type {Number}
 		 */
-		this.sourceWidth = b.width;
+		this.sourceWidth = r.width;
 		/**
 		 * 图片资源高度
 		 * @property sourceHeight
 		 * @type {Number}
 		 */
-		this.sourceHeight = b.height;
+		this.sourceHeight = r.height;
 		/**
 		 * 宽度
 		 * @property w
 		 * @type {Number}
 		 */
-		this.w = this._options.width != 0 ? this._options.width :			//手动设置宽
+		this._width = this._options.width != 0 ? this._options.width :			//手动设置宽
 			this._options.row != 0 ? this.sourceWidth / this._options.row : //拆分按钮的宽度=图片宽度/行
 				b.width;													//图片源宽度
 		/**
@@ -91,7 +88,7 @@ this.jeesjs = this.jeesjs || {};
 		 * @property h
 		 * @type {Number}
 		 */
-		this.h = this._options.height != 0 ? this._options.height :			//手动设置高
+		this._height = this._options.height != 0 ? this._options.height :			//手动设置高
 			this._options.row != 0 ? this.sourceWidth / this._options.row : //拆分按钮的高度=图片高度/列
 				b.height;													//图片源高度
 // private properties:
@@ -105,8 +102,8 @@ this.jeesjs = this.jeesjs || {};
 			framerate: this._options.rate,
 			images : [ r ],
 			frames : {
-				width : this.w,
-				height : this.h,
+				width : this._width,
+				height : this._height,
 				count : this._options.count,
 				regX: this._options.regX,
 				regY: this._options.regY
@@ -127,12 +124,25 @@ this.jeesjs = this.jeesjs || {};
 		this._object = new createjs.Sprite( this._spt_sheet, this._options.type );
 // public properties:
 		
+		this.setPosition( 0, 0 );
 		this._init_finish();
 	};
 // public static properties
 
 	var p = createjs.extend(ImageSpt, jeesjs.Widget);
 // public method
+	/**
+     * 设置坐标
+     * @method setPosition
+     * @extends
+     * @param {Number} _x
+     * @param {Number} _y
+     */
+	p.setPosition = function( _x, _y ){
+		this.Widget_setPosition( this._parent ? this._parent._x + _x : _x, this._parent ? this._parent._y + _y : _y );
+		this._object.x = this._x;
+		this._object.y = this._y;
+	};
     /**
      * 播放动画，如果是帧数，会重置播放的动作到默认动作[normal]下面。
      * @method play

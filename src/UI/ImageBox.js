@@ -61,13 +61,25 @@ this.jeesjs = this.jeesjs || {};
         	
         	this._object = new createjs.Bitmap( this._source );
         }
-        
+        this.setPosition( 0, 0 );
 		this._init_finish();
 	};
 // public static properties
 
 	var p = createjs.extend(ImageBox, jeesjs.Widget);
 // public method
+	/**
+     * 设置坐标
+     * @method setPosition
+     * @extends
+     * @param {Number} _x
+     * @param {Number} _y
+     */
+	p.setPosition = function( _x, _y ){
+		this.Widget_setPosition( this._parent ? this._parent._x + _x : _x, this._parent ? this._parent._y + _y : _y );
+		this._object.x = this._x;
+		this._object.y = this._y;
+	};
     /**
 	 * 获取图片的加载状态
 	 * @method getState

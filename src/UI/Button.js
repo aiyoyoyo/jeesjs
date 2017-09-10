@@ -107,6 +107,7 @@ this.jeesjs = this.jeesjs || {};
 		this._container.addChild( this._object );
 		this._container.addChild( this._btn_text.getObject() );
 		
+		this.setPosition( 0, 0 );
         this._init_finish();
         
         var _this = this;
@@ -127,7 +128,10 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _y
      */
 	p.setPosition = function( _x, _y ){
-		this.Widget_setPosition( _x, _y );
+		this.Widget_setPosition( this._parent ? this._parent._x + _x : _x, this._parent ? this._parent._y + _y : _y );
+		this._object.x = this._x;
+		this._object.y = this._y;
+		this._btn_text.setPosition( this._x + this._width / 2, this._y + this._height / 2 );
 	};
 	/**
 	 * 设置状态
@@ -136,17 +140,13 @@ this.jeesjs = this.jeesjs || {};
 	 * @extends
 	 */
 	p.setEnabled = function( _e ){
+		if( this.isEnabled() != _e )
+			this._btn_text.setColor( jeesjs.UT.ReversalColor( this._btn_text.getColor() ) );
+		
 		this.Widget_setEnabled( _e );
 		this._btn_helper.setEnabled( this.isEnabled() );
 		this._btn_helper.target.gotoAndPlay( this.isEnabled() ? "out" : "disable" );
-	}
-	/**
-	 * 是否选中
-	 * @method isChecked
-	 * @return {Boolean}
-	 */
-	p.isChecked = function(){
-		return this._checked;
+		this._btn_text.setPosition( this._x + this._width / 2, this._y + this._height / 2 );
 	}
 	/**
 	 * 设置是否选中
@@ -154,7 +154,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Boolean} _c
 	 */
 	p.setChecked = function( _c ){
-		this._checked = _c;
+		this.Widget_setChecked( _c );
 		if( this.isChecked() ){
 			this._btn_helper.target.gotoAndPlay( this.isEnabled() ? "checked_out" : "checked_disable" );
 			this._btn_helper.overLabel = "checked_over";
@@ -195,7 +195,9 @@ this.jeesjs = this.jeesjs || {};
 		if( !this.isEnabled() ) return;
 		var pos = _w._btn_text.getPosition();
 		var offset = _w._btn_text.getFontSize() / 10;
-		_w._btn_text.setPosition( pos.x - offset, pos.y - offset );
+		var obj = _w._btn_text.getObject();
+		obj.x = pos.x - offset;
+		obj.y = pos.y - offset;
 	}
 	/**
 	 * 当按钮弹起时，文本控件恢复字体/10大小的偏移
@@ -208,7 +210,9 @@ this.jeesjs = this.jeesjs || {};
 		if( !_w.isEnabled() ) return;
 		var pos = _w._btn_text.getPosition();
 		var offset = _w._btn_text.getFontSize() / 10;
-		_w._btn_text.setPosition( pos.x + offset, pos.y + offset );
+		var obj = _w._btn_text.getObject();
+		obj.x = pos.x + offset;
+		obj.y = pos.y + offset;
 	}
 	
 	jeesjs.Button = createjs.promote(Button, "Widget");

@@ -30,7 +30,7 @@ this.jeesjs = this.jeesjs || {};
     	 * @extends
     	 * @default 0
     	 */
-    	this._width = 200;
+    	this._width = 0;
     	/**
     	 * 控件高度
     	 * @property _height
@@ -38,7 +38,7 @@ this.jeesjs = this.jeesjs || {};
     	 * @extends
     	 * @default 0
     	 */
-    	this._height = 200;
+    	this._height = 0;
 // public properties:
     	/**
     	 * 控件默认背景颜色
@@ -65,7 +65,8 @@ this.jeesjs = this.jeesjs || {};
     	this._container.mask = this._object;									//保证绘制的内容在容器之内
     	
     	this._init_finish();													// 添加至父容器
-    	this._reset_bg();
+    	this.setSize( 200, 200 );
+    	this.setPosition( 0, 0 );
     };
   	var p = createjs.extend( Panel, jeesjs.Widget );
 // public method
@@ -139,7 +140,7 @@ this.jeesjs = this.jeesjs || {};
     p._reset_bg = function(){
     	var posi = this.getPosition();
     	var size = this.getSize();
-    	this._object.graphics.clear().beginFill( this._bg_color ).drawRect( posi.x, posi.y, size.w, size.h );
+    	this._object.graphics.clear().beginFill( this._bg_color ).drawRect( 0, 0, size.w, size.h );
     };
     
 	jeesjs.Panel = createjs.promote( Panel, "Widget" );

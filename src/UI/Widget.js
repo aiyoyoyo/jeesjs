@@ -20,7 +20,9 @@ this.jeesjs = this.jeesjs || {};
 	 * @constructor
 	 */
     function Widget( _p ){
-// private properties:   	
+// private properties: 
+    	this._x = 0;
+    	this._y = 0;
     	/**
     	 * 控件宽度
     	 * @property _width
@@ -37,11 +39,29 @@ this.jeesjs = this.jeesjs || {};
     	this._height = 0;
     	/**
     	 * 控件状态
-    	 * @property _enable
+    	 * @property _enabled
     	 * @type {Boolean}
     	 * @default true
     	 */
-    	this._enable = true;
+    	this._enabled = true;
+    	/**
+    	 * 控件状态是否选中，部分有效
+    	 * @property _checked
+    	 * @type {Boolean}
+    	 */
+    	this._checked = false;
+    	 /**
+    	 * 控件状态是否可见
+    	 * @property _visible
+    	 * @type {Boolean}
+    	 */
+    	this._visible = true;
+    	/**
+    	 * 控件透明度
+    	 * @property _alpha
+    	 * @type {Float} 0~1
+    	 */
+    	this._alpha = 1;
     	/**
     	 * 事件的方法池
     	 * @property _event_map
@@ -80,8 +100,8 @@ this.jeesjs = this.jeesjs || {};
 	
     var p = Widget.prototype;
 // public method
-     /**
-     * 返回根容器或者根对象
+    /**
+     * 返回根容器或者根对象，如果是容器则返回容器
      * @method getObject
      * @return {createjs.Container|createjs.DisplayObject}
      */
@@ -93,9 +113,9 @@ this.jeesjs = this.jeesjs || {};
      * @method addChild
      * @param {createjs.DisplayObject}
      */
-    p.addObject = function( _d ){
+    p.addChild = function( _d ){
     	if( this.isContainer() )
-    		this.getObject().addChild( _d );
+    		this._container.addChild( _d );
     	else throw "根节点为非容器类型控件。";
     }
     /**
@@ -123,9 +143,9 @@ this.jeesjs = this.jeesjs || {};
     p.setSize = function( _w, _h ){
     	this._width = _w;
     	this._height = _h;
-    	var obj = this.getObject();
-    	obj.w = _w;
-    	obj.h = _h;
+    	
+    	if( this.isContainer() )
+    		this._container.setBounds( this._x, this._y, this._width, this._height );
     };
     /**
 	 * 获取控件坐标
@@ -133,8 +153,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {x,y}
 	 */
 	p.getPosition = function(){
-		var w = this.getObject();
-		return { x: w.x, y: w.y };
+		return { x: this._x, y: this._y };
 	}
     /**
      * 设置坐标
@@ -143,9 +162,10 @@ this.jeesjs = this.jeesjs || {};
      * @param {Number} _y
      */
 	p.setPosition = function( _x, _y ){
-    	var obj = this.getObject();
-		obj.x = _x;
-		obj.y = _y;
+    	this._x = _x;
+    	this._y = _y;
+    	if( this.isContainer() )
+    		this._container.setBounds( this._x, this._y, this._width, this._height );
 	};
 	/**
 	 * 获取控件状态
@@ -153,7 +173,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {Boolean}
 	 */
 	p.isEnabled = function(){
-		return this._enable;
+		return this._enabled;
 	};
 	/**
 	 * 设置控件状态，主要用于屏蔽事件穿透
@@ -161,7 +181,23 @@ this.jeesjs = this.jeesjs || {};
      * @param {Boolean} _e
 	 */
 	p.setEnabled = function( _e ){
-		this._enable = _e;
+		this._enabled = _e;
+	}
+	/**
+	 * 获取控件状态
+	 * @method isChecked
+	 * @return {Boolean}
+	 */
+	p.isChecked = function(){
+		return this._checked;
+	};
+	/**
+	 * 设置控件状态，主要用于屏蔽事件穿透
+	 * @method setChecked
+     * @param {Boolean} _c
+	 */
+	p.setChecked = function( _c ){
+		this._checked = _c;
 	}
 	/**
 	 * 获取控件透明度
@@ -169,7 +205,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @return {Float} [0, 1]
 	 */
 	p.getAlpha = function(){
-		return this.getObject().alpha;
+		return this._alpha;
 	};
 	/**
 	 * 设置控件透明度
@@ -177,7 +213,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Float} [0, 1]
 	 */
 	p.setAlpha = function( _a ){
-		this.getObject().alpha = _a;
+		this._alpha = _a;
 	};
 	/**
 	 * 控件是否可见
@@ -185,7 +221,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Boolean}
 	 */
 	p.isVisible = function(){
-		return this.getObject().visible;
+		return this._visible;
 	};
 	/**
 	 * 设置控件是否可见
@@ -193,7 +229,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Boolean} _v
 	 */
 	p.setVisible = function( _v ){
-		this.getObject().visible = _v;
+		this._visible = _v;
 	};
 // event method
     /**
@@ -224,7 +260,7 @@ this.jeesjs = this.jeesjs || {};
      */
     p._init_finish = function(){
     	if( this._parent != undefined ){
-    		this._parent.addObject( this.getObject() );
+    		this._parent.addChild( this.getObject() );
     	}
     }
     /**

@@ -34,7 +34,6 @@ this.jeesjs = this.jeesjs || {};
 	 * @protected
 	 **/
 	ModulesManager._inited = false;
-	
 // public static methods:  
     /**
 	 * 初始化模块管理器
@@ -45,9 +44,10 @@ this.jeesjs = this.jeesjs || {};
 		if (this._inited) { return; }
 		this._inited = true;
 		this._modules = new Array();
+		this._ident = 0;
 	};
     /**
-	 * 新增某层级的一个模块，会中断该层级的上一个模块。
+	 * 新增某层级的一个模块，如果该加入的模块在最上层，则中断之前的最上层模块
 	 * 如果是新增加的层级，则会中断上个层级的最上层模块。
 	 * @method enter
 	 * @static
@@ -55,47 +55,58 @@ this.jeesjs = this.jeesjs || {};
 	 * @param {Number} _h 进入的层级
 	 */
 	ModulesManager.enter = function( _m, _h ){
-		var h = this.hierarchy();
-		if( _h != undefined ) h = _h;
-		
+		var h = _h != undefined ? _h : 0;
+		var ins_mod = null;
+		for( var i in this._modules ){
+			if( h == i ) {
+				ins_mod = h;
+				break;
+			}
+		}
+		if( ins_mod == null ) this._modules.splice( h, 0, new Array() );
+
 		var mods = this._modules[ h ];
 		if( mods === undefined ){
 			mods = new Array();
-			
-			if( h > 0 ){
-				var last_mod = this._modules[ h - 1 ];
-				if( last_mod.length != 0 ) last_mod[ last_mod.length - 1 ].interrupt();
-			}
 			this._modules.push( mods );
 		}
-		
-		if( mods.length != 0 ) mods[ mods.length - 1 ].interrupt();
+		if( _m.id == -1 )
+			_m.id = this._ident ++;
 		mods.push( _m );
+		
+		// 加入的是最上层
+		if( h === this.hierarchy() ) {
+			var tmp_mods = this._modules[ h ];
+			if( tmp_mods.length > 1 )
+				tmp_mods[ tmp_mods.length - 2 ].interrupt();
+		}
 		_m.enter();
 	};
 	/**
 	 * 退出最上层层级的最上层模块，退出的模块如果存在上个模块，则调用上个模块的恢复。
 	 * @method leave
+	 * @param {Number} _h 退出指定层级的最上层模块
 	 * @static
 	 */
-	ModulesManager.leave = function(){
-		var len = this._modules.length;
-		if( len == 0 ) return;
-		var mods = this._modules[ len - 1 ];
-		len = mods.length;
-		if( len == 0 ) return;
-		if( len > 1 ){
-			//当层最上级退出和恢复
-			mods.pop().leave();
-			mods[ mods.length - 1 ].recovery();
+	ModulesManager.leave = function( _h ){
+		if( typeof _h === "object" ){
+			// 退出指定模块
+			this._leave_module_byid( _h.id );
+		}else if( typeof _h === "number" && _h != this.hierarchy() ){
+			// 退出指定层级的最上层模块
+			this._leave_module_bylv( _h );
 		}else{
-			//当层最上级退出和上层最上级恢复
-			mods = this._modules.pop();
+			// 退出最上层层级的最上层模块
+			var h = this.hierarchy();
+			var mods = this._modules[ this.hierarchy() ];
+			if( mods == undefined ) return;
 			mods.pop().leave();
-			if( this._modules.length > 0 ){
-				mods = this._modules[ this._modules.length - 1 ];
+			if( mods.length == 0 )
+				this._modules.pop();
+			
+			mods = this._modules[ this.hierarchy() ];
+			if( mods == undefined ) return;
 				mods[ mods.length - 1 ].recovery();
-			}
 		}
 	};
 	/**
@@ -133,6 +144,44 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	ModulesManager.hierarchy = function(){
 		return this._modules.length > 0 ? this._modules.length - 1 : 0;
+	};
+	
+// private method
+	ModulesManager._leave_module_byid = function( _id ){
+		var cur_lvl = 0;
+		var cur_mod = 0;
+		
+		for( var i = 0; i < this._modules.length; i ++ ){
+			var mods = this._modules[i];
+			cur_lvl = i;
+			var find = false;
+			for( var j = 0; j < mods.length; j ++ ){
+				var tmp = mods[j];
+				if( tmp.id === _id ){
+					tmp.leave();
+					mods.splice( i, 1 );
+					cur_mod = j;
+					if( mods.length == 0 ){
+						ModulesManager._modules.pop();
+					}
+					find = true;
+					break;
+				}
+			}
+			if( find ) break;
+		}
+		if( cur_mod == 0 && cur_lvl == this.hierarchy() ){
+			var mods = this._modules[ this.hierarchy() - 1 ];
+			if( mods != undefined )
+				mods[ mods.length - 1 ].recovery();
+		}
+	};
+	ModulesManager._leave_module_bylv = function( _lv ){
+		var mods = this._modules[ _lv ];
+		if( mods == undefined ) return;
+		mods.pop().leave();
+		if( mods.length == 0 )
+			this._modules.splice( _lv, 1 );
 	};
 	
 	jeesjs.MM = ModulesManager;

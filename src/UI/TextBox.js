@@ -67,6 +67,7 @@ this.jeesjs = this.jeesjs || {};
 		this._object._drawText = this._draw_text;
 		this._object.lineHeight = this._font_size;
 // public properties:
+		this.setPosition( 0, 0 );
 		this._init_finish();
 	};
 // public static properties
@@ -85,6 +86,18 @@ this.jeesjs = this.jeesjs || {};
 	
 	var p = createjs.extend(TextBox, jeesjs.Widget);
 // public method
+    /**
+     * 设置坐标
+     * @method setPosition
+     * @extends
+     * @param {Number} _x
+     * @param {Number} _y
+     */
+	p.setPosition = function( _x, _y ){
+		this.Widget_setPosition( this._parent ? this._parent._x + _x : _x, this._parent ? this._parent._y + _y : _y );
+		this._object.x = this._x;
+		this._object.y = this._y;
+	};
 	/**
 	 * 当前颜色
 	 * @method getColor
@@ -151,7 +164,6 @@ this.jeesjs = this.jeesjs || {};
 	p.setFontSize = function( _s ){
 		this._font_size = _s;
 		this._object.lineHeight = this._font_size;
-		console.log( this._get_font() );
 		this._object.font = this._get_font();
 	};
 	/**

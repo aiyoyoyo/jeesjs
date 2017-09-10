@@ -16,7 +16,12 @@ this.jeesjs = this.jeesjs || {};
 	/**
 	 * @class Module
 	 */
-    function Module(){};
+    function Module(){
+    	// 这些属性由jeesjs.MM分配
+    	this.id = -1; 
+    	this.level = 0; // 层级
+    	this.index = 0; // 索引
+    };
     
     var p = Module.prototype;
 // public methods:    

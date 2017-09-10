@@ -174,13 +174,22 @@ this.jeesjs = this.jeesjs || {};
     	return this._options.fps;
     };
     /**
-     * @method getSize
+     * @method addChild
      * @param {createjs.DisplayObject} _c 
      * @static
      */
     Application.addChild = function( _c ){
     	this._contar.addChild( _c );
     }
+    /**
+	 * 移除元素
+	 * @method removeChild
+     * @param {createjs.DisplayObject} _c 
+     * @static
+	 */
+	Application.removeChild = function( _c ) {
+		this._contar.removeChild( _c );
+	}
     /**
      * @method getTimestamp
      * @static
