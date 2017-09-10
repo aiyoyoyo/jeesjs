@@ -37,10 +37,10 @@ this.jeesjs = this.jeesjs || {};
 		function r() {
 			seed = (seed * 9301 + 49297) % 233280;
 			return seed / 233280.0;
-		}
+		};
 		return function(_n, _m) {
 			return Math.ceil(r() * _n) + (_m ? _m : 0);
-		}
+		};
 	})();
 	/**
 	 * 随机生成颜色码
@@ -49,12 +49,16 @@ this.jeesjs = this.jeesjs || {};
 	 * @static
 	 * @return {String} #000000
 	 */
-	UtilTools.RandomColor = function() {
-		var r = this.Random(256).toString(16);
-		var g = this.Random(256).toString(16);
-		var b = this.Random(256).toString(16);
-		return "#" + r + g + b;
-	};
+	UtilTools.RandomColor = (function() {
+		function rc2hex(){
+			var c = this.Random(256);
+			if( c < 10 ) return "0" + c;
+		    return c.toString(16);
+		};
+		return function(){
+			return "#" + rc2hex() + rc2hex() + rc2hex();
+		};
+	})();
 	/**
 	 * 生成反色码
 	 * 
@@ -64,43 +68,30 @@ this.jeesjs = this.jeesjs || {};
 	 * @static
 	 * @return {String} #ffffff
 	 */
-	UtilTools.ReversalColor = function(_c) {
-		var sixNumReg = /^#(\d{2})(\d{2})(\d{2})$/ig;
-		var threeNumReg = /^#(\d{1})(\d{1})(\d{1})$/ig;
-		var rgbReg = /^rgb\((\d{1,3}), (\d{1,3}), (\d{1,3})\)$/ig;
-		var c1 = 0, c2 = 0, c3 = 0;
-		var parseHexToInt = function(hex) {
-			return parseInt(hex, 16);
+	UtilTools.OppositeColor = (function() {
+		function c2rgb( _c ){
+			var _r = parseInt( _c.substring( 1, 3 ), 16);
+			var _g = parseInt( _c.substring( 3, 5 ), 16);
+			var _b = parseInt( _c.substring( 5 ), 16);
+			return { r: _r, g: _g, b: _b };
 		};
-		var parseIntToHex = function(int) {
-			return int.toString(16);
+		function c2hex( _c ){
+		    var cc = 255 - _c;
+		    if( cc>64 && cc<128 )  
+		        cc -= 64;  
+		    else if( cc>=128 && cc<192 )  
+		        cc += 64;
+		    if( cc < 10 ) return "0" + cc;
+		    return cc.toString(16);
 		};
-		this.parse = function() {
-			if (sixNumReg.test(_c)) {
-				sixNumReg.exec(_c);
-				c1 = parseHexToInt(RegExp.$1);
-				c2 = parseHexToInt(RegExp.$2);
-				c3 = parseHexToInt(RegExp.$3);
-			} else if (threeNumReg.test(_c)) {
-				threeNumReg.exec(_c);
-				c1 = parseHexToInt(RegExp.$1 + RegExp.$1);
-				c2 = parseHexToInt(RegExp.$2 + RegExp.$2);
-				c3 = parseHexToInt(RegExp.$3 + RegExp.$3);
-			} else if (rgbReg.test(_c)) {
-				// rgb color 直接就是十进制，不用转换
-				rgbReg.exec(_c);
-				c1 = RegExp.$1;
-				c2 = RegExp.$2;
-				c3 = RegExp.$3;
-			} else {
-				throw new Error("Error color string format. eg.[rgb(0,0,0),#000000,#f00]");
-			}
-			c1 = parseIntToHex(255 - c1);
-			c2 = parseIntToHex(255 - c2);
-			c3 = parseIntToHex(255 - c3);
-			return '#' + (c1 < 10 ? '0' + c1 : c1) + (c2 < 10 ? '0' + c2 : c2)
-					+ (c3 < 10 ? '0' + c3 : c3);
-		};
-	}
+		return function( _c ) {
+			var rgb = c2rgb( _c );
+			var r = c2hex( rgb.r );
+			var g = c2hex( rgb.g );
+			var b = c2hex( rgb.b );
+			return "#" + r + g + b;
+		}
+	})();
+	
 	jeesjs.UT = UtilTools;
 })();

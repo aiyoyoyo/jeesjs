@@ -122,7 +122,7 @@ this.jeesjs = this.jeesjs || {};
 			}
 			this._modules.pop();
 		}
-	}
+	};
 	/**
 	 * 执行所有加入的模块更新
 	 * @method update
@@ -147,6 +147,11 @@ this.jeesjs = this.jeesjs || {};
 	};
 	
 // private method
+	/**
+	 * 根据模块id来移除模块
+	 * @method _leave_module_byid
+	 * @param {Number} _id
+	 */
 	ModulesManager._leave_module_byid = function( _id ){
 		var cur_lvl = 0;
 		var cur_mod = 0;
@@ -176,6 +181,11 @@ this.jeesjs = this.jeesjs || {};
 				mods[ mods.length - 1 ].recovery();
 		}
 	};
+	/**
+	 * 根据层级来移除该层级最上层模块
+	 * @method _leave_module_bylv
+	 * @param {Number} _lv
+	 */
 	ModulesManager._leave_module_bylv = function( _lv ){
 		var mods = this._modules[ _lv ];
 		if( mods == undefined ) return;

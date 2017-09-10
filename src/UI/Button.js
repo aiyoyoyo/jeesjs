@@ -141,7 +141,7 @@ this.jeesjs = this.jeesjs || {};
 	 */
 	p.setEnabled = function( _e ){
 		if( this.isEnabled() != _e )
-			this._btn_text.setColor( jeesjs.UT.ReversalColor( this._btn_text.getColor() ) );
+			this._btn_text.setColor( jeesjs.UT.OppositeColor( this._btn_text.getColor() ) );
 		
 		this.Widget_setEnabled( _e );
 		this._btn_helper.setEnabled( this.isEnabled() );

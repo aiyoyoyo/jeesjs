@@ -262,7 +262,7 @@ this.jeesjs = this.jeesjs || {};
     	if( this._parent != undefined ){
     		this._parent.addChild( this.getObject() );
     	}
-    }
+    };
     /**
      * 这里参考的写法，主要用于控件禁用状态同时禁用事件。
      * @method _bind_event
