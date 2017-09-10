@@ -29,7 +29,7 @@ Mod_UI.enter = function(){
 	
 	jeesjs.CM.addWidget( this._panel );
 	
-	jeesjs.MM.enter( Mod_Panel, 0 ); 
+	jeesjs.MM.enter( this._mods[ this._index ] ); 
 };
 
 Mod_UI.leave = function(){

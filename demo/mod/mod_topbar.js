@@ -32,7 +32,7 @@ Mod_Topbar.enter = function() {
 		this._btns.push(tmp);
 	}
 	jeesjs.CM.addWidget( this._panel );
-	jeesjs.MM.enter( this._mods[ this._index ], 0 ); 
+	jeesjs.MM.enter( this._mods[ this._index ] ); 
 };
 // 菜单的点击事件
 Mod_Topbar._handle_click_btns = function(_e, _w) {

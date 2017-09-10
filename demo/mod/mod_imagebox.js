@@ -22,7 +22,7 @@ Mod_ImageBox.enter = function() {
 
 	jeesjs.CM.addWidget( this._panel );
 };
-Mod_Button.leave = function() {
+Mod_ImageBox.leave = function() {
 	jeesjs.CM.removeWidget(this._panel);
 	delete this._panel;
 }
