@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="JEESJS">
+        <wb-resource deploy-path="/demo" source-path="/demo"/>
+        <wb-resource deploy-path="/lib" source-path="/lib"/>
+        <wb-resource deploy-path="/src" source-path="/src"/>
+        <property name="context-root" value="JEESJS"/>
+    </wb-module>
+</project-modules>

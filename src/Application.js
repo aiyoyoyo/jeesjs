@@ -128,7 +128,7 @@ this.jeesjs = this.jeesjs || {};
     	this._canvas.height = this._options.height;
     	
     	this._contar = new createjs.Container();
-    	this._stages = new createjs.Stage( this._canvas );
+    	this._stages = new createjs.StageGL( this._canvas );
     	this._stages.addChild( this._contar );
     	
     	this._txtfps = new createjs.Text();
@@ -137,7 +137,7 @@ this.jeesjs = this.jeesjs || {};
     	this._stages.addChild( this._txtfps );
     	
     	createjs.Touch.enable( this._stages );
-    	createjs.Ticker.setFPS( this._options.fps );
+    	createjs.Ticker.framerate = this._options.fps;
     	createjs.Ticker.addEventListener( "tick", this._handle_ticker );
 		
     	// 事件开始
