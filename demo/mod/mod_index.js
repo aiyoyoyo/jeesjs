@@ -10,8 +10,9 @@ Mod_Index.enter = function(){
 
 	jeesjs.CM.addWidget( p );
 	
+//	Mod_Topbar.enter();
 	// 在更高一级的位置显示菜单。避免遮挡
-	jeesjs.MM.enter( Mod_Topbar, 1 );
+	jeesjs.MM.enter( Mod_Topbar );
 };
 
 Mod_Index.init = function(){
@@ -25,4 +26,8 @@ Mod_Index.init = function(){
 	jeesjs.QM.addSource( "hill1", "res/hill1.png" );
 	jeesjs.QM.addSource( "hill2", "res/hill2.png" );
 	jeesjs.QM.addSource( "sky", "res/sky.png" );
+	
+	jeesjs.QM.load( function(){
+		jeesjs.MM.enter( Mod_Index );
+	} );
 }

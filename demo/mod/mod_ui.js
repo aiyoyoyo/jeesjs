@@ -7,14 +7,14 @@ Mod_UI.enter = function(){
 	var size = jeesjs.APP.getSize();
 	this._index = 0;
 	this._btns = new Array();
-	this._mods = [ Mod_Panel, Mod_Button, Mod_TextBox, Mod_ImageBox, Mod_ImageSpt ]
+	this._mods = [ Mod_Panel, Mod_Button, Mod_TextBox, Mod_ImageBox, Mod_ImageSpt, Mod_CheckBox ]
 	this._panel = new jeesjs.Panel();
 	
 	this._panel.setSize( size.w, 40 );
 	this._panel.setColor( "#00aa00" );
 	this._panel.setPosition( 0, 42 );
 	
-	var str_btns = [ "Panel", "Button", "TextBox", "ImageBox", "ImageSpt" ];
+	var str_btns = [ "Panel", "Button", "TextBox", "ImageBox", "ImageSpt", "CheckBox" ];
 	for( var i = 0; i < str_btns.length; i++ ){
 		var tmp = new jeesjs.Button( jeesjs.Button.TYPE_NORMAL, "btn", str_btns[i], this._panel );
 		tmp.index = i;	// 定义一个用于识别是哪个按钮的索引

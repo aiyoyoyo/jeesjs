@@ -3,6 +3,8 @@
         <wb-resource deploy-path="/demo" source-path="/demo"/>
         <wb-resource deploy-path="/lib" source-path="/lib"/>
         <wb-resource deploy-path="/src" source-path="/src"/>
+        <wb-resource deploy-path="/" source-path="/WebContent"/>
+        <property name="java-output-path" value="/JEESJS/WebRoot/WEB-INF/classes"/>
         <property name="context-root" value="JEESJS"/>
     </wb-module>
 </project-modules>

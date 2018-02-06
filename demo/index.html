@@ -5,9 +5,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, height=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="../lib/createjs/easeljs.js"></script>
-<script src="../lib//createjs/tweenjs.js"></script>
-<script src="../lib//createjs/preloadjs.js"></script>
-<script src="../lib//createjs/soundjs.js"></script>
+<script src="../lib/createjs/tweenjs.js"></script>
+<script src="../lib/createjs/preloadjs.js"></script>
+<script src="../lib/createjs/soundjs.js"></script>
 <!--
 <script src="../lib/jeesjs-1.0.0.min.js"></script>
   -->
@@ -23,6 +23,7 @@
 <script src="../src/UI/ImageSpt.js"></script>
 <script src="../src/UI/Panel.js"></script>
 <script src="../src/UI/TextBox.js"></script>
+<script src="../src/UI/CheckBox.js"></script>
 
 <script src="mod/mod_index.js"></script>
 <script src="mod/mod_topbar.js"></script>
@@ -33,15 +34,15 @@
 <script src="mod/mod_imagespt.js"></script>
 <script src="mod/mod_panel.js"></script>
 <script src="mod/mod_textbox.js"></script>
+<script src="mod/mod_checkbox.js"></script>
 <link href="../lib/jeesjs.min.css" rel="stylesheet" />
 </head>
 
 <body>
 	<canvas id="gCanvas"></canvas>
 	<script type="text/javascript">
+		jeesjs.APP.init( { debug : true });
 		Mod_Index.init();
-		jeesjs.APP.init( Mod_Index );
-		jeesjs.APP.showFPS( true );
 	</script>
 </body>
 </html>

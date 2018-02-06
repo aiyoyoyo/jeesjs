@@ -43,7 +43,7 @@ this.jeesjs = this.jeesjs || {};
 		 * @property _height
 		 * @type {Number}
 		 */
-		this._height = b.height / t;		//拆分按钮的高度=图片高度/4|8 态
+		this._height = b.height;// / t;		//拆分按钮的高度=图片高度/4|8 态
 // private properties:
 		/**
 		 * 按钮显示的文本
@@ -65,7 +65,6 @@ this.jeesjs = this.jeesjs || {};
 		 * @extends
 		 */
 		this._container = new createjs.Container();
-		
 		/**
 		 * 构建按钮图片的数据对象
 		 * 数据定义参考createjs.SpriteSheet
@@ -96,18 +95,22 @@ this.jeesjs = this.jeesjs || {};
 		 * @property _btn_helper
 		 * @type {createjs.ButtonHelper}
 		 */
+		
 		this._btn_helper = new createjs.ButtonHelper( this._object );
+		this._btn_helper.enabled = true;
 		
 		//去掉了参数保护
 		this._btn_text = typeof _t === "object" ? _t : new jeesjs.TextBox( _t != "" ? _t : " "  );
 		this._btn_text.setAlign( jeesjs.TextBox.ALIGN_CENTER );
 		this._btn_text.setBaseline( jeesjs.TextBox.BASELINE_MIDDLE );
 		this._btn_text.setPosition( this._width / 2, this._height / 2 );
+		this._btn_text.setColor( "#FF0000" );
 		
 		this._container.addChild( this._object );
 		this._container.addChild( this._btn_text.getObject() );
 		
 		this.setPosition( 0, 0 );
+		this.setText("测试");
         this._init_finish();
         
         var _this = this;
@@ -144,7 +147,7 @@ this.jeesjs = this.jeesjs || {};
 			this._btn_text.setColor( jeesjs.UT.OppositeColor( this._btn_text.getColor() ) );
 		
 		this.Widget_setEnabled( _e );
-		this._btn_helper.setEnabled( this.isEnabled() );
+		this._btn_helper._setEnabled( this.isEnabled() );
 		this._btn_helper.target.gotoAndPlay( this.isEnabled() ? "out" : "disable" );
 		this._btn_text.setPosition( this._x + this._width / 2, this._y + this._height / 2 );
 	}

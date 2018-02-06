@@ -1,6 +1,6 @@
 /*
  * Author: Aiyoyoyo
- * https://www.jeesupport.com/assets/jeesjs/src/Manager/QueueManager.js
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src//Manager/QueueManager.js
  * License: MIT license
  */
 
@@ -66,7 +66,7 @@ this.jeesjs = this.jeesjs || {};
 	 * @type {Function}
 	 * @protected
 	 */
-    QueueManager._handler	= function(){};
+    QueueManager._handler	= null;
 // public static methods:  
     /**
 	 * 初始化模块管理器
@@ -90,12 +90,6 @@ this.jeesjs = this.jeesjs || {};
     	this._queue = new createjs.LoadQueue( false,"","Anonymous" );
     	this._queue.maintainScriptOrder = true;
     	this._queue.setMaxConnections( this._options.size );
-    	
-    	if( typeof _f === 'function' ){
-    		this._handler = _f;
-    		this._queue.addEventListener( "complete", this._handler );
-    	}
-    	
     	this._queue.installPlugin( createjs.Sound );
 	};
 	/**
@@ -113,10 +107,12 @@ this.jeesjs = this.jeesjs || {};
      * @static
      * @param {Function} _f 加载完毕的回调事件
 	 */
-	QueueManager.load = function(){
-		if( this._list.length == 0 ){
-			this._handler();
-    	}else this._queue.loadManifest( this._list );
+	QueueManager.load = function( _f ){
+		if( this._handler == null && typeof _f === 'function' ){
+			this._bind_handler( "complete", _f );
+		}
+		
+		if( this._list.length != 0 ) this._queue.loadManifest( this._list );
 	}
 	/**
 	 * 添加一个预加载文件
@@ -135,7 +131,7 @@ this.jeesjs = this.jeesjs || {};
 	/**
 	 * 获取预加载的数据，返回格式参考preloadjs的Handling Results部分：
 	 * @link http://www.createjs.com/docs/preloadjs/classes/LoadQueue.html
-	 * @method addSource
+	 * @method getSource
      * @static
      * @param {String} _k 源别名
      * @return {Object} 源地址
@@ -143,6 +139,32 @@ this.jeesjs = this.jeesjs || {};
 	QueueManager.getSource = function( _k ) {
 		return this._queue.getResult( _k );
 	}
+	// private methods:
+	/**
+     * @method _bind_handler
+	 * @param {String} _e
+	 * @param {Function} _f
+	 * @private
+     */
+	QueueManager._bind_handler = function( _e, _f ){
+		var _this = this;
+		this._handler = this._queue.addEventListener( _e, function( e ) { 
+			_this._unbind_handler( _e );
+			_this._list = [];
+			_f( e ); 
+		} );
+	};
+	/**
+	 * @method _unbind_handler
+	 * @param {String} _e
+	 * @private
+	 */
+	QueueManager._unbind_handler = function( _e ){
+		if( this._handler != null ){
+			this._queue.removeEventListener( _e, this._handler );
+			this._handler = null;
+		}
+	};
 
 	jeesjs.QM = QueueManager;
 })();
