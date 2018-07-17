@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Examples, Modules Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="jeesjs with createjs">
+    <meta name="author" content="aiyoyoyo, jeesupport">
+
+    <!-- ================== BEGIN BASE CSS STYLE ================== -->
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/demo.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <!-- ================== END BASE CSS STYLE ================== -->
+
+    <!-- ================== BEGIN BASE JS ================== -->
+    <script src="../assets/createjs/easeljs.js"></script>
+    <script src="../assets/createjs/tweenjs.js"></script>
+    <script src="../assets/createjs/preloadjs.js"></script>
+    <script src="../assets/createjs/soundjs.js"></script>
+    <!-- ================== END BASE JS ================== -->
+</head>
+
+<body>
+    <div class="container-narrow">
+        <canvas id="canvas"></canvas>
+    </div>
+    <!-- ================== BEGIN BASE JS ================== -->
+    <script src="../../src/base/Module.js"></script>
+    <script src="../../src/manager/ModulesManager.js"></script>
+    <!-- ================== END BASE JS ================== -->
+
+    <!-- ================== BEGIN PAGE LEVEL JS ================== -->
+    <!-- ================== END PAGE LEVEL JS ================== -->
+</body>
+<script>
+    var mod_c = new jees.Module( "ModC" );
+
+    var mod_b = new jees.Module( "ModB" );
+	mod_b.enter = function(){
+	    console.log( this._id, "enter" );
+		jees.MM.enter( mod_c );
+	};
+
+    var mod_a = new jees.Module( "ModA");
+	mod_a.enter = function() {
+	    console.log( this._id, "enter" );
+		jees.MM.enter( mod_b );
+	};
+
+    jees.MM.startup();
+    jees.MM.enter( mod_a );
+
+    var t = 0;
+    createjs.Ticker.addEventListener( "tick", function( _e ){
+        var time = createjs.Ticker.getTime( false );
+		var tick = time - t;
+        jees.MM.update( tick );
+        jees.MM.leave();
+    });
+</script>
+</html>

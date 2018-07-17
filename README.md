@@ -1,19 +1,44 @@
 # jeesjs
-基于CreateJS封装的H5开发用小型框架
 
-喜欢的请关注我写的CSDN文章《CreateJs，轻装上阵Html5游戏开发》
+## 内容介绍
+基于CreateJS封装的H5开发用小型框架，目测会提供一些配套的功能组件。
+
+下面的组件介绍本来想配图的，懒。先用文字描述吧。另外结构在改版，我把改版好的部分先放上来做介绍。
+## 应用层组件
+* jees.APP 应用管理器
+> 全局只有一个canvas和一个stage对象
+> 没完成，待后续补完
+* jees.MM 模块管理器
+> 管理继承jees.Module对象，用来实现应用各模块之间切换。
+> 模块切换采用先入后出的模式，提供模块中断和回复时的通知。
+* jees.QM 资源队列管理器
+> 目前没有对资源做分类管理，基本采用了key-val的形式来记录已加载的资源文件。
+> 演示代码写的不好，加载好的内容没有画在canvas上，为了减少导入内容，直接显示在了canvas后面。
+> 同一时间，只允许一个加载回调事件。
+* jees.CM 绘制管理器
+> 所有的UI组件或者其他绘制内容都通过该管理器绘制在默认canvas上
+> 默认会提供几个层级的容器，显示层级顺序BACK最低，CONSOLE最高。
+* jees.DB 数据管理器
+> 未完成
+## UI层组件
+* Widget
+> 基础类型，继承了createjs.Container对象
+* InputBox
+* Button
+* CheckBox
+* ImageBox
+* ImageSpt
+* Panel
+* TextBox
+## 算法组件
+## 其他类型组件（待定）
+
+## 其他
 CSDN地址： http://blog.csdn.net/aiyoyoyo/
 讨论群：8802330,欢迎各位加入讨论。
 
-# 更新说明
-添加UI相关的基础控件类型，和一些属性的操作方法。
-详细的可以参考demo里的一些写法。
-删除了前面几个版本的多余方法，并针对性的做了一些优化。
-createjs.Container类型，尽量不要绑定事件，上面的控件会触发相应的容器事件。
-
-# UI补完计划
-现在写完了一些基本UI控件，后面会针对控件的完整性做一一补完。
-计划补全的UI有：CheckBox,ReadioBox, ProgressBar,ScrollView, ImageNum,
-其他列入在后备计划： ComboBox,ScrollBar,Tabs等（没想好）
-
-# 演示地址（待定）
+# 版本更新
+## Ver 1.1.0
+* 代码结构和命名重新做了整理。
+* 命名空间由jeesjs的改为jees，励志做个最短的男人。
+* demo改为examples，并重新编写了示例代码。
