@@ -20,25 +20,25 @@
 > 默认会提供几个层级的容器，显示层级顺序BACK最低，CONSOLE最高。
 * jees.DB 数据管理器
 > 未完成
-## UI层组件
-* Widget
-> 基础类型，继承了createjs.Container对象
-* InputBox
-* Button
-* CheckBox
-* ImageBox
-* ImageSpt
-* Panel
-* TextBox
-## 算法组件
-## 其他类型组件（待定）
-
-## 其他
-CSDN地址： http://blog.csdn.net/aiyoyoyo/
-讨论群：8802330,欢迎各位加入讨论。
 
 # 版本更新
 ## Ver 1.1.0
 * 代码结构和命名重新做了整理。
 * 命名空间由jeesjs的改为jees，励志做个最短的男人。
 * demo改为examples，并重新编写了示例代码。
+
+## Ver 1.1.1 alpha
+* 重新设计了UI控件结构
+* 加入了配置解析方式的UI生成器（详见 https://github.com/aiyoyoyo/jeesjs/tree/master/src/extends/LayoutManager.js )
+* 此版本临时版休整版，部分旧内容已经移除，重新整理控件属性
+## UI
+* jees.UI.Widget
+> extend createjs.Container
+* jees.UI.Panel
+> extend jees.UI.Widget
+## 其他说明
+* 最近瞎忙，居然搁置了快一年才更新有价值的内容。
+
+## 其他
+CSDN地址： http://blog.csdn.net/aiyoyoyo/
+讨论群：8802330,欢迎各位加入讨论。
