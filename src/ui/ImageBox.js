@@ -9,6 +9,7 @@
  */
 // namespace:
 this.jees = this.jees || {};
+this.jees.UI = this.jees.UI || {};
 
 (function() {
 	"use strict";

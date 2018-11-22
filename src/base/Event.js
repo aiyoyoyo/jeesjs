@@ -9,19 +9,18 @@ this.jees = this.jees || {};
 
 (function() {
 	"use strict";
-	// constructor: ===========================================================
+// constructor: ===============================================================
 	/**
-	 * @class Template
+	 * @class Event
 	 * @static
 	 */
 	function Event() { throw "Event cannot be instantiated."; };
 
-	// private static properties: =============================================
-	// public static properties: ==============================================
+// public static properties: 
 	/**
-	 * QueueManager Events
+	 * ResourceManager Events
 	 */
-	Event.QM = {
+	Event.RM = {
 	    FL: "fileload",
 	    C: "complete",
 	};
@@ -38,8 +37,46 @@ this.jees = this.jees || {};
         MO: "mounseout",
         MIn: "mouseover",
 	};
-    // private static methods: ================================================
-	// public static methods: =================================================
-
+// public static methods: =====================================================
+	/**
+	 * @static
+	 * @method bind
+	 * @param {jees.Widget|createjs.DisplayObject} _o
+	 * @param {String} _e
+	 * @param {Function} _f
+	 * @return {Event}
+	 */
+	Event.bind = function( _o, _e, _f ){
+		return _o.addEventListener( _e, _f );
+	}
+	/**
+	 * @static
+	 * @method unbind
+	 * @param {jees.Widget|createjs.DisplayObject} _o
+	 * @param {String} _e
+	 * @param {Event} _h
+	 */
+	Event.unbind = function( _o, _e, _h ){
+		_o.removeEventListener( _e, _h );
+		_h = null;
+	}
+	/**
+	 * @static
+	 * @method tick
+	 * @param {Function} _f
+	 * @return {Function}
+	 */
+	Event.tick = function( _f ){
+        return jees.E.bind( createjs.Ticker, "tick", _f );
+	}
+	/**
+	 * @static
+	 * @method untick
+	 * @param {Function} _h
+	 */
+	Event.untick = function( _h ){
+		jees.E.unbind( createjs.Ticker, "tick", _h );
+	}
+	
 	jees.E = Event;
 })();

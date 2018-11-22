@@ -8,70 +8,58 @@
 this.jees = this.jees || {};
 
 (function() {
-	"use strict";
-	// constructor: ===========================================================
+    "use strict";
+// constructor: ===============================================================
 	/**
 	 * @class CreateJS
 	 * @static
 	 */
-	function CreateJS() { throw "CreateJS cannot be instantiated."; }
-	// private static properties: =============================================
-    CreateJS._canvas = null;
-    CreateJS._stage = null;
-	// public static properties: ==============================================
-	// protected static methods: ==============================================
-	CreateJS.startup = function() {
-	    this._canvas = document.getElementById( jees.SET.getCanvasId() );
-        this._canvas.width = jees.SET.getWidth();
-        this._canvas.height = jees.SET.getHeight();
-        this._stage = new createjs.StageGL( this._canvas );
+	function CreateJS() { throw "jees.CJS不允许做初始化操作。"; }
+// protected static methods: ==================================================
+	CreateJS.startup = function() {};
 
-        this.setFPS( jees.SET.getFPS() );
-	};
-    CreateJS.shutdown = function() {};
-
-    CreateJS.get = function(){
-        return createjs;
-    };
-
-    CreateJS.setFPS = function( _f ){
-        jees.SET.setFPS( _f );
-        this.getTicker().framerate = _f;
-    };
-    CreateJS.getFPS = function( _b ){
-        if( _b )
-            return this.getTicker().getMeasuredFPS().toFixed(0);
-
-        return jees.SET.getFPS();
-    };
-
-    CreateJS.getTickerTime = function(){
-        return this.getTicker().getMeasuredTickTime().toFixed(0);
-    };
-
-    CreateJS.getStage = function(){ return this._stage; };
+    // getter and setter
+    CreateJS.get = function(){return createjs;};
+    CreateJS.getTickerTime = function(){return this.getTicker().getMeasuredTickTime().toFixed(0);};
+	CreateJS.getFPS = function(){return this.getTicker().getMeasuredFPS().toFixed(0);};
     CreateJS.getTouch = function(){ return createjs.Touch; };
     CreateJS.getTicker = function(){ return createjs.Ticker; };
     CreateJS.getSound = function(){ return createjs.Sound; };
-
-    CreateJS.newLoader = function(){
-        var q = new createjs.LoadQueue( false, "", "Anonymous" );
-        return q;
-    };
-    CreateJS.newContainer = function( _r ){
+    // new element
+    CreateJS.newContainer = function(){
         var c = new createjs.Container();
-        if( _r ) this._stage.addChild( c );
         return c;
     };
     CreateJS.newShape = function( _w, _h, _c ){
         var s = new createjs.Shape();
-        s.graphics.beginFill( _c ).drawRect( 0, 0, _w, _h );
+        var g = s.graphics;
+        if( _c ){
+        	g.beginFill( _c );
+        }
+        if( _w && _h ){
+        	g.drawRect( 0, 0, _w, _h );
+        }
+        if( _c || ( _w && _h ) )
+        	g.endFill();
         return s;
     };
-
-    CreateJS.update = function(){
-        this._stage.update();
+	CreateJS.newObject = function(){
+		var o = new createjs.DisplayObject();
+		return o;
+	};
+	CreateJS.newBox = function( _w, _h, _c ){
+        var s = new createjs.Shape();
+        s.graphics.beginStroke( _c ).drawRect( 0, 0, _w, _h );
+        return s;
     };
-
+    CreateJS.newBitmap = function( _r ){
+    	var b = new createjs.Bitmap( _r );
+    	return b;
+    };
+    CreateJS.newRect = function( _l, _r, _t, _b ){
+    	var r = new createjs.Rectangle( _l, _r, _t, _b );
+    	return r;
+    }
+    
 	jees.CJS = CreateJS;
 })();

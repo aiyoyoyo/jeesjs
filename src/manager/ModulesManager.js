@@ -12,32 +12,48 @@ this.jees = this.jees || {};
 
 (function() {
 	"use strict";
-	// constructor: ===========================================================
+// constructor: ===============================================================
 	/**
 	 * @class ModulesManager
 	 */
-	function ModulesManager(){ throw "ModulesManager cannot be instantiated."; };
-	// private static properties: =============================================
-	ModulesManager._init        = false;
-	ModulesManager._modules     = null;
+	function ModulesManager(){ throw "jees.MM不允许做初始化操作。"; };
+// private static properties: 
+	/**
+	 * 当前绘制模块ID
+	 * @private
+	 * @static
+	 * @property _ids
+	 * @type {Array<String>}
+	 */
+	ModulesManager._ids         = new Array();
+	/**
+	 * 已加载的模块
+	 * @private
+	 * @static
+	 * @property _modules
+	 * @type {Map<String, jees.Module>}
+	 */
+	ModulesManager._modules     = new Map();
+	/**
+	 * 最上层模块
+	 * @private
+	 * @static
+	 * @property _module
+	 * @type {jess.Module}
+	 * @default null;
+	 */
 	ModulesManager._module      = null;
-	ModulesManager._ids         = null;
-	// public static properties: ==============================================
-	// private static methods: ================================================
-	ModulesManager.startup = function() {
-		if (this._init) {return;}
-		this._init = true;
-		this._modules = new Map();
-		this._ids = new Array();
-	};
-
+// private static methods: ================================================
 	/**
 	 * 加入某个模块
-	 * @method enter
+	 * @public
 	 * @static
+	 * @method enter
 	 * @param {jeesjs.Module} _m 进入的模块
 	 */
 	ModulesManager.enter = function( _m ) {
+		if( _m == undefined || !_m instanceof jees.Module ) throw "加入模块对象错误";
+		
         if( this._modules.has( _m.getId() ) )
             throw "添加了重复的模块[" + _m.getId() + "]";
 
@@ -48,11 +64,11 @@ this.jees = this.jees || {};
 	    this._module = _m;
         _m.enter();
 	};
-
 	/**
 	 * 退出最上层模块
-	 * @method leave
+	 * @public
 	 * @static
+	 * @method leave
 	 */
 	ModulesManager.leave = function() {
 	    if( this._module == null || this._ids.length == 0 ) return;
@@ -69,8 +85,9 @@ this.jees = this.jees || {};
 	};
 	/**
 	 * 逐个退出全部模块
-	 * @method leave
+	 * @public
 	 * @static
+	 * @method leave
 	 */
 	ModulesManager.clear = function() {
 		while( this._modules.length > 0 ) {
@@ -79,8 +96,9 @@ this.jees = this.jees || {};
 	};
 	/**
 	 * 调用所有加入的模块update方法
-	 * @method update
+	 * @public
 	 * @static
+	 * @method update
 	 * @param {Number} _t 绘制时间，单位：毫秒
 	 */
 	ModulesManager.update = function( _t ) {
@@ -90,8 +108,9 @@ this.jees = this.jees || {};
 	};
 	/**
 	 * 获取当前模块
-	 * @method current
+	 * @public
 	 * @static
+	 * @method current
 	 * @return {jeesjs.Module}
 	 */
 	ModulesManager.current = function() {

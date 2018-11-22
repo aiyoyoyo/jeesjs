@@ -12,48 +12,65 @@ this.jees = this.jees || {};
 
 (function() {
 	"use strict";
-    // constructor: ===========================================================
+// constructor: ===============================================================
 	/**
 	 * @class Module
+	 * @abstract
 	 * @param {String} _id
 	 */
     function Module( _id ){
-        if( _id == undefined ) throw "模块必须设置ID。";
-
-        this._id = _id;
+		if( !_id ) throw "模块必须设置ID。";
+// public properties:
+		/**
+		 * 模块ID
+		 */
+        this.id = _id;
     };
-    // private static properties: =============================================
-    Module._id = null;
 
     var p = Module.prototype;
-    // public static methods: =================================================
-    p.getId = function(){ return this._id; };
+// public static methods: =====================================================
+	/**
+	 * @public
+	 * @method getId
+	 * @returns {String}
+	 */
+    p.getId = function(){ return this.id; };
     /**
 	 * 进入模块
+	 * @public
+	 * @abstract
 	 * @method enter
 	 */
-	p.enter = function(){ console.log( this._id, "enter" ); };
+	p.enter = function(){};
 	/**
 	 * 退出模块
+	 * @public
+	 * @abstract
 	 * @method leave
 	 */
-	p.leave = function(){ console.log( this._id, "leave" ); };
+	p.leave = function(){};
 	/**
 	 * 执行模块更新，模块中断后，不在被调用，直到恢复通知。
+	 * @public
+	 * @abstract
 	 * @method update
 	 * @param Number _t 绘制时间，单位：毫秒
 	 */
-	p.update = function( _t ){ console.log( this._id, "update" ); };
+	p.update = function( _t ){};
 	/**
 	 * 模块被中断通知
+	 * @public
+	 * @abstract
 	 * @method interrupt
 	 */
-	p.interrupt = function(){ console.log( this._id, "interrupt" ); };
+	p.interrupt = function(){};
 	/**
 	 * 模块恢复通知
+	 * @public
+	 * @abstract
 	 * @method interrupt
 	 */
-	p.recovery = function(){ console.log( this._id, "recovery" ); };
+	p.recovery = function(){};
 	
 	jees.Module = Module;
 })();

@@ -9,64 +9,57 @@ this.jees = this.jees || {};
 
 (function() {
 	"use strict";
-	// constructor: ===========================================================
+// constructor: ===============================================================
 	/**
 	 * @class Template
 	 * @static
 	 */
-	function Setting() { throw "Setting cannot be instantiated."; }
-	// private static properties: =============================================
-	Setting._init = false;
+	function Setting() { throw "jees.SET 不允许做初始化操作。"; }
+// private static properties:
+	Setting.CONFIG_FILE = "../assets/configs/jees.default.config";
+	Setting.SKIN_FILE = "../assets/images/skin_default.png";
+	Setting._config = null;
     Setting._timestamp = 0;
+	Setting._fps = 30;
+	Setting._canvas = null;
+	Setting._width = 0;
+	Setting._height = 0;
+	Setting._sound = false;
+	Setting._debug = false;
+	
+// public static getter/setter method: ========================================
+	// getter and setter
 
-	Setting._options = {
-	    canvasId : "canvas",
-        width : 0,
-        height : 0,
-        fps : 30,
-        sound : false,
-        console : false,
-        debug : false,
-	};
-	// public static properties: ==============================================
-	// protected static methods: ==============================================
+	Setting.getCanvas = function(){ return this._canvas; }
+	Setting.getWidth = function(){ return this._width; }
+    Setting.getHeight = function(){ return this._height; }
+    Setting.getFPS = function(){return this._fps;}
+    Setting.setFPS = function( _f ){this._fps = _f;}
+    Setting.getTimestamp = function(){ return this._timestamp; }
+    Setting.setTimestamp = function( _t ){ this._timestamp = _t; }
+    Setting.getConfig = function(){ return this._config; }
+    Setting.getSkin = function(){ return this._skin; }
+    Setting.enableSound = function(){ return this._sound; }
+    Setting.enableDebug = function(){ return this._debug; }
+// public static method: ======================================================
 	/**
-	 * @method startup
      * @static
-     * @param
+	 * @method startup
      * @return
      */
-	Setting.startup = function( _o ) {
-        if( this._init ) return;
-        this._init = true;
-
-	    if ( typeof _o === "object" ) {
-            for ( var i in _o ) {
-                if ( _o.hasOwnProperty( i ) ) {
-                    this._options[i] = _o[i];
-                }
-            }
-        }
-        // TODO 此处可能会改为由设备类型来决定屏幕宽高
-        if( this._options.width == 0 )
-            this._options.width = document.documentElement.clientWidth || document.body.clientWidth;
-        if( this._options.height == 0 )
-            this._options.height = document.documentElement.clientHeight || document.body.clientHeight;
-	};
-    Setting.shutdown = function() {};
-
-    Setting.getCanvasId = function() { return this._options.canvasId };
-    Setting.getWidth = function(){ return this._options.width; };
-    Setting.getHeight = function(){ return this._options.height; };
-    Setting.getFPS = function(){ return this._options.fps; };
-    Setting.setFPS = function( _f ){ this._options.fps = _f; };
-
-    Setting.isSound = function(){ return this._options.sound; };
-    Setting.isConsole = function(){ return this._options.console; };
-    Setting.isDebug = function(){ return this._options.debug; };
-
-    Setting.getTimestamp = function(){ return this._timestamp; };
-    Setting.setTimestamp = function( _t ){ this._timestamp = _t; };
-
+	Setting.startup = function() {
+		var cfg = this._config.Setting;
+		
+		this._canvas = cfg.canvas;
+		this._fps = cfg.fps;
+		
+		this._width = cfg.width != 0 ? cfg.width : ( document.documentElement.clientWidth || document.body.clientWidth );
+		this._height = cfg.height != 0 ? cfg.height : ( document.documentElement.clientHeight || document.body.clientHeight );
+		
+		this._sound = cfg.sound;
+		
+		this._skin = cfg.skin;
+	}
+	
 	jees.SET = Setting;
 })();

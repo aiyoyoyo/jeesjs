@@ -1,0 +1,53 @@
+{
+	"Widget":{
+		"name": "root",
+		"width": "90%",
+		"height": "100%",
+		"align": 1,
+		"enableMask": true,
+		"childs": [
+			{"Panel":{
+				"name": "top-bar",
+				"width": "100%",
+				"height": 40,
+				"skinResource": "panel-highlight",
+				"childs": [
+//					{"Widget":{
+//						"type": "Button",
+//						"w": 100,
+//						"h": 30,
+//						"x": 15,
+//						"y": 10,
+//					}},
+				],
+			}},
+			{"Panel":{
+				"name": "draw-panel",
+				"y": 40,
+				"width": "auto",
+				"height": "100%",
+				"layoutGroup": "bottom",
+				"enableMask": true,
+				"childs": [
+					{"Panel":{
+						"name": "background",
+						"resource": "cover",
+						"width": "100%",
+						"height": "100%",
+						"style": 2,
+						"scaleX": 10,
+						"scaleY": 10,
+					}},
+				],
+			}},
+			{"Panel":{
+				"name": "side-bar",
+				"align": 2,
+				"width": 300,
+				"height": "100%",
+				"y": 40,
+				"layoutGroup": "bottom",
+			}},
+		],
+	}
+}

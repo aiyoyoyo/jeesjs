@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="utf-8">
+    <title>JeesJS UIEditor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="jeesjs with createjs">
+    <meta name="author" content="aiyoyoyo, jeesupport">
+
+    <!-- ================== BEGIN BASE CSS STYLE ================== -->
+    <link href="../assets/css/jees.min.css" rel="stylesheet">
+    <!-- ================== END BASE CSS STYLE ================== -->
+
+    <!-- ================== BEGIN BASE JS ================== -->
+    <script src="../libs/createjs/easeljs.js"></script>
+    <script src="../libs/createjs/preloadjs.js"></script>
+    <!-- ================== END BASE JS ================== -->
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <!-- ================== BEGIN JEES JS ================== -->
+    <script src="../src/tools/UtilTools.js" ></script>
+    <script src="../src/ui/Property.js"></script>
+    <script src="../src/ui/Skin.js"></script>
+    <script src="../src/ui/Widget.js"></script>
+    <script src="../src/ui/Panel.js"></script>
+    <script src="../src/ui/Button.js"></script>
+    <script src="../src/base/Setting.js"></script>
+    <script src="../src/base/CreateJS.js"></script>
+    <script src="../src/base/Event.js"></script>
+    <script src="../src/base/Module.js"></script>
+    <script src="../src/base/Application.js"></script>
+    <script src="../src/manager/ModulesManager.js"></script>
+    <script src="../src/manager/ResourceManager.js"></script>
+    <script src="../src/manager/CanvasManager.js"></script>
+    <script src="../src/manager/FileLoadManager.js"></script>
+    <!-- ================== END JEES JS ================== -->
+
+    <!-- ================== BEGIN PAGE LEVEL JS ================== -->
+    <script src="../src/extends/SkinManager.js"></script>
+    <script src="../src/extends/LayoutManager.js"></script>
+    <script src="../src/extends/ConfigManager.js"></script>
+    <script src="../src/editor/Define.js"></script>
+    <script src="../src/editor/UIEditor.js"></script>
+    <!-- ================== END PAGE LEVEL JS ================== -->
+</body>
+<script>
+    jees.APP.startup( new jees.UIEditor() );
+</script>
+</html>

@@ -11,335 +11,282 @@
  */
 // namespace:
 this.jees = this.jees || {};
+this.jees.UI = this.jees.UI || {};
 
 (function () {
 	"use strict";
-    // constructor: ===========================================================
+// constructor: ===============================================================
 	/**
 	 * @class Widget
 	 * @extends createjs.Container
 	 * @constructor
 	 */
 	function Widget() {
-		// private properties: 
-    	/**
-    	 * 控件横坐标
-    	 * @property _x
-    	 * @type {Number}
-    	 * @default 0
-    	 */
-		this._x = 0;
-    	/**
-    	 * 控件纵坐标
-    	 * @property _y
-    	 * @type {Number}
-    	 * @default 0
-    	 */
-		this._y = 0;
-    	/**
-    	 * 控件宽度
-    	 * @property _w
-    	 * @type {Number}
-    	 * @default 0
-    	 */
-		this._w = 0;
-    	/**
-    	 * 控件高度
-    	 * @property _h
-    	 * @type {Number}
-    	 * @default 0
-    	 */
-		this._h = 0;
-    	/**
-    	 * 控件状态
-    	 * @property _enabled
-    	 * @type {Boolean}
-    	 * @default true
-    	 */
-		this._enabled = true;
-    	/**
-    	 * 控件状态是否选中，部分有效
-    	 * @property _checked
-    	 * @type {Boolean}
-    	 */
-		this._checked = false;
-    	/**
-    	 * 事件的方法池
-    	 * @property _event_map
-    	 * @type {Map}
-    	 */
-		this._event_map = {};
-    	/**
-    	 * 事件绑定的方法池
-    	 * @property _handle_map
-    	 * @type {Map}
-    	 */
-		this._handle_map = {};
+		this.Container_constructor();
+// public properties:
 		/**
-    	 * CreateJS绘制容器
-    	 * @property _container
-    	 * @type {createjs.Container}
-    	 * @default null
-    	 */
-		this._container = null;
-    	/**
-    	 * CreateJs绘制对象
-    	 * @property _object
-    	 * @type {createjs.DisplayObject}
-    	 * @default null
-    	 */
-		this._object = null;
-    	/**
-    	 * 父控件
-    	 * @property _container
-    	 * @type {createjs.Container}
-    	 * @default null
-    	 */
-		this._parent = null;
-	};
-
-	var p = Widget.prototype;
-    // public methods: ========================================================
-	/**
-	 * @method init
-	 */
-	p.init = function(){
-		if( this.isContainer() ){
-			this._container.addChild( this._object );
-		}
-		if( this._parent )
-			this._parent.addChild( this );
-		/**
-		 * 为createjs对象添加jees对象
+		 * 控件实际宽度
+		 * @private
+		 * @property w
+    	 * @type {Integer}
+    	 * @default 0
 		 */
-		this.getWidget()._widget = this;
+		this.w = 0;
+		/**
+		 * 控件实际高度
+		 * @private
+		 * @property h
+    	 * @type {Integer}
+    	 * @default 0
+		 */
+		this.h = 0;
+		/**
+		 * 控件的配置属性，用于初始化和部分属性的重置用
+		 */
+		this.property = new jees.UI.Property();
+// private properties:
+		/**
+		 * 各个控件中用来描绘控件背景的对象
+		 * @private
+		 * @property _object
+    	 * @type {jees.Widget | createjs.DisplayObject}
+    	 * @default null
+		 */
+		this._object = null;
+		/**
+		 * 控件使用得皮肤，为空不使用
+		 * @private
+		 * @property _skin
+		 * @type {jees.Skin}
+		 * @default null
+		 */
+		this._skin = null;
+		/**
+		 * 控件遮罩层, enableMask为真时有效
+		 * @private
+		 * @property _mask
+		 * @type {createjs.Shape}
+		 * @default null
+		 */
+		this._mask = null;
 	};
-    /**
-     * 返回根容器或者根对象，如果是容器则返回容器
-     * @method getWidget
-     * @return {createjs.Container|createjs.DisplayObject}
-     */
-	p.getWidget = function () {
-		return this._container ? this._container : this._object;
+	var p = createjs.extend( Widget, createjs.Container );
+// public methods: ============================================================
+	/**
+	 * @public
+	 * @method initialize
+	 */
+	p.initialize = function(){
+		this._init_property();
+		this._init_childs();
+		jees.APP.addChild( this );
 	};
 	/**
-	 * 获取父控件
-	 * @method getParent
-     * @return {jeesjs.Widget} 
-	 */
-	p.getParent = function () {
-		return this._parent;
-	};
-    /**
-     * 添加子控件
-     * @method addWidget
-     * @param {createjs.DisplayObject|jeesjs.Widget}
-     */
-	p.addWidget = function (_d) {
-		if( !_d ) throw "添加控件对象为空。";
-		if (this.isContainer() ){
-		    var is_wgt = false;
-			if( _d instanceof jees.Widget && _d.getWidget() != null ){
-				this._container.addChild(_d.getWidget());
-				is_wgt = true;
-			}else if ( _d instanceof createjs.DisplayObject ){
-				this._container.addChild(_d);
-				is_wgt = true;
-			}
-			if( !_d.getParent() )
-				_d._set_parent( this );
-
-            if( is_wgt )
-			    _d.getWidget().mask = this._object;
-		}
-		else throw "根节点为非容器类型控件。";
-	};
-    /**
-     * 是否是容器形式的控件
-     * @method isContainer
-     * @return {Boolean}
-     */
-	p.isContainer = function () {
-		return this._container != null;
-	};
-    /**
-	 * 获取控件宽高
+	 * @public
 	 * @method getSize
-	 * @return {w,h}
+	 * @return {Integer,Integer} {w,h}
 	 */
 	p.getSize = function () {
-		return { w: this._w, h: this._h };
+		return { w: this.w, h: this.h };
 	};
-    /**
-     * 设置宽高
-     * @method setSize
-     * @param {Number} _w
-     * @param {Number} _h
-     */
-	p.setSize = function (_w, _h) {
-		this._w = _w;
-		this._h = _h;
-	};
-    /**
-	 * 获取控件坐标
-	 * @method getPosition
-	 * @return {x,y}
+	/**
+	 * @public
+	 * @method setSize
+	 * @param {Integer|String} _w
+	 * @param {Integer|String} _h
 	 */
-	p.getPosition = function () {
-		return { x: this._x, y: this._y };
-	}
-    /**
-     * 设置坐标
-     * @method setPosition
-     * @param {Number} _x
-     * @param {Number} _y
-     */
-	p.setPosition = function (_x, _y) {
-		this._x = _x;
-		this._y = _y;
-		if( this.isContainer() ){
-			this._container.x = _x;
-			this._container.y = _y;
+	p.setSize = function ( _w, _h ) {
+		// 设置记录值
+		this.property.setSize( _w, _h );
+		this._reset_size();
+		
+		// 保证内部背景元素与容器一致
+		if( this._object && this._object instanceof jees.Widget ){
+			this._object.setSize( this.w, this.h );
 		}
 	};
 	/**
-	 * 获取绝对坐标
-	 * @method getAbsPosition
+	 * 获取控件坐标
+	 * @public
+	 * @method getPosition
+	 * @return {Integer,Integer} {x,y}
+	 */
+	p.getPosition = function () {
+		return { x: this.x, y: this.y };
+	}
+	/**
+	 * 设置控件坐标 如果align不为0，则设置无效
+	 * @public
+	 * @method setPosition
+	 * @param {Integer} _x
+	 * @param {Integer} _y
+	 */
+	p.setPosition = function( _x, _y ){
+		this.property.setPosition( _x, _y );
+		this._reset_position();
+	}
+	/**
+	 * 获取相对坐标
+	 * @public
+	 * @method getRelativePosition
 	 * @return {x,y}
 	 */
-	p.getAbsPosition = function (_x, _y) {
-		var parent_pos = this._parent == null ? { x: 0, y: 0 } : this._parent.getAbsPosition();
-		return { x: parent_pos.x + this._x, y: parent_pos.y + this._y };
-	}
-	/**
-	 * 获取控件状态
-	 * @method isEnabled
-	 * @return {Boolean}
-	 */
-	p.isEnabled = function () {
-		return this._enabled;
-	};
-	/**
-	 * 设置控件状态，主要用于屏蔽事件穿透
-	 * @method setEnabled
-     * @param {Boolean} _e
-	 */
-	p.setEnabled = function (_e) {
-		this._enabled = _e;
-	}
-	/**
-	 * 获取控件状态
-	 * @method isChecked
-	 * @return {Boolean}
-	 */
-	p.isChecked = function () {
-		return this._checked;
-	};
-	/**
-	 * 设置控件状态，主要用于屏蔽事件穿透
-	 * @method setChecked
-     * @param {Boolean} _c
-	 */
-	p.setChecked = function (_c) {
-		this._checked = _c;
-	}
-	/**
-	 * 获取控件透明度
-	 * @method getAlpha
-	 * @return {Float} [0, 1]
-	 */
-	p.getAlpha = function () {
-      		return this.getObject().alpha;
-      	};
-	/**
-	 * 设置控件透明度
-	 * @method setAlpha
-	 * @param {Float} [0, 1]
-	 */
-	p.setAlpha = function (_a) {
-		this.getObject().alpha = _a;
-	};
-	/**
-	 * 控件是否可见
-	 * @method isVisible
-	 * @param {Boolean}
-	 */
-	p.isVisible = function () {
-		return this.getObject().visible;
-	};
-	/**
-	 * 设置控件是否可见
-	 * @method setVisible
-	 * @param {Boolean} _v
-	 */
-	p.setVisible = function (_v) {
-		this.getObject().visible = _v;
-	};
-	// event method
-    /**
-     * 自定义绑定事件
-     * @method onEvent
-     * @param {String} _e 事件比如："click"等。具体参考CreateJs官网各控件对应事件类型。
-     * @param {Function( createjs.Event, jeesjs.Widget )} _f( _e, _w ) _e为对应的事件信息，_w为触发事件的控件Widget
-     */
-	p.onEvent = function (_e, _f) {
-		if (typeof _f != "function") throw "参数_f不是有效的方法类型";
-		// 事件始终绑定到DisplayObejct对象上
-		if (this._object)
-			this._bind_event(_e, this._object, _f);
-	}
-    /**
-     * 解绑控件弹起事件
-     * @method unEvent
-	 * @param {String} _e
-     */
-	p.unEvent = function (_e) {
-		if (this._object)
-			this._unbind_event(_e, this._object);
-	};
-	// private methods: =======================================================
-	/**
-	 * 设置父控件
-	 * @param {jeesjs.Widget} _p 
-	 */
-	p._set_parent = function(_p){
-		this._parent = _p;
-	};
-    /**
-     * 这里参考的写法，主要用于控件禁用状态同时禁用事件。
-     * @method _bind_event
-	 * @param {String} _e
-	 * @param {Widget} _w
-	 * @param {Function} _f
-	 * @private
-	 * 参考：http://www.ajexoop.com/wordpress/2016/03/新手写createjs时容易遇到的坑（持续更新）.html
-     */
-	p._bind_event = function (_e, _w, _f) {
-		this._handle_map[_e] = _f;
-		var _this = this;
-		this._event_map[_e] = _w.addEventListener(_e, function (e) { _this._handle_event(e); });
-	};
-	/**
-	 * @method _unbind_event
-	 * @param {String} _e
-	 * @param {Widget} _w
-	 * @private
-	 */
-	p._unbind_event = function (_e, _w) {
-		_w.removeEventListener(_e, this._event_map[_e]);
-		this._event_map[_e] = null;
-		this._handle_map[_e] = null;
-		delete this._event_map[_e];
-		delete this._handle_map[_e];
-	};
-	/**
-	 * @method _handle_event
-	 * @param {createjs.Event} _e
-	 * @private
-	 */
-	p._handle_event = function (_e) {
-		if (this.isEnabled()) this._handle_map[_e.type](_e, this);
-	};
+	p.getRelativePosition = function () {
+		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
+		
+		var x = this.x;
+		var y = this.y;
 
-	jees.Widget = Widget;
+		if( this.align == 2 ){
+			x = relative_pos.w - this.getSize().w - x;
+		}else if( this.align == 1 ){
+			x = ( relative_pos.w - this.getSize().w ) / 2 + x;
+		}
+		return { x: x, y: y };
+	}
+	/**
+	 * 缩放
+	 * @public
+	 * @method setScale
+	 * @param {Integer|Float} _sx
+	 * @param {Integer|Float} _sy
+	 */
+	p.setScale = function( _sx, _sy ){
+		this.property.setScale( _sx, _sy );
+		this._reset_scale();
+	}
+// private methods: ===========================================================
+	/**
+	 * 缓存对象
+	 * @private
+	 * @method _cache
+	 */
+	p._cache = function(){
+		this.cache( 0, 0, this.w, this.h );
+		if( this._object )
+			this._object.cache( 0, 0, this.w, this.h );
+	}
+	/**
+	 * 初始化配置属性
+	 * @private
+	 * @method _init_property
+	 */
+	p._init_property = function(){
+		this._reset_size();
+		this._reset_position();
+		this._reset_scale();
+		this._reset_mask();
+	}
+	/**
+	 * 初始化子控件
+	 * @private
+	 * @method _init_childs
+	 */
+	p._init_childs = function(){
+		// 如果根控件存在初始化得内容，则插入第一个位置。
+		if( this._object ){
+			this.addChildAt( this._object, 0 );
+		}
+		if( this.children ){
+			for( var i = 0; i < this.children.length; i ++ ){
+				var c = this.children[i];
+				if( c instanceof jees.UI.Widget ){
+					c.initialize();
+				}
+			}
+		}
+	};
+	/**
+	 * @private
+	 * @method _get_size
+	 * @param {Integer|String} _val 纪录的值
+	 * @param {Integer} _parent 父控件的值
+	 * @param {Integer} _child 其他同组子控件的值之和(不包含自己)
+	 */
+	p._calculate_size = function( _val, _parent, _child ){
+		var real_val = 0;
+		if( _val && typeof( _val ) == "string" ){
+			if( _val.toLowerCase() == "auto" ){
+				real_val = _parent - _child;
+			}else if( _val.indexOf( "%" ) != -1 ){
+				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
+			}else{
+				real_val = parseInt( _val.substring( 0, _val.length - 1 ) );
+			}
+		}else real_val = _val;
+		return real_val;
+	}
+	/**
+	 * 重置宽高
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		var parent_size = this.parent ? this.parent.getSize() : { w:jees.SET.getWidth(), h:jees.SET.getHeight() };
+		
+		var childs_size = { w:0, h:0 };
+		var size = this.property.getSize();
+		if( this.property.layoutGroup && this.parent ){
+			var _this = this;
+			if( ( typeof( size.w ) == "string" && size.w.toLowerCase() == "auto" )
+				|| ( typeof( size.h ) == "string" && size.h.toLowerCase() == "auto" ) ){
+					this.parent.children.forEach( function( _c ){
+						if( _c != _this && _c.property.layoutGroup == _this.property.layoutGroup ){
+							if( _c.w == 0 || _c.h == 0 ) _c._reset_size();
+							childs_size.w += _c.w;
+							childs_size.h += _c.h;
+						}
+					} );
+				}
+		}
+		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
+		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
+	}
+	/**
+	 * 重置坐标
+	 * @private
+	 * @method _reset_position
+	 */
+	p._reset_position = function(){
+		var pos = this.property.getPosition();
+		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
+		var x = pos.x;
+		var y = pos.y;
+
+		if( this.property.align == 2 ){
+			x = relative_pos.w - this.getSize().w - x;
+		}else if( this.property.align == 1 ){
+			x = ( relative_pos.w - this.getSize().w ) / 2 + x;
+		}
+		
+		this.x = x;
+		this.y = y;
+	}
+	/**
+	 * 重置蒙版
+	 * @private
+	 * @method _reset_mask
+	 */
+	p._reset_mask = function(){
+		if( this.property.enableMask ){
+			this._mask = jees.CJS.newShape( this.w, this.h );
+		}
+		
+		if( this.parent && this.parent.property.enableMask && this._object ) {
+			// _object 必须是Shape等有mask属性的控件
+			this._object.mask = this.parent._mask;
+		}
+	}
+	/**
+	 * 重置缩放
+	 * @private
+	 * @method _reset_scale
+	 */
+	p._reset_scale = function(){
+		var scale = this.property.getScale();
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
+	}
+
+	jees.UI.Widget = createjs.promote( Widget, "Container" );
 })();
