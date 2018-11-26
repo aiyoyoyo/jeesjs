@@ -47,7 +47,11 @@ this.jees.EX = this.jees.EX || {};
 		
 		if( type == "widget") wgt = new jees.UI.Widget();
 		else if( type == "panel" ) wgt = new jees.UI.Panel();
+		else if( type == "textbox" ) wgt = new jees.UI.TextBox();
+		else if( type == "imagebox" ) wgt = new jees.UI.ImageBox();
+		else if( type == "imagespt" ) wgt = new jees.UI.ImageSpt();
 		else if( type == "button" ) wgt = new jees.UI.Button();
+		else if( type == "checkbox" ) wgt = new jees.UI.CheckBox();
 		else throw "错误的控件类型：" + _t;
 		
 		// 解析createjs属性
@@ -66,13 +70,12 @@ this.jees.EX = this.jees.EX || {};
 		if( wgt.property.childs ){
 			wgt.property.childs.forEach( function( _c ) {
 				for( var i in _c ){
-					_this._lay
 					wgt.addChild( _this._layout_property_2_widget( i, _c[i] ) );
 					break;
 				}
 			} );
 		}
-
+		
 		return wgt;
 	}
 	/**
@@ -116,7 +119,10 @@ this.jees.EX = this.jees.EX || {};
 	 */
 	p.unload = function( _n ){
 		if( this._layouts.has( _n ) ){
+			var wgt = this._layouts.get( _n );
+			jees.APP.removeChild( wgt );
 			this._layouts.delete( _n );
+			this.del( _n );
 		}
 	}
 	

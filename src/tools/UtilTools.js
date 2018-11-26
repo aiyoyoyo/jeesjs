@@ -48,7 +48,7 @@ this.jees = this.jees || {};
 	 */
 	UtilTools.RandomColor = (function() {
 		function rc2hex(){
-			var c = jeesjs.UT.Random(256);
+			var c = jees.UT.Random(256);
 			if( c < 10 ) return "0" + c;
 		    return c.toString(16);
 		};

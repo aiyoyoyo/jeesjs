@@ -1,28 +1,48 @@
 {
 	"Widget":{
-		"name": "root",
-		"width": "90%",
+		"width": "100%",
 		"height": "100%",
-		"align": 1,
+		"alignX": 1,
 		"enableMask": true,
 		"childs": [
 			{"Panel":{
-				"name": "top-bar",
+				"name": "topbar",
 				"width": "100%",
 				"height": 40,
 				"skinResource": "panel-highlight",
 				"childs": [
-//					{"Widget":{
-//						"type": "Button",
-//						"w": 100,
-//						"h": 30,
-//						"x": 15,
-//						"y": 10,
-//					}},
+					{"ImageBox":{
+						"name": "logo",
+						"resource": "logo",
+						"width": 64,
+						"height": 32,
+						"y": 3,
+						"region": "0,128,200,72", 
+					}},
+					{"TextBox":{
+						"text": "基本控件：",
+						"x": 80,
+						"y": 13,
+					}},
+					{"Button":{
+						"text": "Button",
+						"types": "normal, highlight, push, disable",
+						"width": 80,
+						"height": 30,
+						"x": 140,
+						"y": 5,
+					}},
+					{"CheckBox":{
+						"text": "CheckBox",
+						"types": "normal, highlight, push, disable, checked, checkedHighlight, checkedPush, checkedDisable",
+						"width": 30,
+						"height": 30,
+						"x": 250,
+						"y": 5,
+					}},
 				],
 			}},
 			{"Panel":{
-				"name": "draw-panel",
 				"y": 40,
 				"width": "auto",
 				"height": "100%",
@@ -30,7 +50,6 @@
 				"enableMask": true,
 				"childs": [
 					{"Panel":{
-						"name": "background",
 						"resource": "cover",
 						"width": "100%",
 						"height": "100%",
@@ -38,11 +57,16 @@
 						"scaleX": 10,
 						"scaleY": 10,
 					}},
+					{"ImageSpt":{
+						"resource": "anima0",
+						"cols": 3,
+						"rows": 2,
+						"speed": 300,
+					}},
 				],
 			}},
 			{"Panel":{
-				"name": "side-bar",
-				"align": 2,
+				"alignX": 2,
 				"width": 300,
 				"height": "100%",
 				"y": 40,

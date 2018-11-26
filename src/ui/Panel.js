@@ -16,7 +16,7 @@ this.jees.UI = this.jees.UI || {};
 // constructor: ===============================================================
 	/**
 	 * @class Panel
-	 * @extends jees.Widget
+	 * @extends jees.UI.Widget
 	 * @constructor
 	 */
     function Panel(){
@@ -25,21 +25,27 @@ this.jees.UI = this.jees.UI || {};
 		/**
     	 * 使用的皮肤，控件对应自己得控件类型
 		 * @public
-    	 * @extends
+    	 * @override
 		 * @property property.skinResource
     	 * @type {String}
     	 * @default "Panel"
     	 */
 		this.property.skinResource = "Panel";
 // private properties:
+		/**
+		 * 控件使用得皮肤，为空不使用
+		 * @private
+		 * @property _skin
+		 * @type {jees.Skin}
+		 * @default null
+		 */
+		this._skin = null;
     };
   	var p = createjs.extend( Panel, jees.UI.Widget );
 // public methods: ============================================================
     p.initialize = function(){
     	this._reset_size();
     	this._reset_position();
-    	// var size = this.getSize();
-    	// this.sourceRect = jees.CJS.newRect( 0, 0, size.w, size.h );
     	
     	// 如果没有指定图片源则使用皮肤
     	if( this.property.resource && this.property.resource != "" ){
@@ -56,17 +62,24 @@ this.jees.UI = this.jees.UI || {};
 	p._init_custom = function(){
 		var size = this.getSize();
 		// jees.Images see Define.js 
-		var img = jees.Images.get( this.property.resource );
+		var img = jees.Resource.get( this.property.resource );
 		
 		var w = size.w;
 		var h = size.h;
 		var style = this.property.style;
 		
-		this._object = jees.CJS.newBitmap( img );
+		this._object = new jees.UI.ImageBox();
 		if( style == 1 ){ // Streach
 			var sx = w / img.width;
 			var sy = h / img.height;
-			this.setScale( sx, sy );
+			if( this.visibleMask ){
+				this.addChildAt( this._object, 1 );
+			}else{
+				this.addChildAt( this._object, 0 );
+			}
+			this._object.property.resource = this.property.resource;
+			this._object.initialize();
+			this._object.setScale( sx, sy );
 		}else if( style == 2 ){ // Tile
 			// 平铺时如果缩放了控件，则绘制和缓存区域要除以缩放比例
 			var scale = this.property.getScale();
@@ -75,13 +88,27 @@ this.jees.UI = this.jees.UI || {};
 			this._object = jees.CJS.newShape();
 			this._object.graphics.beginBitmapFill( img ).drawRect( 0, 0, dw, dh );
 			this._object.cache( 0, 0, dw, dh );
+			if( this.visibleMask ){
+				this.addChildAt( this._object, 1 );
+			}else{
+				this.addChildAt( this._object, 0 );
+			}
 		}
 	}
 	p._init_skin = function(){
     	var size = this.getSize();
 		this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
 		this.property.resource = this._skin.getCacheDataURL();
-		this._object =  jees.CJS.newBitmap( this.property.resource );
+		
+		
+		this._object = new jees.UI.ImageBox();
+		this._object.property.resource = this.property.resource;
+		this._object.initialize();
+		if( this.visibleMask ){
+			this.addChildAt( this._object, 1 );
+		}else{
+			this.addChildAt( this._object, 0 );
+		}
 	}
 	
 	jees.UI.Panel = createjs.promote( Panel, "Widget" );

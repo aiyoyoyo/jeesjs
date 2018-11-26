@@ -1,6 +1,5 @@
 /*
- * Author: Aiyoyoyo 
- * https://github.com/aiyoyoyo/jeesjs/tree/master/src/ui/ImageBox.js
+ * Author: Aiyoyoyo https://www.jeesupport.com/assets/jeesjs/src/ui/ImageSpt.js
  * License: MIT license
  */
 
@@ -11,19 +10,18 @@
 this.jees = this.jees || {};
 this.jees.UI = this.jees.UI || {};
 
-(function() {
+(function () {
 	"use strict";
 // constructor: ===============================================================
 	/**
 	 * 支持基本的图片格式。
-	 * @class ImageBox
-	 * @extends createjs.BitMap
-	 * @param {String | Object} _r 参数 "res/demo.jpg"、"resname"、jeesjs.QM.getSource("resname")
+	 * @class ImageSpt
+	 * @extends createjs.Sprite
 	 * @constructor
 	 */
-	function ImageBox() {
-		this.Bitmap_constructor();
-	// private properties: ====================================================
+	function ImageSpt() {
+		this.Sprite_constructor();
+// public properties:
 		/**
 		 * 控件的配置属性，用于初始化和部分属性的重置用
 		 * @public
@@ -31,53 +29,94 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.property = new jees.UI.Property();
 		/**
-		 * 图片是否加载完毕
+		 * @public
+		 * @property rows
+		 * @type {Integer}
+		 * @default 1
+		 */
+		this.rows = 1;
+		/**
+		 * @public
+		 * @property cols
+		 * @type {Integer}
+		 * @default 1
+		 */
+		this.cols = 1;
+		/**
+		 * 起始帧
+		 * @public
+		 * @property start
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.start = 0;
+		/**
+		 * 帧速 ms
+		 * @public
+		 * @property speed
+		 * @type {Integer}
+		 * @default 100
+		 */
+		this.speed = 100;
+		/**
+		 * @public
+		 * @property auto
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.auto = true;
+		/**
 		 * @public
 		 * @property state
 		 * @type {Boolean}
-		 * @default false;
+		 * @default false
 		 */
 		this.state = false;
+// private properties:
 		/**
-		 * 使用的源区域
-		 * @public
-		 * @property
-		 * @type {String}
-		 * @default null
+		 * @private 
+		 * @property _data
+		 * @type {Object}
+		 * @defualt null
 		 */
-		this.region = null;
+		this._data = null;
+		/**
+		 * @private
+		 * @property _frame_count
+		 * @type {Integer}
+		 * @default 1
+		 */
+		this._frame_count = 1;
 	};
 
-	var p = createjs.extend( ImageBox, createjs.Bitmap );
+	var p = createjs.extend( ImageSpt, createjs.Sprite );
 // public method: =============================================================
-	/**
-	 * @public
-	 * @method initialize
-	 */
 	p.initialize = function(){
-		if( typeof this.property.resource == "string" ){
-			if( this.property.resource.startsWith( "data:image" ) ){
-				this.image = document.createElement("img");
-				this.image.src = this.property.resource;
-			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.property.resource)){
-				this.image = jees.Resource.get( this.property.resource );
-			}else{
-				this.image = document.createElement("img");
-				this.image.src = this.property.resource;
-			}
-		}else this.image = this.property.resource;
-		
 		this.state = true;
-		if( this.region ){
-			var r = this.region.split(",");
-			if( r.length != 4 ) throw "分割区域错误:" + r;
-			this.setRect( r[0], r[1], r[2], r[3] );
-		}else{
-			this.setRect( 0, 0, this.image.width, this.image.height );
-		}
+		var res =  jees.Resource.get( this.property.resource );
+		var frame_width = res.width / this.cols;
+		var frame_height = res.height / this.rows;
+//	    framerate: rate, 这里无视ticker的timingMode，也许是bug也许是我错了。
+		this._frame_count = ( this.cols * this.rows );
 		
-		this._reset_size();
-		this._reset_position();
+		this._data = {
+	        images: [ res ],
+	        framerate: this._frame_count,
+	        frames: { width: frame_width, height: frame_height, count: this._frame_count, regX: this.regX, regY: this.regY },
+	        animations: {
+	        	default: [ 0, this._frame_count - 1, "default", 1]
+	        }
+	   	};
+	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
+	   	
+	    this._reset_speed();
+	    this._reset_size();
+	    this._reset_position();
+	    
+	    this._goto( this.start );
+	    if( this.auto ){
+	    	this.gotoAndPlay( "default" );
+	    }
 	}
 	/**
 	 * @public
@@ -139,16 +178,7 @@ this.jees.UI = this.jees.UI || {};
 		this._reset_scale();
 	}
 	/**
-	 * @public
-	 * @method getRect
-	 * @return {Integer,Integer,Integer,Integer} {x,y,w,h}
-	 */
-	p.getRect = function(){
-		return this.sourceRect;
-	}
-	/**
 	 * 绘制图片的局部
-	 * @public
 	 * @method setRect
 	 * @param {Integer} _x
 	 * @param {Integer} _y
@@ -172,44 +202,11 @@ this.jees.UI = this.jees.UI || {};
 		if( _x ) this.regX = _x;
 		if( _y ) this.regY = _y;
 	}
-	/**
-	 * @public
-	 * @method getReg
-	 * @returns {Integer,Integer} {x,y}
-	 */
-	p.getReg = function(){
-		return {x: this.regX, y: this.regY};
+	p.setSpeed = function( _s ){
+		this.speed = _s;
+		this._reset_speed();
 	}
  // private method: ===========================================================
-	// /**
-	//  * @method _onload
-	//  * @param {Object|String} _r 
-	//  * @private
-	//  */
-	// p._onload = function( _r ){
-	// 	if( typeof _r === "string" && !/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test( _r ) || typeof _r === "object" ){
-	// 		this._sourcePath = _r;
-	// 		this._onload_finish( this );
-    //     }else{
-	// 		this._sourcePath = _r;
-	// 		var _this = this;
-	// 		jeesjs.QM.addSource( _r , _r );
-	// 		jeesjs.QM.load( function(){
-	// 			_this._onload_finish( _this ) 
-	// 		} );
-	// 	}
-	// }
-	// /**
-	//  * @method _onload_finish
-	//  * @param {Event} _e
-	//  * @private
-	//  */
-	// p._onload_finish = function( _o ){
-	// 	_o._source = typeof _o._sourcePath === "object" ? _o._sourcePath : jeesjs.QM.getSource( _o._sourcePath );
-	// 	_o._object = new createjs.Bitmap( _o._source );
-	// 	_o._reset();
-	// }
-
 	/** 
 	 * @method _reset_size
 	 * @private
@@ -233,7 +230,7 @@ this.jees.UI = this.jees.UI || {};
 			this.property.scaleX = prop_size.w / bounds.width;
 		if( prop_size.h != bounds.height )
 			this.property.scaleY = prop_size.h / bounds.height;
-			
+		
 		this._reset_scale();
 	}
 	/**
@@ -247,32 +244,23 @@ this.jees.UI = this.jees.UI || {};
 		var x = pos.x;
 		var y = pos.y;
 		
-		this.setReg( this.getReg().x, this.getReg().y );
+		this.setReg( 0, 0 );
 		if( this.property.alignX == 2 ){
 			x = relative_pos.w - this.getSize().w - x;
 		}else if( this.property.alignX == 1 ){
-			this.setReg( this.getSize().w / 2, this.getReg().y );
+			this.setReg( this.getSize().w / 2, this.getSize().h / 2 );
 			x = ( relative_pos.w / 2 ) + x;
 		}
 		
 		if( this.property.alignY == 2 ){
 			y = relative_pos.h - this.getSize().h - y;
 		}else if( this.property.alignY == 1 ){
-			this.setReg( this.getReg().x, this.getSize().h / 2 );
-			console.log( this.getReg() );
+			this.setReg( this.getSize().w / 2, this.getSize().h / 2 );
 			y = ( relative_pos.h / 2 ) + y;
 		}
 		this.x = x;
 		this.y = y;
 	}
-	// /**
-	//  * @method _reset_rect
-	//  * @private
-	//  */
-	// p._reset_rect = function(){
-	// 	if( !this._state ) return;
-	// 	this._object.sourceRect = this._rect;
-	// }
 	/**
 	 * @method _reset_scale
 	 * @private
@@ -288,6 +276,11 @@ this.jees.UI = this.jees.UI || {};
 			this.sourceRect = jees.CJS.newRect( 0, 0, b.width, b.height );
 		}
 	}
-    
-	jees.UI.ImageBox = createjs.promote( ImageBox, "Bitmap");
+	p._reset_speed = function(){
+		var spd = 1000 / jees.SET.getFPS() / this.speed;
+		
+		this._data.animations.default[3] = spd;
+		this.spriteSheet._parseData( this._data );
+	}
+	jees.UI.ImageSpt = createjs.promote( ImageSpt, "Sprite");
 })();

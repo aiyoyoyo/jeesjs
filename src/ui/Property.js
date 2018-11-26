@@ -45,17 +45,17 @@ this.jees.UI = this.jees.UI || {};
 		 * @public
 		 * @property width
     	 * @type {Integer|String}
-    	 * @default 1
+    	 * @default 0
 		 */
-		this.width = 1;
+		this.width = 0;
 		/**
 		 * 控件配置高度， 可用 100 | "100%" | "auto"
 		 * @public
 		 * @property height
     	 * @type {Integer|String}
-    	 * @default 1
+    	 * @default 0
 		 */
-		this.height = 1;
+		this.height = 0;
 		/**
 		 * 控件配置横向缩放
 		 * @public
@@ -73,14 +73,23 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.scaleY = 1;
 		/**
-    	 * 水平对齐方式 0-Left|1-Center|2-Middle
-    	 * 需要指定父类layout属性>=1
+    	 * 水平对齐方式 0-Left|1-Center|2-Right
+    	 * x属性将会根据方向做偏移 Left从左向右偏移, Center从中心向右, Right从右向左偏移
 		 * @public
-    	 * @property align
+    	 * @property alignX
     	 * @type {Integer}
     	 * @default 0
     	 */
-		this.align = 0;
+		this.alignX = 0;
+		/**
+    	 * 垂直对齐方式 0-Top|1-Middle|2-Bottom
+    	 * y属性将会根据方向做偏移 Top从上往下, Middle从中心向下, Bottom从下向上偏移
+		 * @public
+    	 * @property alignY
+    	 * @type {Integer}
+    	 * @default 0
+    	 */
+		this.alignY = 0;
 		/**
 		 * 内容填充方式 0 - 不改变资源内容, 1 - 拉伸, 2 - 平铺
 		 * @public

@@ -117,10 +117,20 @@ this.jees = this.jees || {};
      * @public
      * @static
      * @method addChild
-	 * @param {createjs.DisplayObject | jees.Widget} _w
+	 * @param {createjs.DisplayObject | jees.Widget} _c
 	 */
 	Application.addChild = function( _c ){
 		this._stage.addChild( _c );
+	}
+	/**
+	 * 删除舞台绘制对象
+	 * @public
+	 * @static
+	 * @method removeChild
+	 * @param {createjs.DisplayObject | jees.Widget} _c
+	 */
+	Application.removeChild = function( _c ){
+		this._stage.removeChild( _c );
 	}
 	/**
      * @public
@@ -177,6 +187,47 @@ this.jees = this.jees || {};
 		jees.SET.setFPS( _f );
 		jees.CJS.getTicker().framerate = jees.SET.getFPS();
 	}
+	/**
+	 * 屏幕方向
+	 * TODO 待完成
+	 * 考虑真锁定(设备锁定)和假锁定(浏览器锁定/绘制锁定)
+	 */
+	Application.screenOrientation = function(){
+		// var o = window.orientation;
+		// var w = window.innerWidth
+		// var h = window.innerHeight;
+		// if( o == 90 ){
+		// 	jees.APP._stage.children[0].rotation = -o;
+		// 	jees.APP._stage.children[0].y = jees.SET.getWidth();
+		// 	jees.APP._stage.children[0].scaleY = 2;
+		// 	jees.APP._stage.y = jees.SET.getWidth();
+		// 	jees.APP._stage.scaleX = 2;// jees.SET.getHeight() / jees.SET.getWidth();
+		// 	jees.APP._stage.scaleY = 2;
+
+		// 	jees.APP._canvas.width = w;
+		// 	jees.APP._canvas.height = h;
+
+		// 	jees.APP._stage.updateViewport(w,h);
+		// }
+		// var w = window.innerWidth
+		// var h = window.innerHeight;
+		// jees.APP._stage.updateViewport(w,h);
+		// jees.APP._stage.update();
+	}
+	/**
+	 * 屏幕大小
+	 * TODO 待完成
+	 */
+	Application.screenResize = function(){
+		// var w = window.innerWidth
+		// var h = window.innerHeight;
+		
+		// jees.APP._canvas.width = w;
+		// jees.APP._canvas.height = h;
+	
+		// jees.APP._stage.updateViewport(w,h);
+		// jees.APP._stage.update();
+	}
 // private static methods: ====================================================
 	/**
      * 程序初始化完成
@@ -198,17 +249,19 @@ this.jees = this.jees || {};
 
 		this._stage.updateViewport( jees.SET.getWidth(), jees.SET.getHeight() );
 		
+        createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
         this.setFPS( jees.SET.getFPS() );
-//		window.addEventListener("resize", function(){
-//			var w = window.innerWidth
-//			var h = window.innerHeight;
-//			
-//			jees.APP._canvas.width = w;
-//			jees.APP._canvas.height = h;
-//		
-//			jees.APP._stage.updateViewport(w,h);
-//			jees.APP._stage.update();
-//		});
+        
+        
+        createjs.Touch.enable( this._stage );
+		if( jees.SET.enableMouseOver() )
+        	this._stage.enableMouseOver();
+
+//		window.addEventListener( "orientationchange", this.screenOrientation );
+//		window.addEventListener( "resize", this.screenResize );
+
+		// TIPS HBuilder API 这里是真锁定
+//		plus.screen.lockOrientation( "portrait" );
 		
 		jees.RM.reload();
 		jees.CM.startup();

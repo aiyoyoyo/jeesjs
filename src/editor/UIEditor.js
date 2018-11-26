@@ -27,13 +27,16 @@ this.jees = this.jees || {};
     	// 绘制界面
     	this._layout = jees.Layout.load( "uieditor" );
     	// 加载游戏配置
-    	// 加载游戏资源
+		// 加载游戏资源
     }
     // public static methods: =================================================
     p.enter = function(){
     	// 程序启动
     	var _this = this;
-    	jees.Images.register( "cover", "../assets/images/cover.png" );
+		jees.Resource.register( "logo", "../assets/images/JeesJS_Logo.png" );
+		jees.Resource.register( "cover", "../assets/images/cover.png" );
+		jees.Resource.register( "anima0", "../assets/images/anima_0.png" );
+		
     	jees.Layout.register( "uieditor", "../assets/layouts/jees.uieditor.layout" );
     	
     	jees.RM.onload( function(){ _this._initialize(); } );

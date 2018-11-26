@@ -1,6 +1,6 @@
 
 /*
- * Author: Aiyoyoyo https://www.jeesupport.com/assets/jeesjs/src/ui/Button.js
+ * Author: Aiyoyoyo https://www.jeesupport.com/assets/jeesjs/src/ui/CheckBox.js
  * License: MIT license
  */
 
@@ -15,13 +15,13 @@ this.jees.UI = this.jees.UI || {};
 	"use strict";
 // constructor: ===============================================================
 	/**
-	 * 
-	 * @class Button
+	 * 纯外框时，需要使用容器来保证透明区域可点击。建议素材中添加地板。
+	 * @class CheckBox
 	 * @extends jees.UI.ImageSpt
 	 * @constructor
 	 */
-	function Button() {
-		this.ImageSpt_constructor();
+	function CheckBox() {
+		this.Button_constructor();
 // public properties:
 		/**
     	 * 使用的皮肤，控件对应自己得控件类型
@@ -31,71 +31,26 @@ this.jees.UI = this.jees.UI || {};
     	 * @type {String}
     	 * @default "Button"
     	 */
-		this.property.skinResource = "Button";
+		this.property.skinResource = "CheckBox";
 		/**
 		 * @public
-		 * @property text
-		 * @type {String}
-		 * @default ""
-		 */
-		this.text = "";
-		/**
-		 * @public
-		 * @property types
-		 * @type {Integer}
-		 * @default 4
-		 */
-		this.types = 4;
-		/**
-		 * 是否禁用控件
-		 * @public
-		 * @property disable
+		 * @property checked
 		 * @type {Boolean}
 		 * @default false
 		 */
-		this.disable = false;
+		this.checked = false;
 		/**
 		 * @public
-		 * @property italic
-		 * @type {Boolean}
-		 * @default false
-		 */
-		this.italic = false;
-		/**
-		 * @public
-		 * @property bold
-		 * @type {Boolean}
-		 * @default false
-		 */
-		this.bold = false;
-		/**
-		 * 拆分的字体样式-字体样式
-		 * @public
-		 * @property fontStyle
+		 * @property group
 		 * @type {String}
-		 * @default "Arial"
+		 * @defualt ""
 		 */
-		this.fontStyle = "Arial";
-		/**
-		 * 拆分的字体样式-字体大小
-		 * @public
-		 * @property fontSize
-		 * @type {Integer}
-		 * @default 12
-		 */
-		this.fontSize = 12;
-		/**
-		 * @public
-		 * @property color
-		 * @type {String}
-		 * @default "#FFFFFF"
-		 */
-		this.color = "#FFFFFF";
+		this.group = "";
 // private properties:
 		this._object = new jees.UI.TextBox();
 	};
 // public static properties:
-	var p = createjs.extend( Button, jees.UI.ImageSpt );
+	var p = createjs.extend( CheckBox, jees.UI.Button );
 // public method: =============================================================
 	/**
 	 * @public
@@ -115,26 +70,29 @@ this.jees.UI = this.jees.UI || {};
         	jees.E.bind( this, "mouseover", function( e ){ _this._handle_mouseover( e, _this ); });
         	jees.E.bind( this, "mouseout", function( e ){ _this._handle_mouseout( e, _this ); });
         }
-		this._reset_disable();
+        
+        jees.E.bind( this, "click", function( e ){ _this._handle_click( e, _this ); });
+        
+//		this._reset_disable();
 	    this._reset_position();
 	}
 	/**
 	 * 设置状态
 	 * @public
-	 * @method setDisabled
+	 * @method setChecked
 	 * @param {Boolean} _e
 	 */
-	p.setDisabled = function( _e ){
-		this.disable = _e;
+	p.setChecked = function( _e ){
+		this.checked = _e;
 	}
 	/**
 	 * 是否禁用
 	 * @public
-	 * @method isDisabled
+	 * @method isChecked
 	 * @return {Boolean}
 	 */
-	p.isDisabled = function(){
-		return this.disable;
+	p.isChecked = function(){
+		return this.checked;
 	}
 // private method: ============================================================
 	p._init_background = function(){
@@ -147,15 +105,24 @@ this.jees.UI = this.jees.UI || {};
 			images: [this._skin.getCacheDataURL("rect"),
 				this._skin.getCacheDataURL("highlight"),
 				this._skin.getCacheDataURL("push"),
-				this._skin.getCacheDataURL("disable")],
-			frames: {width: size.w, height: size.h, count: 4 },
+				this._skin.getCacheDataURL("disable"),
+				this._skin.getCacheDataURL("checked"),
+				this._skin.getCacheDataURL("checkedHighlight"),
+				this._skin.getCacheDataURL("checkedPush"),
+				this._skin.getCacheDataURL("checkedDisable")],
+			frames: {width: size.w, height: size.h, count: 8 },
 	        animations: {
 	        	normal: [0, 0, "normal"],
 	        	highlight: [1, 1, "highlight"],
 	        	push: [2, 2, "push"],
 	        	disable: [3, 3, "disable"],
+	        	checked: [4, 4, "checked"],
+	        	checkedHighlight: [5, 5, "checkedHighlight"],
+	        	checkedPush: [6, 6, "checkedPush"],
+	        	checkedDisable: [7, 7, "checkedDisable"],
 	        }
-	   	};
+	    };
+	    
 	   	this.spriteSheet = new createjs.SpriteSheet( data );
 	   	this.gotoAndPlay( "normal" );
 	}
@@ -166,16 +133,16 @@ this.jees.UI = this.jees.UI || {};
 		this._object.setColor( this.color );
 		this._object.setItalic( this.italic );
 		this._object.setBold( this.bold );
-		this._object.setPosition( this.x + ( this.getSize().w / 2 ) - ( this._object.getSize().w / 2 ) , 
+		this._object.setPosition( this.x + this.getSize().w + this._object.getFontSize(), 
 			this.y + ( this.getSize().h / 2 - ( this._object.getSize().h / 2 ) ) );
 		// 描述为几态按钮(1-正常 2-高亮 3-按下 4-禁用)
 		this.parent.addChild( this._object );
 	}
 	p._reset_disable = function(){
 		if( this.disable ){
-			this.gotoAndPlay( "disable" );
+			this.gotoAndPlay( this.checked ? "checkedDisable" : "disable" );
 		}else{
-			this.gotoAndPlay( "normal" );
+			this.gotoAndPlay( this.checked ? "checked" : "normal" );
 		}
 	}
 	 /**
@@ -187,12 +154,7 @@ this.jees.UI = this.jees.UI || {};
 	  */
 	 p._handle_mousedown = function( _e, _w ){
 	 	if( _w.isDisabled() ) return;
-	 	var obj = _w._object;
-	 	var pos = obj.getPosition();
-	 	var offset = obj.getFontSize() / 10;
-	 	
-	 	this._object.setPosition( pos.x - offset, pos.y - offset );
-	 	this.gotoAndPlay( "push" );
+	 	this.gotoAndPlay( this.checked ? "checkedPush":"push" );
 	 }
 	 /**
 	  * 当按钮弹起时，文本控件恢复字体/10大小的偏移
@@ -203,11 +165,7 @@ this.jees.UI = this.jees.UI || {};
 	  */
 	 p._handle_pressup = function( _e, _w ){
 	 	if( _w.isDisabled() ) return;
-	 	var obj = _w._object;
-	 	var pos = obj.getPosition();
-	 	var offset = obj.getFontSize() / 10;
-	 	this._object.setPosition( pos.x + offset, pos.y + offset );
-	 	this.gotoAndPlay( "normal" );
+	 	this.gotoAndPlay( this.checked ? "checked" : "normal" );
 	 }
 	/**
 	  * 当按钮移上按钮时
@@ -218,7 +176,7 @@ this.jees.UI = this.jees.UI || {};
 	  */
 	 p._handle_mouseover = function( _e, _w ){
 	 	if( _w.isDisabled() ) return;
-	 	this.gotoAndPlay( "highlight" );
+	 	this.gotoAndPlay( this.checked ? "checkedHighlight" : "highlight" );
 	 }
 	 /**
 	  * 当按钮移上按钮时
@@ -229,8 +187,12 @@ this.jees.UI = this.jees.UI || {};
 	  */
 	 p._handle_mouseout = function( _e, _w ){
 	 	if( _w.isDisabled() ) return;
-	 	this.gotoAndPlay( "normal" );
+	 	this.gotoAndPlay( this.checked ? "checked" : "normal" );
 	 }
-	 
-	jees.UI.Button = createjs.promote( Button, "ImageSpt" );
+	 p._handle_click = function( _e, _w ){
+	 	if( _w.isDisabled() ) return;
+	 	this.setChecked( !this.checked );
+	 	this.gotoAndPlay( this.checked ? "checked" : "normal" );
+	 }
+	jees.UI.CheckBox = createjs.promote( CheckBox, "Button" );
 })();

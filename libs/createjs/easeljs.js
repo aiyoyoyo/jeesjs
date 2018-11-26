@@ -10909,6 +10909,7 @@ this.createjs = this.createjs||{};
 			if (item._webGLRenderStyle === 2 || useCache) {			// BITMAP / Cached Canvas
 				image = (ignoreCache?false:item.cacheCanvas) || item.image;
 			} else if (item._webGLRenderStyle === 1) {											// SPRITE
+//				if( item.spriteSheet ) { continue; }
 				frame = item.spriteSheet.getFrame(item.currentFrame);	//TODO: Faster way?
 				if (frame === null) { continue; }
 				image = frame.image;

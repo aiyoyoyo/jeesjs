@@ -60,6 +60,9 @@ this.jees = this.jees || {};
     	var r = new createjs.Rectangle( _l, _r, _t, _b );
     	return r;
     }
-    
+    CreateJS.newText = function( _t, _f, _c ){
+    	var t = new createjs.Text( _t, _f, _c );
+    	return t;
+    }
 	jees.CJS = CreateJS;
 })();

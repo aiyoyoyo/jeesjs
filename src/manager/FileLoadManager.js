@@ -47,11 +47,15 @@ this.jees = this.jees || {};
 	 * @param {Object} _f
 	 */
 	p.register = function( _n, _f ) {
+		var status = false;
 		if( this._suffix.length > 0 ){
 			if( _f.lastIndexOf( "." + this._suffix ) != -1 )
-				jees.RM.add( _n, _f, this._group );
-			else throw "文件格式不正确";
-		}else jees.RM.add( _n, _f, this._group );
+				status = true;
+		}else status = true;
+
+		if( status ){
+			jees.RM.add( _n, _f, this._group );
+		}else throw "文件格式不正确";
 	};
 	/**
 	 * 加载
@@ -73,6 +77,17 @@ this.jees = this.jees || {};
 		if( this._group != null )
 			return jees.RM.get( _n, this._group );
 		return jees.RM.get( _n );
+	}
+	/**
+	 * 删除已加载文件
+	 * @public
+	 * @method del
+	 * @param {String} _n
+	 */
+	p.del = function( _n ){
+		if( this._group != null )
+			jees.RM.del( _n, this._group );
+		else jees.RM.del( _n );
 	}
 	/**
 	 * 获取文件内容

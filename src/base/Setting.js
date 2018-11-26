@@ -26,6 +26,7 @@ this.jees = this.jees || {};
 	Setting._height = 0;
 	Setting._sound = false;
 	Setting._debug = false;
+	Setting._mouseover = false;
 	
 // public static getter/setter method: ========================================
 	// getter and setter
@@ -41,6 +42,8 @@ this.jees = this.jees || {};
     Setting.getSkin = function(){ return this._skin; }
     Setting.enableSound = function(){ return this._sound; }
     Setting.enableDebug = function(){ return this._debug; }
+    Setting.enableMouseOver = function(){ return this._mouseover; }
+
 // public static method: ======================================================
 	/**
      * @static
@@ -57,6 +60,7 @@ this.jees = this.jees || {};
 		this._height = cfg.height != 0 ? cfg.height : ( document.documentElement.clientHeight || document.body.clientHeight );
 		
 		this._sound = cfg.sound;
+		this._mouseover = cfg.mouseover;
 		
 		this._skin = cfg.skin;
 	}

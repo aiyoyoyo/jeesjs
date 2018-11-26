@@ -122,10 +122,11 @@ this.jees = this.jees || {};
 			}
 		}
 		
-	    if( group.has( _k ) )
-	        throw "已存在同名资源[" + _k + "]";
-
-        this._loader.push( { id: _k, src: _r, group: _g } );
+	    if( group.has( _k ) ){
+	    	 //"已存在同名资源[" + _k + "]"
+	    }else{
+	    	this._loader.push( { id: _k, src: _r, group: _g } );
+	    }
 	};
 	/**
 	 * 开始预加载文件, 目前只支持单一加载队列。如果上次队列没有完成，则后续队列需要重新加载
@@ -160,9 +161,9 @@ this.jees = this.jees || {};
 	ResourceManager.get = function( _k, _g ) {
 		var group = null;
 		if( _g != undefined ){
-			group = jees.RM._resources.get( _g );
+			group = this._resources.get( _g );
 		}else{
-			group = jees.RM._resources.get( this.DEFAULT_GROUP );
+			group = this._resources.get( this.DEFAULT_GROUP );
 		}
 		if( group.has( _k ) ){
 			return group.get( _k );
@@ -178,10 +179,18 @@ this.jees = this.jees || {};
      * @static
      * @method del
      * @param {String} _k 源别名
+	 * @param {String} _g 分组
      */
-	ResourceManager.del = function( _k ){
-	    this._resources.delete( _k );
-	    this._queue.remove( _k );
+	ResourceManager.del = function( _k, _g ){
+		var group = null;
+		if( _g != undefined ){
+			group = this._resources.get( _g );
+		}else{
+			group = this._resources.get( this.DEFAULT_GROUP );
+		}
+		if( group.has( _k ) ){
+			group.delete( _k );
+		}else this._queue.remove( _k );
 	};
 // private methods: =======================================================
     /**
