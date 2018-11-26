@@ -36,6 +36,18 @@
 > extend createjs.Container
 * jees.UI.Panel
 > extend jees.UI.Widget
+* jees.UI.TextBox
+> extend createjs.Text
+* jees.UI.ImageBox
+> extend createjs.Bitmap
+* jees.UI.ImageSpt
+> extend createjs.Sprite
+* jees.UI.Button
+> extend jees.UI.ImageSpt
+> text used jees.UI.TextBox
+* jees.UI.CheckBox
+> extend jees.UI.Button
+
 ## 其他说明
 * 最近瞎忙，居然搁置了快一年才更新有价值的内容。
 
