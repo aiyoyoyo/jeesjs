@@ -112,11 +112,9 @@ this.jees.UI = this.jees.UI || {};
 	   	if( this.property.w == 0 ) this.property.w = res.width;
 		if( this.property.h == 0 ) this.property.h = res.height;
 		this.setSize( this.property.w, this.property.h );
-		
 	    this._reset_speed();
-	    this._reset_size();
 	    this._reset_position();
-	    
+	    		
 	    this._goto( this.start );
 	    if( this.auto ){
 	    	this.gotoAndPlay( "default" );

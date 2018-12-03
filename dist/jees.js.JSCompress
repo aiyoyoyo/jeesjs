@@ -1,0 +1,30 @@
+﻿<jscompress public="http://www.jscompress.cn/" command="import-combineset">
+<combinefile path="jees.js">
+    <auto value="1" />
+    <sourcefile path="..\src\base\Module.js" />
+    <sourcefile path="..\src\tools\UtilTools.js" />
+    <sourcefile path="..\src\tools\StringTools.js" />
+    <sourcefile path="..\src\base\CreateJS.js" />
+    <sourcefile path="..\src\base\Debug.js" />
+    <sourcefile path="..\src\base\Event.js" />
+    <sourcefile path="..\src\base\Setting.js" />
+    <sourcefile path="..\src\manager\ModulesManager.js" />
+    <sourcefile path="..\src\manager\ResourceManager.js" />
+    <sourcefile path="..\src\manager\CanvasManager.js" />
+    <sourcefile path="..\src\manager\FileLoadManager.js" />
+    <sourcefile path="..\src\base\Application.js" />
+    <sourcefile path="..\src\extends\ConfigManager.js" />
+    <sourcefile path="..\src\extends\LayoutManager.js" />
+    <sourcefile path="..\src\extends\SkinManager.js" />
+    <sourcefile path="..\src\ui\Skin.js" />
+    <sourcefile path="..\src\ui\Property.js" />
+    <sourcefile path="..\src\ui\Widget.js" />
+    <sourcefile path="..\src\ui\Panel.js" />
+    <sourcefile path="..\src\ui\ImageBox.js" />
+    <sourcefile path="..\src\ui\ImageSpt.js" />
+    <sourcefile path="..\src\ui\TextBox.js" />
+    <sourcefile path="..\src\ui\Button.js" />
+    <sourcefile path="..\src\ui\CheckBox.js" />
+    <sourcefile path="..\src\ui\InputBox.js" />
+</combinefile>
+</jscompress>

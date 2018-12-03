@@ -47,7 +47,9 @@
 > text used jees.UI.TextBox
 * jees.UI.CheckBox
 > extend jees.UI.Button
-
+* jees.UI.InputBox
+> extend jees.UI.ImageBox
+> enableMask的含义变为是否允许遮罩。
 ## 其他说明
 * 最近瞎忙，居然搁置了快一年才更新有价值的内容。
 
