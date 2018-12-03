@@ -52,6 +52,7 @@ this.jees.EX = this.jees.EX || {};
 		else if( type == "imagespt" ) wgt = new jees.UI.ImageSpt();
 		else if( type == "button" ) wgt = new jees.UI.Button();
 		else if( type == "checkbox" ) wgt = new jees.UI.CheckBox();
+		else if( type == "inputbox" ) wgt = new jees.UI.InputBox();
 		else throw "错误的控件类型：" + _t;
 		
 		// 解析createjs属性
@@ -66,6 +67,7 @@ this.jees.EX = this.jees.EX || {};
             	wgt.property[i] = _w[i];
             }	
        	}
+		
 		// 解析子控件
 		if( wgt.property.childs ){
 			wgt.property.childs.forEach( function( _c ) {
@@ -91,7 +93,6 @@ this.jees.EX = this.jees.EX || {};
 			var wgt = this._layout_property_2_widget( i, _w[i] );
 			break;
 		}
-		wgt.initialize();
 		return wgt;
 	}
 // public methods: ============================================================
@@ -110,6 +111,8 @@ this.jees.EX = this.jees.EX || {};
 			wgt = this._layout_2_widget( this.getContent( _n ) );
 			this._layouts.set( _n, wgt );
 		}
+		
+		jees.CM.addChild( wgt );
 		return wgt;
 	}
 	/**

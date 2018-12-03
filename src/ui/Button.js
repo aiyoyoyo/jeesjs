@@ -15,7 +15,7 @@ this.jees.UI = this.jees.UI || {};
 	"use strict";
 // constructor: ===============================================================
 	/**
-	 * 
+	 * TODO 自定义皮肤和素材的配合有点问题。
 	 * @class Button
 	 * @extends jees.UI.ImageSpt
 	 * @constructor
@@ -91,8 +91,29 @@ this.jees.UI = this.jees.UI || {};
 		 * @default "#FFFFFF"
 		 */
 		this.color = "#FFFFFF";
+		/**
+		 * @public
+		 * @property spriteX
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.spriteX = 0;
+		/**
+		 * @public
+		 * @property spriteY
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.spriteY = 0;
+		/**
+		 * @public
+		 * @property region
+		 * @type {String}
+		 * @default ""
+		 */
+		this.region = "";
 // private properties:
-		this._object = new jees.UI.TextBox();
+		this._text = new jees.UI.TextBox();
 	};
 // public static properties:
 	var p = createjs.extend( Button, jees.UI.ImageSpt );
@@ -102,6 +123,11 @@ this.jees.UI = this.jees.UI || {};
 	 * @method initialize
 	 */
 	p.initialize = function(){
+		if( this.property.state ) return;
+		this.property.state = true;
+		
+		this.property.initialize( this );
+		
 		this._init_background();
 		this._init_text();
 		
@@ -136,41 +162,144 @@ this.jees.UI = this.jees.UI || {};
 	p.isDisabled = function(){
 		return this.disable;
 	}
+	/**
+	 * @public
+	 * @method setText
+	 * @param {String} _t
+	 */
+	p.setText = function( _t ){
+		this._text.setText( _t );
+	}
+	/**
+	 * @public
+	 * @method getText
+	 * @return {String}
+	 */
+	p.getText = function(){
+		return this._text.text;
+	}
+	/**
+     * @method setPosition
+     * @extends
+     * @param {Integer} _x
+     * @param {Integer} _y
+     */
+	p.setPosition = function( _x, _y ){
+		this.property.setPosition( _x, _y );
+		this._reset_position();
+	};
 // private method: ============================================================
-	p._init_background = function(){
-		this.state = true;
-		
+	/**
+	 * @private
+	 * @method _init_skin
+	 */
+	p._init_skin = function(){
 		var size = this.getSize();
 		this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
 		
-		var data = {
-			images: [this._skin.getCacheDataURL("rect"),
-				this._skin.getCacheDataURL("highlight"),
-				this._skin.getCacheDataURL("push"),
-				this._skin.getCacheDataURL("disable")],
+		this._data.images.push( this._skin.getCacheDataURL("rect") );
+		this._data.images.push( this._skin.getCacheDataURL("highlight") );
+		this._data.images.push( this._skin.getCacheDataURL("push") );
+		this._data.images.push( this._skin.getCacheDataURL("disable") );
+	}
+	/**
+	 * @private
+	 * @method _init_custom
+	 */
+	p._init_custom = function(){
+		var bitmap = jees.CJS.newBitmap( jees.Resource.get( this.property.resource ) );
+		var b = bitmap.getBounds();
+		var c = this.types.split(",").length;
+		var size = this.getSize();
+		var w = this.spriteX == 0 ? size.w : this.spriteX;
+		var h = this.spriteY == 0 ? size.h : this.spriteY;
+		var rw = this.spriteX == 0 ? b.width : this.spriteX;
+		var rh = this.spriteY == 0 ? b.height : this.spriteY;
+		
+		var rg = null;
+		if( this.region != "" ){
+			var rs = this.region.split(",");
+			rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, w, h );
+		}
+		
+		for( var i = 0; i < c; i ++ ){
+			var bg = bitmap.clone();
+			var x = this.spriteX * i;
+			var y = this.spriteY * i;
+			bg.sourceRect = jees.CJS.newRect( x, y, w, h );
+			bg.cache( 0, 0, w, h );
+			
+			if( this.region != "" ){
+				var tc = jees.CJS.newContainer();
+				rg.forEach( function( _r ){
+					var o = bg.clone();
+					o.sourceRect = jees.CJS.newRect( x + _r.x, y + _r.y, _r.w, _r.h );
+					o.x = _r.dx;
+					o.y = _r.dy;
+					o.scaleX = _r.sw;
+					o.scaleY = _r.sh;
+					
+					o.cache( 0, 0, w, h );
+					tc.addChild( o );
+				} );
+				tc.cache( 0, 0, w, h );
+				this._data.images.push( tc.bitmapCache.getCacheDataURL() );
+			}else{
+				this._data.images.push( bg.bitmapCache.getCacheDataURL() );
+			}
+		}
+	}
+	/**
+	 * @private
+	 * @method _init_background
+	 */
+	p._init_background = function(){
+		var size = this.getSize();
+		
+		this._data = {
+			images: [],
 			frames: {width: size.w, height: size.h, count: 4 },
 	        animations: {
 	        	normal: [0, 0, "normal"],
 	        	highlight: [1, 1, "highlight"],
 	        	push: [2, 2, "push"],
 	        	disable: [3, 3, "disable"],
+	        	test: [0, 3, "test", 0.15],
 	        }
 	   	};
-	   	this.spriteSheet = new createjs.SpriteSheet( data );
-	   	this.gotoAndPlay( "normal" );
+	   	
+		if( this.property.resource && this.property.resource != "" ){
+    		this._init_custom();
+		}else{
+			this._init_skin();
+		}
+		
+	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
+		this.gotoAndPlay( "test" );
 	}
+	/**
+	 * @private
+	 * @method _init_text
+	 */
 	p._init_text = function(){
-		this._object.setText( this.text );
-		this._object.setFontSize( this.fontSize );
-		this._object.setFontStyle( this.fontStyle );
-		this._object.setColor( this.color );
-		this._object.setItalic( this.italic );
-		this._object.setBold( this.bold );
-		this._object.setPosition( this.x + ( this.getSize().w / 2 ) - ( this._object.getSize().w / 2 ) , 
-			this.y + ( this.getSize().h / 2 - ( this._object.getSize().h / 2 ) ) );
-		// 描述为几态按钮(1-正常 2-高亮 3-按下 4-禁用)
-		this.parent.addChild( this._object );
+		var parent = this.parent;
+		var txt = this._text;
+		
+		parent.addChildAt( txt, parent.getChildIndex( this ) + 1 );
+		
+		txt.setText( this.text );
+		txt.setFontSize( this.fontSize );
+		txt.setFontStyle( this.fontStyle );
+		txt.setColor( this.color );
+		txt.setItalic( this.italic );
+		txt.setBold( this.bold );
+		txt.setPosition( this.x + ( this.getSize().w / 2 ) - ( txt.getSize().w / 2 ) , 
+			this.y + ( this.getSize().h / 2 - ( txt.getSize().h / 2 ) ) );
 	}
+	/**
+	 * @private
+	 * @method _reset_disable
+	 */
 	p._reset_disable = function(){
 		if( this.disable ){
 			this.gotoAndPlay( "disable" );
@@ -178,59 +307,74 @@ this.jees.UI = this.jees.UI || {};
 			this.gotoAndPlay( "normal" );
 		}
 	}
-	 /**
-	  * 当按钮按下时，文本控件做字体/10大小的偏移
-	  * @private
-	  * @method _handle_mousedown
-	  * @param {createjs.Event} _e
-	  * @param {jees.Widget} _w
-	  */
-	 p._handle_mousedown = function( _e, _w ){
-	 	if( _w.isDisabled() ) return;
-	 	var obj = _w._object;
-	 	var pos = obj.getPosition();
-	 	var offset = obj.getFontSize() / 10;
-	 	
-	 	this._object.setPosition( pos.x - offset, pos.y - offset );
-	 	this.gotoAndPlay( "push" );
-	 }
-	 /**
-	  * 当按钮弹起时，文本控件恢复字体/10大小的偏移
-	  * @private
-	  * @method _handle_mousedown
-	  * @param {createjs.Event} _e
-	  * @param {jees.Widget} _w
-	  */
-	 p._handle_pressup = function( _e, _w ){
-	 	if( _w.isDisabled() ) return;
-	 	var obj = _w._object;
-	 	var pos = obj.getPosition();
-	 	var offset = obj.getFontSize() / 10;
-	 	this._object.setPosition( pos.x + offset, pos.y + offset );
-	 	this.gotoAndPlay( "normal" );
-	 }
 	/**
-	  * 当按钮移上按钮时
-	  * @private
-	  * @method _handle_mouseover
-	  * @param {createjs.Event} _e
-	  * @param {jees.Widget} _w
-	  */
-	 p._handle_mouseover = function( _e, _w ){
-	 	if( _w.isDisabled() ) return;
-	 	this.gotoAndPlay( "highlight" );
-	 }
-	 /**
-	  * 当按钮移上按钮时
-	  * @private
-	  * @method _handle_mouseout
-	  * @param {createjs.Event} _e
-	  * @param {jees.Widget} _w
-	  */
-	 p._handle_mouseout = function( _e, _w ){
-	 	if( _w.isDisabled() ) return;
-	 	this.gotoAndPlay( "normal" );
-	 }
-	 
+	 * 当按钮按下时，文本控件做字体/10大小的偏移
+	 * @private
+	 * @method _handle_mousedown
+	 * @param {createjs.Event} _e
+	 * @param {jees.Widget} _w
+	 */
+	p._handle_mousedown = function( _e, _w ){
+		if( _w.isDisabled() ) return;
+	 	var txt = _w._text;
+	 	var pos = txt.getPosition();
+	 	var offset = txt.getFontSize() / 10;
+	 	
+	 	txt.setPosition( pos.x - offset, pos.y - offset );
+	 	_w.gotoAndPlay( "push" );
+	}
+	/**
+	 * 当按钮弹起时，文本控件恢复字体/10大小的偏移
+	 * @private
+	 * @method _handle_mousedown
+	 * @param {createjs.Event} _e
+	 * @param {jees.Widget} _w
+	 */
+	p._handle_pressup = function( _e, _w ){
+		if( _w.isDisabled() ) return;
+	 	var txt = _w._text;
+	 	var pos = txt.getPosition();
+	 	var offset = txt.getFontSize() / 10;
+	 	txt.setPosition( pos.x + offset, pos.y + offset );
+	 	_w.gotoAndPlay( "normal" );
+	}
+	/**
+	 * 当按钮移上按钮时
+	 * @private
+	 * @method _handle_mouseover
+	 * @param {createjs.Event} _e
+	 * @param {jees.Widget} _w
+	 */
+	p._handle_mouseover = function( _e, _w ){
+		if( _w.isDisabled() ) return;
+	 	_w.gotoAndPlay( "highlight" );
+	}
+	/**
+	 * 当按钮移上按钮时
+	 * @private
+	 * @method _handle_mouseout
+	 * @param {createjs.Event} _e
+	 * @param {jees.Widget} _w
+	 */
+	p._handle_mouseout = function( _e, _w ){
+		if( _w.isDisabled() ) return;
+		_w.gotoAndPlay( "normal" );
+	}
+	/**
+	 * 重置坐标
+	 * @private
+	 * @method _reset_position
+	 */
+	p._reset_position = function(){
+		this.ImageSpt__reset_position();
+		var pos = this.getPosition();
+		var size = this.getSize();
+		var txt = this._text;
+		var txt_size = txt.getSize();
+		
+		txt.setPosition( pos.x + ( size.w / 2 ) - ( txt_size.w / 2 ) , 
+			pos.y + ( size.h / 2 - ( txt_size.h / 2 ) ) );
+	}
+
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );
 })();

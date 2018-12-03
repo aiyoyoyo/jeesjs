@@ -217,8 +217,7 @@ this.jees = this.jees || {};
 	    		w = [_r.l, _w - _r.l - _r.r, _r.r];
 	    		x = [0, _r.l, _w - _r.r];
 	    	}
-			
-			return {x:x,y:y,w:w,h:h};
+			return {x: x, y: y, w: w, h: h};
 		}
 		
 		return function( _r, _w, _h, _tw, _th ){
@@ -243,10 +242,24 @@ this.jees = this.jees || {};
 	    	var draw = Region( _r, row, col, _tw, _th );
 	    	for( var i = 0; i < row; i ++ ){
 	    		for( var j = 0; j < col; j ++ ){
-	    			regions.push( { x: rect.x[j], y: rect.y[i], w: rect.w[j], h: rect.h[i], 
+	    			
+	    			var rg = { x: rect.x[j], y: rect.y[i], w: rect.w[j], h: rect.h[i], 
 	    				dx: draw.x[j], dy: draw.y[i], dw: draw.w[j], dh: draw.h[i] ,
 	    				sw: draw.w[j] / rect.w[j], sh: draw.h[i] / rect.h[i],
-	    			} );
+	    			} 
+	    			
+	    			if( typeof rg.x == "string" ) rg.x = parseInt( rg.x );
+					if( typeof rg.y == "string" ) rg.y = parseInt( rg.y );
+					if( typeof rg.w == "string" ) rg.w = parseInt( rg.w );
+					if( typeof rg.h == "string" ) rg.h = parseInt( rg.h );
+					if( typeof rg.dx == "string" ) rg.dx = parseInt( rg.dx );
+					if( typeof rg.dy == "string" ) rg.dy = parseInt( rg.dy );
+					if( typeof rg.dw == "string" ) rg.dw = parseInt( rg.dw );
+					if( typeof rg.dh == "string" ) rg.dh = parseInt( rg.dh );
+					if( typeof rg.sw == "string" ) rg.sw = parseFloat( rg.sw );
+					if( typeof rg.sh == "string" ) rg.sh = parseFloat( rg.sh );
+	    			
+	    			regions.push( rg );
 	    		}
 	    	}
 	    	
@@ -538,9 +551,14 @@ this.jees = this.jees || {};
 	Setting._debug = false;
 	Setting._mouseover = false;
 	
+	Setting.connector = {
+		enable: false,
+		host: null,
+		port: null,
+		path: null,
+	}
 // public static getter/setter method: ========================================
 	// getter and setter
-
 	Setting.getCanvas = function(){ return this._canvas; }
 	Setting.getWidth = function(){ return this._width; }
     Setting.getHeight = function(){ return this._height; }
@@ -553,9 +571,11 @@ this.jees = this.jees || {};
     Setting.enableSound = function(){ return this._sound; }
     Setting.enableDebug = function(){ return this._debug; }
     Setting.enableMouseOver = function(){ return this._mouseover; }
-
+	
+	Setting.enableConnector = function(){ return this.connector.enable; }
 // public static method: ======================================================
 	/**
+	 * @public
      * @static
 	 * @method startup
      * @return
@@ -573,6 +593,12 @@ this.jees = this.jees || {};
 		this._mouseover = cfg.mouseover;
 		
 		this._skin = cfg.skin;
+		
+		for ( var i in this._config.Connector ) {
+            if ( this.connector.hasOwnProperty( i ) ) {
+            	this.connector[i] = this._config.Connector[i];
+            }	
+       	}
 	}
 	
 	jees.SET = Setting;
@@ -954,7 +980,6 @@ this.jees = this.jees || {};
 		DEBUG : 4,
 		CONSOLE : 5,
 	};
-	CanvasManager.LEVEL_UI = 0;
 // private static properties:
 	/**
 	 * @private
@@ -963,6 +988,8 @@ this.jees = this.jees || {};
 	 * @type {Map}
 	 */
 	CanvasManager._caches = null;
+	
+	CanvasManager._containers = null;
 // private static methods: ====================================================
 	/**
 	 * 绘制缓存池内容
@@ -974,9 +1001,12 @@ this.jees = this.jees || {};
 	CanvasManager.__update_cache_level = function( _v ){
 		if( this._caches.has( _v ) ){
 			var eles = this._caches.get( _v );
-			
 			if( eles.length > 0 ){
-				eles.pop().initialize();
+				var wgt = eles.pop();
+				wgt.initialize();
+				
+				var c = this._containers.get( _v );
+				c.addChild( wgt );
 			}
 		}
 	}
@@ -989,7 +1019,7 @@ this.jees = this.jees || {};
 	 */
 	CanvasManager._update_cache = function(){
 		// 根据层级优先加入绘制
-		this.__update_cache_level( CanvasManager.LEVEL_UI );
+		this.__update_cache_level( CanvasManager.Container.DEFAULT );
 	}
 // public static methods: =====================================================
 	/**
@@ -1000,6 +1030,7 @@ this.jees = this.jees || {};
 	 **/
 	CanvasManager.startup = function() {
 		this._caches = new Map();
+		this._containers = new Map();
 	};
 	/**
 	 * 刷新画布，并重建画布缓存
@@ -1016,17 +1047,22 @@ this.jees = this.jees || {};
      * @static
 	 * @method addChild
      * @param {createjs.DisplayObject|jeesjs.Widget} _w 添加的控件
-     * @param {Boolean} _u 立即刷新画布
      * @param {CanvasManager.Container}
 	 */
 	CanvasManager.addChild = function( _w, _v ){
-		if( this._caches.has( _v ) ){
-			var eles = this._caches.get( _v );
+		var v = _v || CanvasManager.Container.DEFAULT;
+		
+		if( this._caches.has( v ) ){
+			var eles = this._caches.get( v );
 			eles.push( _w );
 		}else{
 			var eles = new Array();
 			eles.push( _w );
-			this._caches.set( _v, eles );
+			this._caches.set( v, eles );
+			
+			var c = new jees.CJS.newContainer();
+			this._containers.set( v, c );
+			jees.APP.addChild( c );
 		}
 	}
 	
@@ -1179,6 +1215,13 @@ this.jees = this.jees || {};
 	 * @type {jees.Module}
 	 **/
     Application._module = null;
+    /**
+     * 连接模块
+	 * @property _connector
+	 * @private
+	 * @type {jees.Connector}
+	 **/
+    Application._connector = null;
     /**
      * 初始化是否完成
 	 * @property _inited
@@ -1374,7 +1417,6 @@ this.jees = this.jees || {};
      * @private
      * @static
      * @method _initialize
-     * @param {jess.Module} _m 初始模块
      *
      */
 	Application._initialize = function(){
@@ -1386,17 +1428,20 @@ this.jees = this.jees || {};
         this._stage = new createjs.StageGL( this._canvas );
         this._canvas.width = jees.SET.getWidth();
         this._canvas.height = jees.SET.getHeight();
-
 		this._stage.updateViewport( jees.SET.getWidth(), jees.SET.getHeight() );
 		
         createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
         this.setFPS( jees.SET.getFPS() );
         
-        
         createjs.Touch.enable( this._stage );
 		if( jees.SET.enableMouseOver() )
         	this._stage.enableMouseOver();
-
+		
+		if( jees.SET.enableConnector() ){
+			this._connector = new jees.WebSocketConnector( jees.SET.connector.host,jees.SET.connector.port, jees.SET.connector.path );
+			this._connector.connect();
+		}
+    	
 //		window.addEventListener( "orientationchange", this.screenOrientation );
 //		window.addEventListener( "resize", this.screenResize );
 
@@ -1496,6 +1541,7 @@ this.jees.EX = this.jees.EX || {};
 		else if( type == "imagespt" ) wgt = new jees.UI.ImageSpt();
 		else if( type == "button" ) wgt = new jees.UI.Button();
 		else if( type == "checkbox" ) wgt = new jees.UI.CheckBox();
+		else if( type == "inputbox" ) wgt = new jees.UI.InputBox();
 		else throw "错误的控件类型：" + _t;
 		
 		// 解析createjs属性
@@ -1510,6 +1556,7 @@ this.jees.EX = this.jees.EX || {};
             	wgt.property[i] = _w[i];
             }	
        	}
+		
 		// 解析子控件
 		if( wgt.property.childs ){
 			wgt.property.childs.forEach( function( _c ) {
@@ -1535,7 +1582,6 @@ this.jees.EX = this.jees.EX || {};
 			var wgt = this._layout_property_2_widget( i, _w[i] );
 			break;
 		}
-		wgt.initialize();
 		return wgt;
 	}
 // public methods: ============================================================
@@ -1554,6 +1600,8 @@ this.jees.EX = this.jees.EX || {};
 			wgt = this._layout_2_widget( this.getContent( _n ) );
 			this._layouts.set( _n, wgt );
 		}
+		
+		jees.CM.addChild( wgt );
 		return wgt;
 	}
 	/**
@@ -1612,6 +1660,7 @@ this.jees.EX = this.jees.EX || {};
 	};
 	var p = createjs.extend( SkinManager, jees.FileLoadManager );
 // public methods: ============================================================
+	
 	/**
 	 * 启动器
 	 * @public
@@ -1671,18 +1720,18 @@ this.jees.UI = this.jees.UI || {};
 		 * @type {String}
 		 * @default "" | "None"
 		 */
-		this._type = _t != undefined ? _t.toLowerCase() : "none";
+		this._type = _t ? _t.toLowerCase() : "none";
 		/**
 		 * 使用的皮肤分组
 		 * @type {String}
 		 * @default "default"
 		 */
-    	this._group = _g != undefined ? _g : "default";
+    	this._skinResource = _g ? _g : "default";
     	/**
     	 * 配置数据
     	 * @type{Object}
     	 */
-    	this._config = jees.Skins.getSkin( this._type, this._group );
+    	this._config = jees.Skins.getSkin( this._type, this._skinResource );
     	/**
     	 * 皮肤资源
     	 * @type {Image | String}
@@ -1712,6 +1761,12 @@ this.jees.UI = this.jees.UI || {};
 
 	var p = Skin.prototype;
 // public methods: ============================================================
+	p.getSkinType = function(){
+		return this._type;
+	}
+	p.getSkinResource = function(){
+		return this._skinResource;
+	}
 	/**
 	 * 获取皮肤分格融合的图片
 	 * @public
@@ -1721,8 +1776,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
     p.getCacheDataURL = function( _type ){
 		if( _type && this._bitmaps.has( _type ) ){
-			return this._bitmaps.get( _type ).getCacheDataURL();
-		}else if( this._bitmaps.has("rect") ) return this._bitmaps.get("rect").getCacheDataURL();
+			return this._bitmaps.get( _type );
+		}else if( this._bitmaps.has("rect") ) return this._bitmaps.get("rect");
 		else return null;
     }
 // private methods: ===========================================================
@@ -1746,12 +1801,7 @@ this.jees.UI = this.jees.UI || {};
     	// 格子类型
     	if( _r ){
     		// config.property.region 根据分割区域计算出各个区域的坐标、大小等
-    		if( this._type == "panel" || this._type == "panel-highlight" || this._type == "button" || this._type == "checkbox" ){
-				this._regions.set( _k, jees.UT.Grid( this._config.property.region, _r.w, _r.h, target_width, target_height ) );
-	    	}else{
-//	    		this._regions.set( _k, jees.UT.Grid( this._config.property.region, _r.w, _r.h, target_width, target_height ) );
-	    	}
-	    	
+    		this._regions.set( _k, jees.UT.Grid( this._config.property.region, _r.w, _r.h, target_width, target_height ) );
     	}
 	}
 	p._init_regions = function( _w, _h ){
@@ -1788,9 +1838,7 @@ this.jees.UI = this.jees.UI || {};
 				tmp_container.addChild( o );
 			} );
 			tmp_container.cache( 0, 0, _w, _h );
-			// TIPS 这里有个BUG， Container里getCacheDataURL调用的是BitmapCache.getDataURL
-			// Ver.1.0里BitmapCache.getDataURL->BitmapCache.getCacheDataURL
-			this._bitmaps.set( _k, tmp_container.bitmapCache );
+			this._bitmaps.set( _k, tmp_container.getCacheDataURL() );
 		}
 	}
 	p._init_bitmap = function( _w, _h ){
@@ -1859,6 +1907,22 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.y = 0;
 		/**
+		 * 控件实际宽度
+		 * @public
+		 * @property w
+    	 * @type {Integer}
+    	 * @default 0
+		 */
+		this.w = 0;
+		/**
+		 * 控件实际高度
+		 * @public
+		 * @property h
+    	 * @type {Integer}
+    	 * @default 0
+		 */
+		this.h = 0;
+		/**
 		 * 控件配置宽度， 可用 100 | "100%" | "auto"
 		 * @public
 		 * @property width
@@ -1925,6 +1989,13 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.enableMask = false;
 		/**
+		 * @public
+		 * @property visibleMask
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.visibleMask = false;
+		/**
 		 * 是否启用容器布局,必须配置中width|height属性为字符类型AUTO关键字，则会根据同组的layoutGroup进行计算
 		 * 
 		 * @example
@@ -1936,15 +2007,43 @@ this.jees.UI = this.jees.UI || {};
 		 * @type {String}
 		 * @default null
 		 */
-		this.layoutGroup = null;
+		this.layoutX = null;
 		/**
-    	 * 使用的皮肤，控件对应自己得控件类型
+		 * 是否启用容器布局,必须配置中width|height属性为字符类型AUTO关键字，则会根据同组的layoutGroup进行计算
+		 * 
+		 * @example
+		 * val=100px: w0      | w1       | w2
+		 * w:       auto=0px  | 30px     | 70%
+		 * w:       30px      | auto=50px| 20px 
+		 * @public
+		 * @property layoutGroup
+		 * @type {String}
+		 * @default null
+		 */
+		this.layoutY = null;
+		/**
+		 * @public
+		 * @property enableSkin
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.enableSkin = true;
+		/**
+    	 * 使用的皮肤
 		 * @public
 		 * @property skinResource
     	 * @type {String}
     	 * @default null
     	 */
     	this.skinResource = null;
+    	/**
+    	 * 使用得皮肤类型
+    	 * @public
+    	 * @property skinType
+    	 * @type {String}
+    	 * @default null
+    	 */
+    	this.skinType = null;
 		/**
     	 * 实际使用的资源路径
 		 * @public
@@ -1953,6 +2052,22 @@ this.jees.UI = this.jees.UI || {};
     	 * @default null
     	 */
     	this.resource = null;
+    	/**
+		 * 使用的图片资源分割区域
+		 * @public
+		 * @property
+		 * @type {String}
+		 * @default null
+		 */
+		this.region = null;
+		/**
+		 * 图片资源的使用区域
+		 * @public
+		 * @property rect
+		 * @type {String}
+		 * @default null
+		 */
+		this.rect = null;
 		/**
 		 * 是否有子节点配置
 		 * @public
@@ -1961,11 +2076,39 @@ this.jees.UI = this.jees.UI || {};
     	 * @default null
 		 */
 		this.childs = null;
+		/**
+		 * 防止重复初始化
+		 * @public
+		 * @property state
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.state = false;
 // private properties:
+		/**
+		 * 控件备份
+		 * @private
+		 * @property _widget
+		 * @type {jees.UI.Widget}
+		 * @default null
+		 */
+		this._widget = null;
 	};
 
 	var p = Property.prototype;
 // public methods: ============================================================
+	/**
+	 * 这里初始化2组值，配置值和真实值
+	 * @param {Object} _w
+	 */
+	p.initialize = function( _w ){
+		if( !_w ) throw "控件不能为空!";
+		// 主要为坐标和auto类型的宽高
+		this._widget = _w;
+		
+		this._reset_size();
+		this._reset_position();
+	}
 	/**
 	 * @public
 	 * @method getPosition
@@ -1985,9 +2128,12 @@ this.jees.UI = this.jees.UI || {};
 	/**
 	 * @public
 	 * @method getSize
+	 * @param {Boolean} _t 是否配置的值
 	 * @return {Integer,Integer} {w,h}
 	 */
-	p.getSize = function(){return { w: this.width, h: this.height };}
+	p.getSize = function( _t ){
+		return _t ? { w: this.width , h: this.height } : { w: this.w, h: this.h };
+	}
 	/**
 	 * @public
 	 * @method setSize
@@ -1997,6 +2143,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function( _w, _h ){
 		if( _w ) this.width = _w;
 		if( _h ) this.height = _h;
+		
+		this._reset_size();
 	}
 	/**
 	 * @public
@@ -2014,7 +2162,122 @@ this.jees.UI = this.jees.UI || {};
 		if( _x ) this.scaleX = _x;
 		if( _y ) this.scaleY = _y;
 	}
+	/**
+	 * @public
+	 * @method getAlign
+	 * @return {Integer,Integer} {x,y}
+	 */
+	p.getAlign = function(){return { x: this.alignX, y: this.alignY };}
+	/**
+	 * @public
+	 * @method setAlign
+	 * @param {Integer,Integer} _x
+	 * @param {Integer,Integer} _y
+	 */
+	p.setAlign = function( _x, _y ){
+		if( _x ) this.alignX = _x;
+		if( _y ) this.alignY = _y;
+		
+		this._reset_position();
+	}
+// private methods: ===========================================================
+	/**
+	 * @private
+	 * @method _get_size
+	 * @param {Integer|String} _val 纪录的值
+	 * @param {Integer} _parent 父控件的值
+	 * @param {Integer} _child 其他同组子控件的值之和(不包含自己)
+	 */
+	p._calculate_size = function( _val, _parent, _child ){
+		var real_val = 0;
+		if( _val && typeof( _val ) == "string" ){
+			if( _val.toLowerCase() == "auto" ){
+				real_val = _parent - _child;
+			}else if( _val.indexOf( "%" ) != -1 ){
+				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
+			}else{
+				real_val = parseInt( _val );
+			}
+		}else real_val = _val;
+		return real_val;
+	}
+	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		var parent = this._widget.parent;
+		var parent_size = null;
+		if( parent )
+			if( parent instanceof createjs.Stage 
+				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
+			else parent_size = parent.getSize();
+		else parent_size = jees.APP.getScreenSize();
+
+		var childs_size = { w:0, h:0 };
+		var size = this.getSize( true );
+		if( parent && ( this.layoutX || this.layoutY ) ){
+			if( ( typeof( size.w ) == "string" && size.w.toLowerCase() == "auto" )
+				|| ( typeof( size.h ) == "string" && size.h.toLowerCase() == "auto" ) ){
+					
+				if( this.layoutX ){
+					var layoutXWgts = this.layoutX.split(",");
+					layoutXWgts.forEach( function( _w ){
+						var w = parent.getChildByName( _w );
+						if( !w.property.state ) w.initialize();
+						childs_size.w += w.getSize().w;
+					} );
+				}
+				if( this.layoutY ){
+					var layoutYWgts = this.layoutY.split(",");
+					layoutYWgts.forEach( function( _w ){
+						var w = parent.getChildByName( _w );
+						if( !w.property.state ) w.initialize();
+						childs_size.h += w.getSize().h;
+					} );
+				}
+			}
+		}
+		
+		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
+		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
+	}
 	
+	/**
+	 * 重置坐标
+	 * @private
+	 * @method _reset_position
+	 */
+	p._reset_position = function(){
+		var parent = this._widget.parent;
+		var parent_size = null;
+		if( parent )
+			if( parent instanceof createjs.Stage 
+				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
+			else parent_size = parent.getSize();
+		else parent_size = jees.APP.getScreenSize();
+		
+		var pos = this.getPosition();
+		var size = this.getSize();
+		
+		var x = pos.x;
+		var y = pos.y;
+
+		if( this.alignX == 2 ){
+			x = parent_size.w - size.w - x;
+		}else if( this.alignX == 1 ){
+			x = ( parent_size.w - size.w ) / 2 + x;
+		}
+		
+		if( this.alignY == 2 ){
+			y = parent_size.h - size.h - y;
+		}else if( this.alignY == 1 ){
+			y = ( parent_size.h - size.h ) / 2 + y;
+		}
+		
+		this.x = x;
+		this.y = y;
+	};
 	jees.UI.Property = Property;
 })();;
 ///<jscompress sourcefile="Widget.js" />
@@ -2045,101 +2308,63 @@ this.jees.UI = this.jees.UI || {};
 		this.Container_constructor();
 // public properties:
 		/**
-		 * 控件实际宽度
-		 * @private
-		 * @property w
-    	 * @type {Integer}
-    	 * @default 0
-		 */
-		this.w = 0;
-		/**
-		 * 控件实际高度
-		 * @private
-		 * @property h
-    	 * @type {Integer}
-    	 * @default 0
-		 */
-		this.h = 0;
-		/**
 		 * 控件的配置属性，用于初始化和部分属性的重置用
 		 * @public
 		 * @property property
 		 */
 		this.property = new jees.UI.Property();
-		/**
-		 * @public
-		 * @property visibleMask
-		 * @type {Boolean}
-		 * @default false
-		 */
-		this.visibleMask = false;
 // private properties:
-		/**
-		 * 各个控件中用来描绘控件背景的对象
-		 * @private
-		 * @property _object
-    	 * @type {jees.Widget | createjs.DisplayObject}
-    	 * @default null
-		 */
-		this._object = null;
-		/**
-		 * 控件遮罩层, enableMask为真时有效
-		 * @private
-		 * @property _mask
-		 * @type {createjs.Shape}
-		 * @default null
-		 */
-		this._mask = null;
 	};
 	var p = createjs.extend( Widget, createjs.Container );
 // public methods: ============================================================
-	p.resize = function(){
-		this._init_property();
-	}
 	/**
 	 * @public
 	 * @method initialize
 	 */
 	p.initialize = function(){
-		this._init_property();
+		if( this.property.state ) return;
+		this.property.state = true;
+		
+		this.property.initialize( this );
+		
+		this._reset_size();
+		this._reset_position();
+		this._reset_scale();
+		this._reset_mask();
 		this._init_childs();
-		jees.APP.addChild( this );
+		
+//		this._cache();
 	};
 	/**
-	 * @public
-	 * @method getSize
-	 * @return {Integer,Integer} {w,h}
+	 * 绝对位置
+	 * @public 
+	 * @method getAbsPosition
+	 * @returns {Integer,Integer} {x,y}
 	 */
-	p.getSize = function () {
-		return { w: this.w, h: this.h };
-	};
+	p.getAbsPosition = function(){
+		var m = this.getConcatenatedMatrix();
+		return { x: m.tx, y: m.ty };
+	}
 	/**
 	 * @public
 	 * @method setSize
-	 * @param {Integer|String} _w
-	 * @param {Integer|String} _h
+	 * @param {Integer} _w
+	 * @param {Integer} _h
 	 */
-	p.setSize = function ( _w, _h ) {
-		// 设置记录值
+	p.setSize = function( _w, _h ){
 		this.property.setSize( _w, _h );
 		this._reset_size();
-		
-		// 保证内部背景元素与容器一致
-		if( this._object && this instanceof jees.UI.Panel ){
-			this._object.setSize( this.w, this.h );
-		}
-	};
-	/**
-	 * 获取控件坐标
-	 * @public
-	 * @method getPosition
-	 * @return {Integer,Integer} {x,y}
-	 */
-	p.getPosition = function () {
-		return { x: this.x, y: this.y };
 	}
 	/**
-	 * 设置控件坐标 如果align不为0，则设置无效
+	 * @public
+	 * @method getSize
+	 * @param {Boolean} _t
+	 * @returns {Integer,Integer} {w,h}
+	 */
+	p.getSize = function( _t ){
+		return this.property.getSize( _t );
+	}
+	/**
 	 * @public
 	 * @method setPosition
 	 * @param {Integer} _x
@@ -2150,189 +2375,138 @@ this.jees.UI = this.jees.UI || {};
 		this._reset_position();
 	}
 	/**
-	 * 获取缩放
+	 * @public
+	 * @method getPosition
+	 * @returns {Integer,Integer} {x,y}
+	 */
+	p.getPosition = function(){
+		return this.property.getPosition();
+	}
+	/**
+	 * @public
+	 * @method setScale
+	 * @param {Float} _x
+	 * @param {Float} _y
+	 */
+	p.setScale = function( _x, _y ){
+		this.property.setScale( _x, _y );
+		this._reset_scale();
+	}
+	/**
 	 * @public
 	 * @method getScale
 	 * @returns {Float,Float} {x,y}
 	 */
 	p.getScale = function(){
-		return {x: this.scaleX, y: this.scaleY};
+		return this.property.getScale();
 	}
 	/**
-	 * 缩放
 	 * @public
-	 * @method setScale
-	 * @param {Integer|Float} _sx
-	 * @param {Integer|Float} _sy
+	 * @method setAlign
+	 * @param {Integer} _x
+	 * @param {Integer} _y
 	 */
-	p.setScale = function( _sx, _sy ){
-		this.property.setScale( _sx, _sy );
-		this._reset_scale();
+	p.setAlign = function( _x, _y ){
+		this.property.setAlign( _x, _y );
+		this._reset_position();
+	}
+	/**
+	 * @public
+	 * @method getAlign
+	 * @returns {Integer,Integer} {x,y}
+	 */
+	p.getAlign = function(){
+		return this.property.getAlign();
 	}
 // private methods: ===========================================================
 	/**
-	 * 缓存对象
-	 * @private
-	 * @method _cache
+	 * 建立缓存区域
 	 */
 	p._cache = function(){
-		this.cache( 0, 0, this.w, this.h );
-		if( this._object )
-			this._object.cache( 0, 0, this.w, this.h );
+		var pos = this.getPosition();
+		var size = this.getSize();
+		
+		this.cache( pos.x, pos.y, size.w, size.h );
 	}
 	/**
-	 * 初始化配置属性
-	 * @private
-	 * @method _init_property
-	 */
-	p._init_property = function(){
-		this._reset_size();
-		this._reset_position();
-		this._reset_scale();
-		this._reset_mask();
-	}
-	/**
-	 * 初始化子控件
-	 * @private
-	 * @method _init_childs
-	 */
-	p._init_childs = function(){
-		// 如果根控件存在初始化得内容，则插入第一个位置。
-		if( this.children ){
-			for( var i = 0; i < this.children.length; i ++ ){
-				var c = this.children[i];
-				if( c instanceof jees.UI.Widget ){
-					c.initialize();
-				}else if( c instanceof jees.UI.TextBox 
-					|| c instanceof jees.UI.ImageBox 
-					|| c instanceof jees.UI.ImageSpt
-				) {
-					c.initialize();
-				}
-				
-			}
-		}
-	};
-	/**
-	 * @private
-	 * @method _get_size
-	 * @param {Integer|String} _val 纪录的值
-	 * @param {Integer} _parent 父控件的值
-	 * @param {Integer} _child 其他同组子控件的值之和(不包含自己)
-	 */
-	p._calculate_size = function( _val, _parent, _child ){
-		var real_val = 0;
-		if( _val && typeof( _val ) == "string" ){
-			if( _val.toLowerCase() == "auto" ){
-				real_val = _parent - _child;
-			}else if( _val.indexOf( "%" ) != -1 ){
-				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
-			}else{
-				real_val = parseInt( _val );
-			}
-		}else real_val = _val;
-		return real_val;
-	}
-	/**
-	 * 重置宽高
 	 * @private
 	 * @method _reset_size
 	 */
 	p._reset_size = function(){
-		var parent_size = null;
-		if( this.parent instanceof createjs.Stage || this.parent instanceof createjs.StageGL ){
-			parent_size = jees.APP.getScreenSize();
-		}else parent_size = this.parent ? this.parent.getSize() : jees.APP.getScreenSize();
-
-		var childs_size = { w:0, h:0 };
-		var size = this.property.getSize();
-		if( this.property.layoutGroup && this.parent ){
-			var _this = this;
-			if( ( typeof( size.w ) == "string" && size.w.toLowerCase() == "auto" )
-				|| ( typeof( size.h ) == "string" && size.h.toLowerCase() == "auto" ) ){
-				this.parent.children.forEach( function( _c ){
-					if( _c != _this && _c.property.layoutGroup == _this.property.layoutGroup ){
-						if( _c.w == 0 || _c.h == 0 ) _c._reset_size();
-						childs_size.w += _c.w;
-						childs_size.h += _c.h;
-					}
-				} );
-			}
+		var pos = this.getPosition();
+		var size = this.getSize();
+		this.setBounds( 0, 0, size.w, size.h );
+		
+		if( this.property.enableMask ){
+			this._reset_mask();
 		}
-		
-		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
-		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
-		
 	}
 	/**
-	 * 重置坐标
 	 * @private
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
-		var parent_size = null;
-		if( this.parent instanceof createjs.Stage || this.parent instanceof createjs.StageGL ){
-			parent_size = jees.APP.getScreenSize();
-		}else parent_size = this.parent ? this.parent.getSize() : jees.APP.getScreenSize();
+		var pos = this.getPosition();
 		
-		var pos = this.property.getPosition();
-		var relative_pos = this.parent != null ? parent_size : jees.APP.getScreenSize();
-		var x = pos.x;
-		var y = pos.y;
-
-		if( this.property.alignX == 2 ){
-			x = relative_pos.w - this.getSize().w - x;
-		}else if( this.property.alignX == 1 ){
-			x = ( relative_pos.w - this.getSize().w ) / 2 + x;
-		}
-		
-		if( this.property.alignY == 2 ){
-			y = relative_pos.h - this.getSize().h - y;
-		}else if( this.property.alignY == 1 ){
-			y = ( relative_pos.h - this.getSize().h ) / 2 + y;
-		}
-		
-		
-		this.x = x;
-		this.y = y;
+		this.x = pos.x;
+		this.y = pos.y;
 	}
 	/**
-	 * 重置蒙版
+	 * @private
+	 * @method _reset_scale
+	 */
+	p._reset_scale = function(){
+		var scale = this.getScale();
+		
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
+	};
+	/**
 	 * @private
 	 * @method _reset_mask
 	 */
 	p._reset_mask = function(){
 		if( this.property.enableMask ){
-			this._mask = jees.CJS.newShape( this.w, this.h, "#000000" );
+			var size = this.property.getSize();
+			var pos = this.getPosition();
 			
-			if( this.visibleMask ){
-				this._mask.alpha = 0.5;
-				this._mask.cache( 0, 0, this.w, this.h );
-				this.addChildAt( this._mask, 0 );					
+			if( this.mask == null ){
+				this.mask = jees.CJS.newShape( size.w, size.h, "#000000" );
+				if( this.property.visibleMask )
+					this.addChildAt( this.mask, 0 );
+			}
+			
+			if( this.mask && this.property.visibleMask ){
+				this.mask.alpha = 0.5;
+				this.mask.cache( pos.x, pos.y, size.w, size.h );
+				this.mask.graphics.drawRect( pos.x, pos.y, size.w, size.h );
 			}
 		}
-		
-		var parent_mask = false;
-		if( this.parent instanceof createjs.Stage || this.parent instanceof createjs.StageGL ){
-			parent_mask = false;
-		}else parent_mask = this.parent ? this.parent.property.enableMask : false;
-		
-		if( this.parent && parent_mask && this._object ) {
-			// _object 必须是Shape等有mask属性的控件
-			this._object.mask = this.parent._mask;
-		}
-	}
+	};
 	/**
-	 * 重置缩放
 	 * @private
-	 * @method _reset_scale
+	 * @method _init_childs
 	 */
-	p._reset_scale = function(){
-		var scale = this.property.getScale();
-		this.scaleX = scale.x;
-		this.scaleY = scale.y;
-	}
-
+	p._init_childs = function(){
+		if( this.children ){
+			for( var i = 0; i < this.children.length; i ++ ){
+				var c = this.children[i];
+				if( c instanceof jees.UI.Widget
+					|| c instanceof jees.UI.TextBox 
+					|| c instanceof jees.UI.ImageBox 
+					|| c instanceof jees.UI.ImageSpt
+					|| c instanceof jees.UI.InputBox
+				) {
+					c.initialize();
+				}
+				
+				if( this.property.enableMask ) {
+					c.mask = this.mask;
+				}
+			}
+		}
+	};
+	
 	jees.UI.Widget = createjs.promote( Widget, "Container" );
 })();;
 ///<jscompress sourcefile="Panel.js" />
@@ -2361,14 +2535,25 @@ this.jees.UI = this.jees.UI || {};
     	this.Widget_constructor();
 // public properties:
 		/**
-    	 * 使用的皮肤，控件对应自己得控件类型
+    	 * 使用的皮肤
 		 * @public
-    	 * @override
-		 * @property property.skinResource
+		 * @property skinResource
     	 * @type {String}
-    	 * @default "Panel"
+    	 * @default null
     	 */
-		this.property.skinResource = "Panel";
+    	this.property.skinResource = "default";
+    	/**
+    	 * 使用得皮肤类型
+    	 * @public
+    	 * @property skinType
+    	 * @type {String}
+    	 * @default null
+    	 */
+    	this.property.skinType = "Panel";
+    	
+		
+		this.bgScaleX = 1;
+		this.bgScaleY = 1;
 // private properties:
 		/**
 		 * 控件使用得皮肤，为空不使用
@@ -2378,77 +2563,145 @@ this.jees.UI = this.jees.UI || {};
 		 * @default null
 		 */
 		this._skin = null;
+		/**
+		 * @private
+		 * @property _object
+		 * @extend
+		 * @type {jees.UI.ImageBox}
+		 * @default null
+		 */
+		this._background = null;
     };
   	var p = createjs.extend( Panel, jees.UI.Widget );
 // public methods: ============================================================
     p.initialize = function(){
-    	this._reset_size();
-    	this._reset_position();
+    	if( this.property.state ) return;
     	
-    	// 如果没有指定图片源则使用皮肤
-    	if( this.property.resource && this.property.resource != "" ){
-    		this._init_custom();
-    	}else{
-    		this._init_skin();
-    	}
-    	this._reset_scale();
-    	this._reset_mask();
-	    this._init_childs();
+    	this.Widget_initialize();
+		this._reset_background();
+		
+//		this._cache();
 	};
-	
+	p.setSkinType = function( _t ){
+		this.property.skinType = _t;
+		this._reset_background();
+	}
 // private method: ============================================================
-	p._init_custom = function(){
-		var size = this.getSize();
-		// jees.Images see Define.js 
-		var img = jees.Resource.get( this.property.resource );
-		
-		var w = size.w;
-		var h = size.h;
-		var style = this.property.style;
-		
-		this._object = new jees.UI.ImageBox();
-		if( style == 1 ){ // Streach
-			var sx = w / img.width;
-			var sy = h / img.height;
-			if( this.visibleMask ){
-				this.addChildAt( this._object, 1 );
-			}else{
-				this.addChildAt( this._object, 0 );
-			}
-			this._object.property.resource = this.property.resource;
-			this._object.initialize();
-			this._object.setScale( sx, sy );
-		}else if( style == 2 ){ // Tile
-			// 平铺时如果缩放了控件，则绘制和缓存区域要除以缩放比例
-			var scale = this.property.getScale();
-			var dw = w / scale.x;
-			var dh = h / scale.y;
-			this._object = jees.CJS.newShape();
-			this._object.graphics.beginBitmapFill( img ).drawRect( 0, 0, dw, dh );
-			this._object.cache( 0, 0, dw, dh );
-			if( this.visibleMask ){
-				this.addChildAt( this._object, 1 );
-			}else{
-				this.addChildAt( this._object, 0 );
-			}
-		}
+	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		this.Widget__reset_size();
+		// 重设背景大小
+		this._reset_background();
 	}
-	p._init_skin = function(){
-    	var size = this.getSize();
-		this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
-		this.property.resource = this._skin.getCacheDataURL();
+	/**
+	 * @private
+	 * @method _reset_background
+	 */
+	p._reset_background = function(){
+		if( !this._background ){
+			this._background = new jees.UI.ImageBox();
+			this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
+			this._background.initialize();
+		}
 		
-		
-		this._object = new jees.UI.ImageBox();
-		this._object.property.resource = this.property.resource;
-		this._object.initialize();
-		if( this.visibleMask ){
-			this.addChildAt( this._object, 1 );
+		if( this.property.enableSkin ){
+			this._reset_skin();
 		}else{
-			this.addChildAt( this._object, 0 );
+			this._reset_custom();
 		}
 	}
-	
+	/**
+	 * @private
+	 * @method _reset_custom_grid
+	 */
+	p._reset_custom_grid = function(){
+		var size = this.getSize();
+		
+		var res = jees.Resource.get( this.property.resource );
+		var rw = res.width;
+		var rh = res.height;
+		var rs = this.property.region.split(",");
+		var rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, size.w, size.h );
+		
+		var tc = jees.CJS.newContainer();
+		var bg = jees.CJS.newBitmap( res );
+		var _this = this;
+		rg.forEach( function( _r ){
+			var o = bg.clone();
+			o.sourceRect = jees.CJS.newRect( _r.x, _r.y, _r.w, _r.h );
+			o.x = _r.dx;
+			o.y = _r.dy;
+			o.scaleX = _r.sw;
+			o.scaleY = _r.sh;
+			o.cache( 0, 0, _r.w , _r.h );
+			tc.addChild( o );
+		} );
+		
+		tc.cache( 0, 0, size.w, size.h );
+		
+		var b = tc.getBounds();
+		this.property.resource = tc.getCacheDataURL();
+		this._background.setSize( size.w, size.h );
+		this._reset_background_resource();
+	}
+	/**
+	 * @private
+	 * @method _reset_custom
+	 */
+	p._reset_custom = function(){
+		var size = this.getSize();
+		this._reset_background_resource();
+		
+		switch( this.property.style ){
+			case 1: // 拉伸
+				var res = jees.Resource.get( this.property.resource );
+				var sx = size.w / res.width;
+				var sy = size.h / res.height;
+				this._background.setScale( sx, sy );
+				break;
+			case 2: // 平铺
+				if( this.mask == null ){
+					this.mask = jees.CJS.newShape();
+				}
+				this.addChildAt( this.mask, 0 );
+				this.mask.graphics.beginBitmapFill( this._background.image ).drawRect( 0, 0, size.w, size.h );
+				this.mask.cache( 0, 0, size.w, size.h );
+				break;
+			case 3: //9宫格
+				this._reset_custom_grid();
+				break;
+		}
+	}
+	/**
+	 * @private
+	 * @method _reset_skin
+	 */
+	p._reset_skin = function(){
+		var size = this.getSize();
+		if( !this._skin ){
+			this._skin = new jees.UI.Skin( this.property.skinType, size.w, size.h, this.property.skinResource );
+		}
+		if( this._skin.getSkinType() != this.property.skinType || this._skin.getSkinResource() != this.property.skinResource ){
+			this._skin = new jees.UI.Skin( this.property.skinType, size.w, size.h, this.property.skinResource );
+		}
+		
+		this.property.resource = this._skin.getCacheDataURL("rect");
+		
+		this._reset_background_resource();
+	}
+	/**
+	 * @private
+	 * @method _reset_background_resource
+	 */
+	p._reset_background_resource = function(){
+		if( this._background.getResource() != this.property.resource ){
+			this._background.setResource( this.property.resource );
+		}
+	}
+
 	jees.UI.Panel = createjs.promote( Panel, "Widget" );
 })();;
 ///<jscompress sourcefile="ImageBox.js" />
@@ -2484,24 +2737,7 @@ this.jees.UI = this.jees.UI || {};
 		 * @property property
 		 */
 		this.property = new jees.UI.Property();
-		/**
-		 * 图片是否加载完毕
-		 * @public
-		 * @property state
-		 * @type {Boolean}
-		 * @default false;
-		 */
-		this.state = false;
-		/**
-		 * 使用的源区域
-		 * @public
-		 * @property
-		 * @type {String}
-		 * @default null
-		 */
-		this.region = null;
 	};
-
 	var p = createjs.extend( ImageBox, createjs.Bitmap );
 // public method: =============================================================
 	/**
@@ -2509,38 +2745,75 @@ this.jees.UI = this.jees.UI || {};
 	 * @method initialize
 	 */
 	p.initialize = function(){
-		if( typeof this.property.resource == "string" ){
-			if( this.property.resource.startsWith( "data:image" ) ){
-				this.image = document.createElement("img");
-				this.image.src = this.property.resource;
-			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.property.resource)){
-				this.image = jees.Resource.get( this.property.resource );
-			}else{
-				this.image = document.createElement("img");
-				this.image.src = this.property.resource;
-			}
-		}else this.image = this.property.resource;
+		if( this.property.state ) return;
+		this.property.state = true;
 		
-		this.state = true;
-		if( this.region ){
-			var r = this.region.split(",");
-			if( r.length != 4 ) throw "分割区域错误:" + r;
-			this.setRect( r[0], r[1], r[2], r[3] );
-		}else{
-			this.setRect( 0, 0, this.image.width, this.image.height );
-		}
+		this.property.initialize( this );
 		
+		this._reset_bitmap();
 		this._reset_size();
-		this._reset_position();
+		this._reset_rect();
 	}
 	/**
 	 * @public
-	 * @method getSize
-	 * @returns {Integer,Integer} {w,h}
+	 * @method getResource
 	 */
-	p.getSize = function(){
-		return this.property.getSize();
+	p.getResource = function(){
+		return this.property.resource;
 	}
+	/**
+	 * @public
+	 * @method setResource
+	 * @param {String|Image|createjs.Bitmap} _r
+	 */
+	p.setResource = function( _r ){
+		this.property.resource = _r;
+		this._reset_bitmap();
+	}
+//	/**
+//	 * @public
+//	 * @extends
+//	 * @method initialize
+//	 */
+//	p.initialize = function(){
+//		if( this.state ) return;
+//		this.state = true;
+//		
+//		if( typeof this.property.resource == "string" ){
+//			if( this.property.resource.startsWith( "data:image" ) ){
+//				this.image = document.createElement("img");
+//				this.image.src = this.property.resource;
+//			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.property.resource)){
+//				this.image = jees.Resource.get( this.property.resource );
+//			}else{
+//				this.image = document.createElement("img");
+//				this.image.src = this.property.resource;
+//				// 这里可能需要延迟加载
+//			}
+//		}else this.image = this.property.resource; // type = image
+//		
+//		if( this.region ){
+//			var r = this.region.split(",");
+//			if( r.length != 4 ) throw "分割区域错误:" + r;
+//			this.setRect( r[0], r[1], r[2], r[3] );
+//		}else{
+//			this.setRect( 0, 0, this.image.width, this.image.height );
+//		}
+//		
+//		this._reset_size();
+//		this._reset_position();
+//		this._reset_scale();
+////		this.cache( this.x, this.y, this.getSize().w, this.getSize().h );
+//	}
+	/**
+	 * @public
+	 * @method getSize
+	 * @param {Boolean} _t
+	 * @return {Integer,Integer} {w,h}
+	 */
+	p.getSize = function ( _t ) {
+		return this.property.getSize( _t );
+	};
 	/**
 	 * @public
 	 * @method setSize
@@ -2553,25 +2826,33 @@ this.jees.UI = this.jees.UI || {};
 		this._reset_size();
 	};
 	/**
-	 * 获取控件坐标
 	 * @public
 	 * @method getPosition
 	 * @return {Integer,Integer} {x,y}
 	 */
 	p.getPosition = function () {
-		return { x: this.x, y: this.y };
+		return this.property.getPosition();
 	}
 	/**
-     * 设置坐标
      * @method setPosition
      * @extends
-     * @param {Number} _x
-     * @param {Number} _y
+     * @param {Integer} _x
+     * @param {Integer} _y
      */
 	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
 	};
+//	/**
+//	 * 绝对位置
+//	 * @public 
+//	 * @method getAbsPosition
+//	 * @returns {Integer,Integer} {x,y}
+//	 */
+//	p.getAbsPosition = function(){
+//		var m = this.getConcatenatedMatrix();
+//		return { x: m.tx, y: m.ty };
+//	}
 	/**
 	 * 获取缩放
 	 * @public
@@ -2579,7 +2860,7 @@ this.jees.UI = this.jees.UI || {};
 	 * @returns {Float,Float} {x,y}
 	 */
 	p.getScale = function(){
-		return {x: this.scaleX, y: this.scaleY};
+		return this.property.getScale();
 	}
 	/**
 	 * 缩放
@@ -2592,49 +2873,74 @@ this.jees.UI = this.jees.UI || {};
 		this.property.setScale( _sx, _sy );
 		this._reset_scale();
 	}
-	/**
-	 * @public
-	 * @method getRect
-	 * @return {Integer,Integer,Integer,Integer} {x,y,w,h}
-	 */
-	p.getRect = function(){
-		return this.sourceRect;
-	}
-	/**
-	 * 绘制图片的局部
-	 * @public
-	 * @method setRect
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 * @param {Integer} _w
-	 * @param {Integer} _h
-	 */
-	p.setRect = function( _x, _y, _w, _h ){
-		this.region = _x + "," + _y + "," + _w + "," + _h;
-		this.sourceRect = jees.CJS.newRect( _x, _y, _w, _h );
-		this.setBounds( _x, _y, _w, _h);
-		this.cache( 0, 0, _w, _h );
-	}
-	/**
-	 * 设置图片热点
-	 * @public
-	 * @method setReg
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 */
-	p.setReg = function( _x, _y ){
-		if( _x ) this.regX = _x;
-		if( _y ) this.regY = _y;
-	}
-	/**
-	 * @public
-	 * @method getReg
-	 * @returns {Integer,Integer} {x,y}
-	 */
-	p.getReg = function(){
-		return {x: this.regX, y: this.regY};
-	}
+//	/**
+//	 * @public
+//	 * @method getRect
+//	 * @return {Integer,Integer,Integer,Integer} {x,y,w,h}
+//	 */
+//	p.getRect = function(){
+//		return this.sourceRect;
+//	}
+//	/**
+//	 * 绘制图片的局部
+//	 * @public
+//	 * @method setRect
+//	 * @param {Integer} _x
+//	 * @param {Integer} _y
+//	 * @param {Integer} _w
+//	 * @param {Integer} _h
+//	 */
+//	p.setRect = function( _x, _y, _w, _h ){
+//		this.region = _x + "," + _y + "," + _w + "," + _h;
+//		this.sourceRect = jees.CJS.newRect( _x, _y, _w, _h );
+//		this.setBounds( _x, _y, _w, _h);
+//	}
+//	/**
+//	 * 设置图片热点
+//	 * @public
+//	 * @method setReg
+//	 * @param {Integer} _x
+//	 * @param {Integer} _y
+//	 */
+//	p.setReg = function( _x, _y ){
+//		if( _x ) this.regX = _x;
+//		if( _y ) this.regY = _y;
+//	}
+//	/**
+//	 * @public
+//	 * @method getReg
+//	 * @returns {Integer,Integer} {x,y}
+//	 */
+//	p.getReg = function(){
+//		return {x: this.regX, y: this.regY};
+//	}
  // private method: ===========================================================
+ 	/**
+	 * 建立缓存区域
+	 */
+	p._cache = function(){
+		var pos = this.getPosition();
+		var size = this.getSize();
+		this.cache( 0, 0, size.w, size.h );
+	}
+	/**
+	 * @private
+	 * @method _reset_bitmap
+	 */
+ 	p._reset_bitmap = function(){
+   		if( typeof this.property.resource == "string" ){
+			if( this.property.resource.startsWith( "data:image" ) ){
+				this.image = document.createElement("img");
+				this.image.src = this.property.resource;
+			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.property.resource)){
+				this.image = jees.Resource.get( this.property.resource );
+			}else{
+				this.image = document.createElement("img");
+				this.image.src = this.property.resource;
+				// 这里可能需要延迟加载
+			}
+		}else this.image = this.property.resource; // type = image
+ 	}
 	// /**
 	//  * @method _onload
 	//  * @param {Object|String} _r 
@@ -2663,84 +2969,106 @@ this.jees.UI = this.jees.UI || {};
 	// 	_o._object = new createjs.Bitmap( _o._source );
 	// 	_o._reset();
 	// }
-
-	/** 
-	 * @method _reset_size
+	/**
 	 * @private
+	 * @method _reset_size
 	 */
 	p._reset_size = function(){
-		if( !this.state ) return;
+		var pos = this.getPosition();
+		var size = this.getSize();
 		
-		var prop_size = this.property.getSize();
-		var bounds = this.getBounds();
-		
-		if( prop_size.w == 0 ){
-			this.property.setSize( bounds.width, prop_size.h );
-			prop_size = this.property.getSize();
-		}
-		if( prop_size.h == 0 ){
-			this.property.setSize( prop_size.w, bounds.height );
-			prop_size = this.property.getSize();
-		}
-		
-		if( prop_size.w != bounds.width )
-			this.property.scaleX = prop_size.w / bounds.width;
-		if( prop_size.h != bounds.height )
-			this.property.scaleY = prop_size.h / bounds.height;
-			
-		this._reset_scale();
-	}
+		this.setBounds( 0, 0, size.w, size.h );
+	};
 	/**
-	 * 重置坐标
 	 * @private
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
-		var pos = this.property.getPosition();
-		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
-		var x = pos.x;
-		var y = pos.y;
-		
-		this.setReg( this.getReg().x, this.getReg().y );
-		if( this.property.alignX == 2 ){
-			x = relative_pos.w - this.getSize().w - x;
-		}else if( this.property.alignX == 1 ){
-			this.setReg( this.getSize().w / 2, this.getReg().y );
-			x = ( relative_pos.w / 2 ) + x;
-		}
-		
-		if( this.property.alignY == 2 ){
-			y = relative_pos.h - this.getSize().h - y;
-		}else if( this.property.alignY == 1 ){
-			this.setReg( this.getReg().x, this.getSize().h / 2 );
-			console.log( this.getReg() );
-			y = ( relative_pos.h / 2 ) + y;
-		}
-		this.x = x;
-		this.y = y;
-	}
-	// /**
-	//  * @method _reset_rect
-	//  * @private
-	//  */
-	// p._reset_rect = function(){
-	// 	if( !this._state ) return;
-	// 	this._object.sourceRect = this._rect;
-	// }
+		var pos = this.getPosition();
+		this.x = pos.x;
+		this.y = pos.y;
+	};
+//	/** 
+//	 * @method _reset_size
+//	 * @private
+//	 */
+//	p._reset_size = function(){
+//		if( !this.state ) return;
+//		
+//		var parent_size = null;
+//		if( this.parent instanceof createjs.Stage || this.parent instanceof createjs.StageGL ){
+//			parent_size = jees.APP.getScreenSize();
+//		}else parent_size = this.parent ? this.parent.getSize() : jees.APP.getScreenSize();
+//
+//		var prop_size = this.property.getSize();
+//
+//		var w = this.property._calculate_size( prop_size.w, parent_size.w, 0 );
+//		var h = this.property._calculate_size( prop_size.h, parent_size.h, 0 );
+//		
+//		var bounds = this.getBounds();
+//		
+//		if( w != bounds.width )
+//			this.property.scaleX = w / bounds.width;
+//		if( h != bounds.height )
+//			this.property.scaleY = h / bounds.height;
+//		
+//		this._reset_scale();
+//		
+//		if( this.region ){
+//			var b = this.getBounds();
+//			this.sourceRect = jees.CJS.newRect( 0, 0, b.width, b.height );
+//		}
+//	}
+//	/**
+//	 * 重置坐标
+//	 * @private
+//	 * @method _reset_position
+//	 */
+//	p._reset_position = function(){
+//		var pos = this.property.getPosition();
+//		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
+//		var x = pos.x;
+//		var y = pos.y;
+//		
+//		this.setReg( this.getReg().x, this.getReg().y );
+//		if( this.property.alignX == 2 ){
+//			console.log( this.parent, jees.APP.getScreenSize(), relative_pos, this.getSize() );
+//			x = relative_pos.w - this.getSize().w - x;
+//		}else if( this.property.alignX == 1 ){
+//			this.setReg( this.getSize().w / 2, this.getReg().y );
+//			x = ( relative_pos.w / 2 ) + x;
+//		}
+//		
+//		if( this.property.alignY == 2 ){
+//			y = relative_pos.h - this.getSize().h - y;
+//		}else if( this.property.alignY == 1 ){
+//			this.setReg( this.getReg().x, this.getSize().h / 2 );
+//			y = ( relative_pos.h / 2 ) + y;
+//		}
+//		
+//		this.x = x;
+//		this.y = y;
+//	}
+	 /**
+	  * @method _reset_rect
+	  * @private
+	  */
+	 p._reset_rect = function(){
+	 	if( this.porperty.rect ){
+//	 		this.sourceRect = 
+//	 		this._object.sourceRect = this._rect;
+	 	}
+	 	
+	 }
 	/**
 	 * @method _reset_scale
 	 * @private
 	 */
 	p._reset_scale = function(){
-		if( !this.state ) return;
+		var scale = this.getScale();
 		
-		this.scaleX = this.property.scaleX;
-		this.scaleY = this.property.scaleY;
-		
-		if( this.region ){
-			var b = this.getBounds();
-			this.sourceRect = jees.CJS.newRect( 0, 0, b.width, b.height );
-		}
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
 	}
     
 	jees.UI.ImageBox = createjs.promote( ImageBox, "Bitmap");
@@ -2840,6 +3168,7 @@ this.jees.UI = this.jees.UI || {};
 	var p = createjs.extend( ImageSpt, createjs.Sprite );
 // public method: =============================================================
 	p.initialize = function(){
+		if( this.state ) return;
 		this.state = true;
 		var res =  jees.Resource.get( this.property.resource );
 		var frame_width = res.width / this.cols;
@@ -2896,15 +3225,26 @@ this.jees.UI = this.jees.UI || {};
 	}
 	/**
      * 设置坐标
+     * @public
      * @method setPosition
-     * @extends
-     * @param {Number} _x
-     * @param {Number} _y
+     * @overview
+     * @param {Integer} _x
+     * @param {Integer} _y
      */
 	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
-	};
+	}
+	/**
+	 * 绝对位置
+	 * @public 
+	 * @method getAbsPosition
+	 * @returns {Integer,Integer} {x,y}
+	 */
+	p.getAbsPosition = function(){
+		var m = this.getConcatenatedMatrix();
+		return { x: m.tx, y: m.ty };
+	}
 	/**
 	 * 获取缩放
 	 * @public
@@ -3125,6 +3465,7 @@ this.jees.UI = this.jees.UI || {};
 		this.font = this._get_font();
 		this.lineHeight = this.getFontSize();
 		this.setColor( this.color );
+		this.setText( this.text );
 		this._reset_position();
 		this._cache();
 	}
@@ -3306,6 +3647,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setText = function (_t) {
 		this.text = _t;
+		this._cache();
 	}
 	/**
 	 * 是否使用粗体
@@ -3340,6 +3682,24 @@ this.jees.UI = this.jees.UI || {};
 	p.setItalic = function (_v) {
 		this.italic = _v;
 		this.font = this._get_font();
+	}
+	/**
+	 * 设置是否可见
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function(_v){
+		this.visible = _v;
+	}
+	/**
+	 * 是否可见
+	 * @public
+	 * @method isVisible
+	 * @return {Boolean}
+	 */
+	p.isVisible = function(){
+		return this.visible;
 	}
 // private method: ============================================================
 	/**
@@ -3500,7 +3860,7 @@ this.jees.UI = this.jees.UI || {};
 	"use strict";
 // constructor: ===============================================================
 	/**
-	 * 
+	 * TODO 自定义皮肤和素材的配合有点问题。
 	 * @class Button
 	 * @extends jees.UI.ImageSpt
 	 * @constructor
@@ -3576,7 +3936,29 @@ this.jees.UI = this.jees.UI || {};
 		 * @default "#FFFFFF"
 		 */
 		this.color = "#FFFFFF";
+		/**
+		 * @public
+		 * @property spriteX
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.spriteX = 0;
+		/**
+		 * @public
+		 * @property spriteY
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.spriteY = 0;
+		/**
+		 * @public
+		 * @property region
+		 * @type {String}
+		 * @default ""
+		 */
+		this.region = "";
 // private properties:
+		this._data = null;
 		this._object = new jees.UI.TextBox();
 	};
 // public static properties:
@@ -3602,6 +3984,7 @@ this.jees.UI = this.jees.UI || {};
         }
 		this._reset_disable();
 	    this._reset_position();
+//		this.cache( 0, 0, this.getSize().w, this.getSize().h );
 	}
 	/**
 	 * 设置状态
@@ -3621,30 +4004,90 @@ this.jees.UI = this.jees.UI || {};
 	p.isDisabled = function(){
 		return this.disable;
 	}
+	p.setText = function( _t ){
+		this._object.setText( _t );
+	}
 // private method: ============================================================
-	p._init_background = function(){
-		this.state = true;
-		
+	p._init_skin = function(){
 		var size = this.getSize();
 		this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
 		
-		var data = {
-			images: [this._skin.getCacheDataURL("rect"),
-				this._skin.getCacheDataURL("highlight"),
-				this._skin.getCacheDataURL("push"),
-				this._skin.getCacheDataURL("disable")],
+		this._data.images.push( this._skin.getCacheDataURL("rect") );
+		this._data.images.push( this._skin.getCacheDataURL("highlight") );
+		this._data.images.push( this._skin.getCacheDataURL("push") );
+		this._data.images.push( this._skin.getCacheDataURL("disable") );
+	}
+	p._init_custom = function(){
+		var bitmap = jees.CJS.newBitmap( jees.Resource.get( this.property.resource ) );
+		var b = bitmap.getBounds();
+		var c = this.types.split(",").length;
+		var size = this.getSize();
+		var w = this.spriteX == 0 ? size.w : this.spriteX;
+		var h = this.spriteY == 0 ? size.h : this.spriteY;
+		var rw = this.spriteX == 0 ? b.width : this.spriteX;
+		var rh = this.spriteY == 0 ? b.height : this.spriteY;
+		
+		var rg = null;
+		if( this.region != "" ){
+			var rs = this.region.split(",");
+			rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, w, h );
+		}
+		
+		for( var i = 0; i < c; i ++ ){
+			var bg = bitmap.clone();
+			var x = this.spriteX * i;
+			var y = this.spriteY * i;
+			bg.sourceRect = jees.CJS.newRect( x, y, w, h );
+			bg.cache( 0, 0, w, h );
+			
+			if( this.region != "" ){
+				var tc = jees.CJS.newContainer();
+				rg.forEach( function( _r ){
+					var o = bg.clone();
+					o.sourceRect = jees.CJS.newRect( x + _r.x, y + _r.y, _r.w, _r.h );
+					o.x = _r.dx;
+					o.y = _r.dy;
+					o.scaleX = _r.sw;
+					o.scaleY = _r.sh;
+					
+					o.cache( 0, 0, w, h );
+					tc.addChild( o );
+				} );
+				tc.cache( 0, 0, w, h );
+				this._data.images.push( tc.bitmapCache.getCacheDataURL() );
+			}else{
+				this._data.images.push( bg.bitmapCache.getCacheDataURL() );
+			}
+		}
+	}
+	p._init_background = function(){
+		this.state = true;
+		var size = this.getSize();
+		
+		this._data = {
+			images: [],
 			frames: {width: size.w, height: size.h, count: 4 },
 	        animations: {
 	        	normal: [0, 0, "normal"],
 	        	highlight: [1, 1, "highlight"],
 	        	push: [2, 2, "push"],
 	        	disable: [3, 3, "disable"],
+	        	test: [0, 3, "test", 0.15],
 	        }
 	   	};
-	   	this.spriteSheet = new createjs.SpriteSheet( data );
-	   	this.gotoAndPlay( "normal" );
+	   	
+		if( this.property.resource && this.property.resource != "" ){
+    		this._init_custom();
+		}else{
+			this._init_skin();
+		}
+		
+	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
+		this.gotoAndPlay( "test" );
 	}
 	p._init_text = function(){
+		this.parent.addChildAt( this._object, this.parent.getChildIndex( this ) + 1 );
+		
 		this._object.setText( this.text );
 		this._object.setFontSize( this.fontSize );
 		this._object.setFontStyle( this.fontStyle );
@@ -3653,8 +4096,6 @@ this.jees.UI = this.jees.UI || {};
 		this._object.setBold( this.bold );
 		this._object.setPosition( this.x + ( this.getSize().w / 2 ) - ( this._object.getSize().w / 2 ) , 
 			this.y + ( this.getSize().h / 2 - ( this._object.getSize().h / 2 ) ) );
-		// 描述为几态按钮(1-正常 2-高亮 3-按下 4-禁用)
-		this.parent.addChild( this._object );
 	}
 	p._reset_disable = function(){
 		if( this.disable ){
@@ -3718,4 +4159,523 @@ this.jees.UI = this.jees.UI || {};
 	 }
 	 
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );
+})();;
+///<jscompress sourcefile="CheckBox.js" />
+
+/*
+ * Author: Aiyoyoyo https://www.jeesupport.com/assets/jeesjs/src/ui/CheckBox.js
+ * License: MIT license
+ */
+
+/**
+ * @module JeesJS
+ */
+// namespace:
+this.jees = this.jees || {};
+this.jees.UI = this.jees.UI || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * 纯外框时，需要使用容器来保证透明区域可点击。建议素材中添加地板。
+	 * @class CheckBox
+	 * @extends jees.UI.ImageSpt
+	 * @constructor
+	 */
+	function CheckBox() {
+		this.Button_constructor();
+// public properties:
+		/**
+    	 * 使用的皮肤，控件对应自己得控件类型
+		 * @public
+    	 * @override
+		 * @property property.skinResource
+    	 * @type {String}
+    	 * @default "Button"
+    	 */
+		this.property.skinResource = "CheckBox";
+		/**
+		 * @public
+		 * @property checked
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.checked = false;
+		/**
+		 * @public
+		 * @property group
+		 * @type {String}
+		 * @defualt ""
+		 */
+		this.group = "";
+// private properties:
+		this._object = new jees.UI.TextBox();
+	};
+// public static properties:
+	var p = createjs.extend( CheckBox, jees.UI.Button );
+// public method: =============================================================
+	/**
+	 * @public
+	 * @method initialize
+	 */
+	p.initialize = function(){
+		this._init_background();
+		this._init_text();
+		
+		var _this = this;
+		if( this.types.indexOf( "push") != -1 ){
+			jees.E.bind( this, "mousedown", function( e ){ _this._handle_mousedown( e, _this ); });
+        	jees.E.bind( this, "pressup", function( e ){ _this._handle_pressup( e, _this ); });
+		}
+		
+        if( this.types.indexOf( "highlight") != -1 ){
+        	jees.E.bind( this, "mouseover", function( e ){ _this._handle_mouseover( e, _this ); });
+        	jees.E.bind( this, "mouseout", function( e ){ _this._handle_mouseout( e, _this ); });
+        }
+        
+        jees.E.bind( this, "click", function( e ){ _this._handle_click( e, _this ); });
+        
+		this._reset_disable();
+	    this._reset_position();
+	}
+	/**
+	 * 设置状态
+	 * @public
+	 * @method setChecked
+	 * @param {Boolean} _e
+	 */
+	p.setChecked = function( _e ){
+		this.checked = _e;
+	}
+	/**
+	 * 是否禁用
+	 * @public
+	 * @method isChecked
+	 * @return {Boolean}
+	 */
+	p.isChecked = function(){
+		return this.checked;
+	}
+// private method: ============================================================
+	p._init_skin = function(){
+		var size = this.getSize();
+		this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
+		
+		this._data.images.push( this._skin.getCacheDataURL("rect") );
+		this._data.images.push( this._skin.getCacheDataURL("highlight") );
+		this._data.images.push( this._skin.getCacheDataURL("push") );
+		this._data.images.push( this._skin.getCacheDataURL("disable") );
+		this._data.images.push( this._skin.getCacheDataURL("checked") );
+		this._data.images.push( this._skin.getCacheDataURL("checkedHighlight") );
+		this._data.images.push( this._skin.getCacheDataURL("checkedPush") );
+		this._data.images.push( this._skin.getCacheDataURL("checkedDisable") );
+	
+	}
+	p._init_custom = function(){
+		var bitmap = jees.CJS.newBitmap( jees.Resource.get( this.property.resource ) );
+		var b = bitmap.getBounds();
+		var c = this.types.split(",").length;
+		var size = this.getSize();
+		var w = this.spriteX == 0 ? size.w : this.spriteX;
+		var h = this.spriteY == 0 ? size.h : this.spriteY;
+		var rw = this.spriteX == 0 ? b.width : this.spriteX;
+		var rh = this.spriteY == 0 ? b.height : this.spriteY;
+		
+		var rg = null;
+		if( this.region != "" ){
+			var rs = this.region.split(",");
+			rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, w, h );
+		}
+		
+		for( var i = 0; i < c; i ++ ){
+			var bg = bitmap.clone();
+			var x = this.spriteX * i;
+			var y = this.spriteY * i;
+			bg.sourceRect = jees.CJS.newRect( x, y, w, h );
+			bg.cache( 0, 0, w, h );
+			
+			if( this.region != "" ){
+				var tc = jees.CJS.newContainer();
+				rg.forEach( function( _r ){
+					var o = bg.clone();
+					o.sourceRect = jees.CJS.newRect( x + _r.x, y + _r.y, _r.w, _r.h );
+					o.x = _r.dx;
+					o.y = _r.dy;
+					o.scaleX = _r.sw;
+					o.scaleY = _r.sh;
+					
+					o.cache( 0, 0, w, h );
+					tc.addChild( o );
+				} );
+				tc.cache( 0, 0, w, h );
+				this._data.images.push( tc.bitmapCache.getCacheDataURL() );
+			}else{
+				this._data.images.push( bg.bitmapCache.getCacheDataURL() );
+			}
+		}
+	}
+	p._init_background = function(){
+		this.state = true;
+		var size = this.getSize();
+		
+		this._data = {
+			images: [],
+			frames: {width: size.w, height: size.h, count: 8 },
+	        animations: {
+	        	normal: [0, 0, "normal"],
+	        	highlight: [1, 1, "highlight"],
+	        	push: [2, 2, "push"],
+	        	disable: [3, 3, "disable"],
+	        	checked: [4, 4, "checked"],
+	        	checkedHighlight: [5, 5, "checkedHighlight"],
+	        	checkedPush: [6, 6, "checkedPush"],
+	        	checkedDisable: [7, 7, "checkedDisable"],
+	        }
+	   	};
+	   	
+		if( this.property.resource && this.property.resource != "" ){
+    		this._init_custom();
+		}else{
+			this._init_skin();
+		}
+		
+	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
+		this.gotoAndPlay( "normal" );
+	}
+	p._init_text = function(){
+		this._object.setText( this.text );
+		this._object.setFontSize( this.fontSize );
+		this._object.setFontStyle( this.fontStyle );
+		this._object.setColor( this.color );
+		this._object.setItalic( this.italic );
+		this._object.setBold( this.bold );
+		this._object.setPosition( this.x + this.getSize().w + this._object.getFontSize(), 
+			this.y + ( this.getSize().h / 2 - ( this._object.getSize().h / 2 ) ) );
+		// 描述为几态按钮(1-正常 2-高亮 3-按下 4-禁用)
+		this.parent.addChild( this._object );
+	}
+	p._reset_disable = function(){
+		if( this.disable ){
+			this.gotoAndPlay( this.checked ? "checkedDisable" : "disable" );
+		}else{
+			this.gotoAndPlay( this.checked ? "checked" : "normal" );
+		}
+	}
+	 /**
+	  * 当按钮按下时，文本控件做字体/10大小的偏移
+	  * @private
+	  * @method _handle_mousedown
+	  * @param {createjs.Event} _e
+	  * @param {jees.Widget} _w
+	  */
+	 p._handle_mousedown = function( _e, _w ){
+	 	if( _w.isDisabled() ) return;
+	 	this.gotoAndPlay( this.checked ? "checkedPush":"push" );
+	 }
+	 /**
+	  * 当按钮弹起时，文本控件恢复字体/10大小的偏移
+	  * @private
+	  * @method _handle_mousedown
+	  * @param {createjs.Event} _e
+	  * @param {jees.Widget} _w
+	  */
+	 p._handle_pressup = function( _e, _w ){
+	 	if( _w.isDisabled() ) return;
+	 	this.gotoAndPlay( this.checked ? "checked" : "normal" );
+	 }
+	/**
+	  * 当按钮移上按钮时
+	  * @private
+	  * @method _handle_mouseover
+	  * @param {createjs.Event} _e
+	  * @param {jees.Widget} _w
+	  */
+	 p._handle_mouseover = function( _e, _w ){
+	 	if( _w.isDisabled() ) return;
+	 	this.gotoAndPlay( this.checked ? "checkedHighlight" : "highlight" );
+	 }
+	 /**
+	  * 当按钮移上按钮时
+	  * @private
+	  * @method _handle_mouseout
+	  * @param {createjs.Event} _e
+	  * @param {jees.Widget} _w
+	  */
+	 p._handle_mouseout = function( _e, _w ){
+	 	if( _w.isDisabled() ) return;
+	 	this.gotoAndPlay( this.checked ? "checked" : "normal" );
+	 }
+	 p._handle_click = function( _e, _w ){
+	 	if( _w.isDisabled() ) return;
+	 	this.setChecked( !this.checked );
+	 	this.gotoAndPlay( this.checked ? "checked" : "normal" );
+	 }
+	jees.UI.CheckBox = createjs.promote( CheckBox, "Button" );
+})();;
+///<jscompress sourcefile="InputBox.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/blob/master/src/ui/InputBox.js
+ * License: MIT license
+ */
+
+/**
+ * @module JeesJS
+ */
+// namespace:
+this.jees = this.jees || {};
+this.jees.UI = this.jees.UI || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class InputBox
+	 * @extends jees.UI.ImageBox
+	 * @constructor
+	 */
+    function InputBox(){
+    	this.ImageBox_constructor();
+// public properties:
+		/**
+		 * 控件的配置属性，用于初始化和部分属性的重置用
+		 * @public
+		 * @property property
+		 */
+		this.property = new jees.UI.Property();
+		/**
+    	 * 使用的皮肤，控件对应自己得控件类型
+		 * @public
+    	 * @override
+		 * @property property.skinResource
+    	 * @type {String}
+    	 * @default "Panel"
+    	 */
+		this.property.skinResource = "InputBox";
+		/**
+		 * @public
+		 * @property placeholder
+		 * @type {String}
+		 * @default "";
+		 */
+		this.placeholder = "";
+		/**
+		 * 拆分的字体样式-字体大小
+		 * @public
+		 * @property fontSize
+		 * @type {Integer}
+		 * @default 12
+		 */
+		this.fontSize = 12;
+		/**
+		 * @public
+		 * @property color
+		 * @type {String}
+		 * @default "#FFFFFF"
+		 */
+		this.color = "#FFFFFF";
+		/**
+		 * 不为空时用字符替换输入内容
+		 * @public
+		 * @property password
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.password = false;
+		/**
+		 * 允许被遮罩
+		 * @public
+		 * @property enableMask
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.enableMask = false;
+		/**
+		 * @public
+		 * @property region
+		 * @type {String}
+		 * @default null
+		 */
+		this.region = null;
+// private properties:
+		/**
+		 * 皮肤对象
+		 */
+		this._skin = null;
+		
+    	var o = document.body;
+    	var ipt = document.createElement("INPUT");
+    	o.appendChild( ipt );
+    	/**
+    	 * 输入框对象
+    	 */
+    	this._object = new createjs.DOMElement( ipt );
+    	/**
+    	 * 输入框的HTML元素
+    	 */
+    	this._input = this._object.htmlElement;
+    	/**
+    	 * 遮罩对象
+    	 */
+  		this._mask = null;
+    };
+  	var p = createjs.extend( InputBox, jees.UI.ImageBox );
+// public methods: ============================================================
+    p.initialize = function(){
+    	if( this.state ) return;
+    	this._init_background();
+		
+		// 遮罩调整
+    	if( this.enableMask ){
+    		this._mask = new jees.UI.TextBox();
+    		this._init_text();
+    	}
+		
+		this._reset_size();
+	    this._reset_position();
+		this._reset_input();
+		
+	    var _this = this;
+	    
+    	
+    	if( this.enableMask ){
+    		this._input.hidden = true;
+    		jees.E.bind( this, "click", function( _e ){
+    			_this._input.hidden = false;
+	    		_this._input.focus();
+	    	});
+    		
+    		this._input.style.setProperty( "hidden", "true" );
+    		
+      		this._input.onfocus = function( _e ){
+	    		_this._input.hidden = false;
+    			_this._mask.setVisible( false );
+	    	}
+	    	this._input.onblur = function( _e ){
+	    		_this._input.hidden = true;
+	    		_this._mask.setVisible( true );
+	    		_this._reset_text();
+	    	}
+	    	this._input.onchange = function( _e ){
+	    		_this._input.hidden = true;
+	    	}
+    	}
+};
+	/**
+	 * @public
+	 * @method setSize
+	 * @param {Integer|String} _w
+	 * @param {Integer|String} _h
+	 */
+	p.setSize = function ( _w, _h ) {
+		// 设置记录值
+		this.property.setSize( _w, _h );
+		this._reset_size();
+	};
+	/**
+	 * 设置控件坐标 如果align不为0，则设置无效
+	 * @public
+	 * @method setPosition
+	 * @param {Integer} _x
+	 * @param {Integer} _y
+	 */
+	p.setPosition = function( _x, _y ){
+		this.property.setPosition( _x, _y );
+		this._reset_position();
+	}
+// private method: ============================================================
+	p._init_skin = function(){
+		var size = this.getSize();
+		if( !this._skin ){
+			this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
+			this.property.resource = this._skin.getCacheDataURL("rect");
+			
+			this.image.src = this.property.resource;
+			this.state = true;
+		}
+	}
+	p._init_custom_grid = function(){
+		var size = this.getSize();
+		var img = jees.Resource.get( this.property.resource );
+		var rw = img.width;
+		var rh = img.height;
+		var rs = this.region.split(",");
+		var rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, size.w, size.h );
+		
+		var tc = jees.CJS.newContainer();
+		var bg = jees.CJS.newBitmap( img );
+		rg.forEach( function( _r ){
+			var o = bg.clone();
+			o.sourceRect = jees.CJS.newRect( _r.x, _r.y, _r.w, _r.h );
+			o.x = _r.dx;
+			o.y = _r.dy;
+			o.scaleX = _r.sw;
+			o.scaleY = _r.sh;
+			
+			o.cache( 0, 0, size.w, size.h );
+			tc.addChild( o );
+		} );
+		tc.cache( 0, 0, size.w, size.h );
+		this.image.src = tc.bitmapCache.getCacheDataURL();
+	}
+	p._init_custom = function(){
+		//
+		if( this.region != "" ){
+			this._init_custom_grid();
+		}else{
+			this.image.src = jees.Resource.get( this.property.resource );
+		}
+	}
+	p._init_background = function(){
+		this.state = true;
+		this.image = document.createElement("img");
+		if( this.property.resource && this.property.resource != "" ){
+    		this._init_custom();
+		}else{
+			this._init_skin();
+		}
+	}
+	p._init_text = function(){
+		this.parent.addChildAt( this._mask, this.parent.getChildIndex( this ) + 1 );
+		this._mask.setFontSize( this.fontSize );
+//		this._mask.setFontStyle( this.fontStyle );
+		this._mask.setColor( this.color );
+//		this._mask.setItalic( this.italic );
+//		this._mask.setBold( this.bold );
+	}
+	p._reset_position = function(){
+		var abs_pos = this.getAbsPosition();
+		var pos = this.getPosition();
+		var style = this._input.style;
+		var fix_x = abs_pos.x + ( this.fontSize / 2 );
+		style.setProperty( "left", fix_x + "px");
+		style.setProperty( "top", abs_pos.y + "px");
+		
+		if( this._mask ){
+			this._mask.setPosition( pos.x + ( this.fontSize / 2 ), pos.y + this._mask.fontSize );
+		}
+	}
+	p._reset_size = function(){
+		var size = this.getSize();
+		var style = this._input.style;
+		// 保证内部背景元素与容器一致
+		style.setProperty( "height", size.h + "px" );
+		style.setProperty( "width", ( size.w - this.fontSize )  + "px" );
+	}
+	p._reset_input = function(){
+		var style = this._input.style;
+		
+		this._input.type = this.password ? "password" : "text";
+		this._input.placeholder = this.placeholder;
+		style.setProperty( "color", this.color );
+		
+		this._reset_text();
+	}
+	p._reset_text = function(){
+		if( this._mask ){
+			this._mask.setText( this._input.value != "" ? this._input.value : this.placeholder );
+		}
+	}
+	jees.UI.InputBox = createjs.promote( InputBox, "ImageBox" );
 })();;

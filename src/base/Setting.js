@@ -28,9 +28,14 @@ this.jees = this.jees || {};
 	Setting._debug = false;
 	Setting._mouseover = false;
 	
+	Setting.connector = {
+		enable: false,
+		host: null,
+		port: null,
+		path: null,
+	}
 // public static getter/setter method: ========================================
 	// getter and setter
-
 	Setting.getCanvas = function(){ return this._canvas; }
 	Setting.getWidth = function(){ return this._width; }
     Setting.getHeight = function(){ return this._height; }
@@ -43,9 +48,11 @@ this.jees = this.jees || {};
     Setting.enableSound = function(){ return this._sound; }
     Setting.enableDebug = function(){ return this._debug; }
     Setting.enableMouseOver = function(){ return this._mouseover; }
-
+	
+	Setting.enableConnector = function(){ return this.connector.enable; }
 // public static method: ======================================================
 	/**
+	 * @public
      * @static
 	 * @method startup
      * @return
@@ -63,6 +70,12 @@ this.jees = this.jees || {};
 		this._mouseover = cfg.mouseover;
 		
 		this._skin = cfg.skin;
+		
+		for ( var i in this._config.Connector ) {
+            if ( this.connector.hasOwnProperty( i ) ) {
+            	this.connector[i] = this._config.Connector[i];
+            }	
+       	}
 	}
 	
 	jees.SET = Setting;

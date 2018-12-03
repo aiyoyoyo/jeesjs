@@ -8,12 +8,13 @@
     <meta name="author" content="aiyoyoyo, jeesupport">
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon" />
     <!-- ================== BEGIN BASE CSS STYLE ================== -->
-    <link href="../assets/css/jees.min.css" rel="stylesheet">
+    <link href="../assets/css/jees.css" rel="stylesheet">
     <!-- ================== END BASE CSS STYLE ================== -->
 
     <!-- ================== BEGIN BASE JS ================== -->
-    <script src="../libs/createjs/easeljs.js"></script>
-    <script src="../libs/createjs/preloadjs.js"></script>
+    <script src="../libs/createjs/EaselJS-master/lib/easeljs-NEXT.js"></script>
+    <script src="../libs/createjs/PreloadJS-master/lib/preloadjs-NEXT.js"></script>
+    <script src="../libs/html2vanvas/html2canvas.min.js"></script>
     <!-- ================== END BASE JS ================== -->
 </head>
 <body>
@@ -29,6 +30,7 @@
     <script src="../src/ui/ImageSpt.js"></script>
     <script src="../src/ui/Button.js"></script>
     <script src="../src/ui/CheckBox.js"></script>
+    <script src="../src/ui/InputBox.js"></script>
     <script src="../src/base/Setting.js"></script>
     <script src="../src/base/CreateJS.js"></script>
     <script src="../src/base/Event.js"></script>
@@ -38,14 +40,16 @@
     <script src="../src/manager/ResourceManager.js"></script>
     <script src="../src/manager/CanvasManager.js"></script>
     <script src="../src/manager/FileLoadManager.js"></script>
+    <script src="../src/connector/Connector.js"></script>
+    <script src="../src/connector/WebSocketConnector.js"></script>
     <!-- ================== END JEES JS ================== -->
 
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src="../src/extends/SkinManager.js"></script>
     <script src="../src/extends/LayoutManager.js"></script>
     <script src="../src/extends/ConfigManager.js"></script>
-    <script src="../src/editor/Define.js"></script>
-    <script src="../src/editor/UIEditor.js"></script>
+    <script src="../src.uieditor/editor/Define.js"></script>
+    <script src="../src.uieditor/editor/UIEditor.js"></script>
     <!-- ================== END PAGE LEVEL JS ================== -->
 </body>
 <script>

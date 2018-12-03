@@ -65,13 +65,6 @@ this.jees.UI = this.jees.UI || {};
 		 * @default true
 		 */
 		this.auto = true;
-		/**
-		 * @public
-		 * @property state
-		 * @type {Boolean}
-		 * @default false
-		 */
-		this.state = false;
 // private properties:
 		/**
 		 * @private 
@@ -91,14 +84,21 @@ this.jees.UI = this.jees.UI || {};
 
 	var p = createjs.extend( ImageSpt, createjs.Sprite );
 // public method: =============================================================
+	/**
+	 * @public
+	 * @method initialize
+	 */
 	p.initialize = function(){
-		this.state = true;
+		if( this.property.state ) return;
+		this.property.state = true;
+		
+		this.property.initialize( this );
+		
 		var res =  jees.Resource.get( this.property.resource );
 		var frame_width = res.width / this.cols;
 		var frame_height = res.height / this.rows;
 //	    framerate: rate, 这里无视ticker的timingMode，也许是bug也许是我错了。
 		this._frame_count = ( this.cols * this.rows );
-		
 		this._data = {
 	        images: [ res ],
 	        framerate: this._frame_count,
@@ -109,6 +109,10 @@ this.jees.UI = this.jees.UI || {};
 	   	};
 	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
 	   	
+	   	if( this.property.w == 0 ) this.property.w = res.width;
+		if( this.property.h == 0 ) this.property.h = res.height;
+		this.setSize( this.property.w, this.property.h );
+		
 	    this._reset_speed();
 	    this._reset_size();
 	    this._reset_position();
@@ -121,11 +125,12 @@ this.jees.UI = this.jees.UI || {};
 	/**
 	 * @public
 	 * @method getSize
-	 * @returns {Integer,Integer} {w,h}
+	 * @param {Boolean} _t
+	 * @return {Integer,Integer} {w,h}
 	 */
-	p.getSize = function(){
-		return this.property.getSize();
-	}
+	p.getSize = function ( _t ) {
+		return this.property.getSize( _t );
+	};
 	/**
 	 * @public
 	 * @method setSize
@@ -138,25 +143,33 @@ this.jees.UI = this.jees.UI || {};
 		this._reset_size();
 	};
 	/**
-	 * 获取控件坐标
 	 * @public
 	 * @method getPosition
 	 * @return {Integer,Integer} {x,y}
 	 */
 	p.getPosition = function () {
-		return { x: this.x, y: this.y };
+		return this.property.getPosition();
 	}
 	/**
-     * 设置坐标
      * @method setPosition
      * @extends
-     * @param {Number} _x
-     * @param {Number} _y
+     * @param {Integer} _x
+     * @param {Integer} _y
      */
 	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
 	};
+	/**
+	 * 绝对位置
+	 * @public 
+	 * @method getAbsPosition
+	 * @returns {Integer,Integer} {x,y}
+	 */
+	p.getAbsPosition = function(){
+		var m = this.getConcatenatedMatrix();
+		return { x: m.tx, y: m.ty };
+	}
 	/**
 	 * 获取缩放
 	 * @public
@@ -164,7 +177,7 @@ this.jees.UI = this.jees.UI || {};
 	 * @returns {Float,Float} {x,y}
 	 */
 	p.getScale = function(){
-		return {x: this.scaleX, y: this.scaleY};
+		return this.property.getScale();
 	}
 	/**
 	 * 缩放
@@ -189,7 +202,7 @@ this.jees.UI = this.jees.UI || {};
 		this.region = _x + "," + _y + "," + _w + "," + _h;
 		this.sourceRect = jees.CJS.newRect( _x, _y, _w, _h );
 		this.setBounds( _x, _y, _w, _h);
-		this.cache( 0, 0, _w, _h );
+//		this.cache( 0, 0, _w, _h );
 	}
 	/**
 	 * 设置图片热点
@@ -212,25 +225,13 @@ this.jees.UI = this.jees.UI || {};
 	 * @private
 	 */
 	p._reset_size = function(){
-		if( !this.state ) return;
+		var pos = this.getPosition();
+		var size = this.getSize();
 		
-		var prop_size = this.property.getSize();
-		var bounds = this.getBounds();
-		
-		if( prop_size.w == 0 ){
-			this.property.setSize( bounds.width, prop_size.h );
-			prop_size = this.property.getSize();
-		}
-		if( prop_size.h == 0 ){
-			this.property.setSize( prop_size.w, bounds.height );
-			prop_size = this.property.getSize();
-		}
-		
-		if( prop_size.w != bounds.width )
-			this.property.scaleX = prop_size.w / bounds.width;
-		if( prop_size.h != bounds.height )
-			this.property.scaleY = prop_size.h / bounds.height;
-		
+		this.setBounds( 0, 0, size.w, size.h );
+		var b = this.getBounds();
+		this.property.scaleX = size.w / b.width;
+		this.property.scaleY = size.h / b.height;
 		this._reset_scale();
 	}
 	/**
@@ -239,43 +240,24 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
-		var pos = this.property.getPosition();
-		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
-		var x = pos.x;
-		var y = pos.y;
-		
-		this.setReg( 0, 0 );
-		if( this.property.alignX == 2 ){
-			x = relative_pos.w - this.getSize().w - x;
-		}else if( this.property.alignX == 1 ){
-			this.setReg( this.getSize().w / 2, this.getSize().h / 2 );
-			x = ( relative_pos.w / 2 ) + x;
-		}
-		
-		if( this.property.alignY == 2 ){
-			y = relative_pos.h - this.getSize().h - y;
-		}else if( this.property.alignY == 1 ){
-			this.setReg( this.getSize().w / 2, this.getSize().h / 2 );
-			y = ( relative_pos.h / 2 ) + y;
-		}
-		this.x = x;
-		this.y = y;
+		var pos = this.getPosition();
+		this.x = pos.x;
+		this.y = pos.y;
 	}
 	/**
+	* @private
 	 * @method _reset_scale
-	 * @private
 	 */
 	p._reset_scale = function(){
-		if( !this.state ) return;
+		var scale = this.getScale();
 		
-		this.scaleX = this.property.scaleX;
-		this.scaleY = this.property.scaleY;
-		
-		if( this.region ){
-			var b = this.getBounds();
-			this.sourceRect = jees.CJS.newRect( 0, 0, b.width, b.height );
-		}
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
 	}
+	/**
+	 * @private
+	 * @method _reset_speed
+	 */
 	p._reset_speed = function(){
 		var spd = 1000 / jees.SET.getFPS() / this.speed;
 		

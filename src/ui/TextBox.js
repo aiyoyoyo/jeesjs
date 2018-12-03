@@ -87,9 +87,15 @@ this.jees.UI = this.jees.UI || {};
 	 * @method initialize
 	 */
 	p.initialize = function(){
+		if( this.property.state ) return;
+		this.property.state = true;
+		
+		this.property.initialize( this );
+		
 		this.font = this._get_font();
 		this.lineHeight = this.getFontSize();
 		this.setColor( this.color );
+		this.setText( this.text );
 		this._reset_position();
 		this._cache();
 	}
@@ -271,6 +277,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setText = function (_t) {
 		this.text = _t;
+		this._cache();
 	}
 	/**
 	 * 是否使用粗体
@@ -305,6 +312,24 @@ this.jees.UI = this.jees.UI || {};
 	p.setItalic = function (_v) {
 		this.italic = _v;
 		this.font = this._get_font();
+	}
+	/**
+	 * 设置是否可见
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function(_v){
+		this.visible = _v;
+	}
+	/**
+	 * 是否可见
+	 * @public
+	 * @method isVisible
+	 * @return {Boolean}
+	 */
+	p.isVisible = function(){
+		return this.visible;
 	}
 // private method: ============================================================
 	/**

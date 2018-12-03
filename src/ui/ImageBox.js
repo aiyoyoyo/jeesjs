@@ -30,24 +30,7 @@ this.jees.UI = this.jees.UI || {};
 		 * @property property
 		 */
 		this.property = new jees.UI.Property();
-		/**
-		 * 图片是否加载完毕
-		 * @public
-		 * @property state
-		 * @type {Boolean}
-		 * @default false;
-		 */
-		this.state = false;
-		/**
-		 * 使用的源区域
-		 * @public
-		 * @property
-		 * @type {String}
-		 * @default null
-		 */
-		this.region = null;
 	};
-
 	var p = createjs.extend( ImageBox, createjs.Bitmap );
 // public method: =============================================================
 	/**
@@ -55,38 +38,38 @@ this.jees.UI = this.jees.UI || {};
 	 * @method initialize
 	 */
 	p.initialize = function(){
-		if( typeof this.property.resource == "string" ){
-			if( this.property.resource.startsWith( "data:image" ) ){
-				this.image = document.createElement("img");
-				this.image.src = this.property.resource;
-			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.property.resource)){
-				this.image = jees.Resource.get( this.property.resource );
-			}else{
-				this.image = document.createElement("img");
-				this.image.src = this.property.resource;
-			}
-		}else this.image = this.property.resource;
+		if( this.property.state ) return;
+		this.property.state = true;
 		
-		this.state = true;
-		if( this.region ){
-			var r = this.region.split(",");
-			if( r.length != 4 ) throw "分割区域错误:" + r;
-			this.setRect( r[0], r[1], r[2], r[3] );
-		}else{
-			this.setRect( 0, 0, this.image.width, this.image.height );
-		}
+		this.property.initialize( this );
 		
-		this._reset_size();
-		this._reset_position();
+		this._reset_bitmap();
+	}
+	/**
+	 * @public
+	 * @method getResource
+	 */
+	p.getResource = function(){
+		return this.property.resource;
+	}
+	/**
+	 * @public
+	 * @method setResource
+	 * @param {String|Image|createjs.Bitmap} _r
+	 */
+	p.setResource = function( _r ){
+		this.property.resource = _r;
+		this._reset_bitmap();
 	}
 	/**
 	 * @public
 	 * @method getSize
-	 * @returns {Integer,Integer} {w,h}
+	 * @param {Boolean} _t
+	 * @return {Integer,Integer} {w,h}
 	 */
-	p.getSize = function(){
-		return this.property.getSize();
-	}
+	p.getSize = function ( _t ) {
+		return this.property.getSize( _t );
+	};
 	/**
 	 * @public
 	 * @method setSize
@@ -99,25 +82,33 @@ this.jees.UI = this.jees.UI || {};
 		this._reset_size();
 	};
 	/**
-	 * 获取控件坐标
 	 * @public
 	 * @method getPosition
 	 * @return {Integer,Integer} {x,y}
 	 */
 	p.getPosition = function () {
-		return { x: this.x, y: this.y };
+		return this.property.getPosition();
 	}
 	/**
-     * 设置坐标
      * @method setPosition
      * @extends
-     * @param {Number} _x
-     * @param {Number} _y
+     * @param {Integer} _x
+     * @param {Integer} _y
      */
 	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
 	};
+	/**
+	 * 绝对位置
+	 * @public 
+	 * @method getAbsPosition
+	 * @returns {Integer,Integer} {x,y}
+	 */
+	p.getAbsPosition = function(){
+		var m = this.getConcatenatedMatrix();
+		return { x: m.tx, y: m.ty };
+	}
 	/**
 	 * 获取缩放
 	 * @public
@@ -125,7 +116,7 @@ this.jees.UI = this.jees.UI || {};
 	 * @returns {Float,Float} {x,y}
 	 */
 	p.getScale = function(){
-		return {x: this.scaleX, y: this.scaleY};
+		return this.property.getScale();
 	}
 	/**
 	 * 缩放
@@ -156,10 +147,8 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _h
 	 */
 	p.setRect = function( _x, _y, _w, _h ){
-		this.region = _x + "," + _y + "," + _w + "," + _h;
-		this.sourceRect = jees.CJS.newRect( _x, _y, _w, _h );
-		this.setBounds( _x, _y, _w, _h);
-		this.cache( 0, 0, _w, _h );
+		this.property.rect = _x + "," + _y + "," + _w + "," + _h;
+		this._reset_rect();
 	}
 	/**
 	 * 设置图片热点
@@ -181,7 +170,85 @@ this.jees.UI = this.jees.UI || {};
 		return {x: this.regX, y: this.regY};
 	}
  // private method: ===========================================================
-	// /**
+ 	/**
+	 * 建立缓存区域
+	 */
+	p._cache = function(){
+		var pos = this.getPosition();
+		var size = this.getSize();
+		var b = this.getBounds();
+		this.cache( 0, 0, b.width, b.height );
+	}
+	/**
+	 * @private
+	 * @method _reset_bitmap
+	 */
+ 	p._reset_bitmap = function(){
+   		if( typeof this.property.resource == "string" ){
+			if( this.property.resource.startsWith( "data:image" ) ){
+				this.image = document.createElement("img");
+				this.image.src = this.property.resource;
+			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.property.resource)){
+				this.image = jees.Resource.get( this.property.resource );
+			}else{
+				this.image = document.createElement("img");
+				this.image.src = this.property.resource;
+				// 这里可能需要延迟加载
+			}
+		}else this.image = this.property.resource; // type = image
+		
+		this._reset_rect();
+		this._reset_size();
+		this._reset_scale();
+ 	}
+	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		var pos = this.getPosition();
+		var size = this.getSize();
+		
+		var b = this.getBounds();
+		if( b ){
+			this.property.scaleX = size.w / b.width;
+			this.property.scaleY = size.h / b.height;
+			
+			this._reset_scale();
+			this._cache();
+		}
+	};
+	/**
+	 * @private
+	 * @method _reset_position
+	 */
+	p._reset_position = function(){
+		var pos = this.getPosition();
+		this.x = pos.x;
+		this.y = pos.y;
+	};
+	/**
+	  * @method _reset_rect
+	  * @private
+	  */
+	 p._reset_rect = function(){
+	 	if( this.property.rect ){
+	 		var r = this.property.rect.split(",");
+	 		this.sourceRect = jees.CJS.newRect( r[0], r[1], r[2], r[3] );
+			this.setBounds( r[0], r[1], r[2], r[3]  );
+	 	}
+	}
+	/**
+	 * @method _reset_scale
+	 * @private
+	 */
+	p._reset_scale = function(){
+		var scale = this.getScale();
+		
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
+	}
+    // /**
 	//  * @method _onload
 	//  * @param {Object|String} _r 
 	//  * @private
@@ -193,8 +260,8 @@ this.jees.UI = this.jees.UI || {};
     //     }else{
 	// 		this._sourcePath = _r;
 	// 		var _this = this;
-	// 		jeesjs.QM.addSource( _r , _r );
-	// 		jeesjs.QM.load( function(){
+	// 		jees.QM.addSource( _r , _r );
+	// 		jees.QM.load( function(){
 	// 			_this._onload_finish( _this ) 
 	// 		} );
 	// 	}
@@ -209,85 +276,5 @@ this.jees.UI = this.jees.UI || {};
 	// 	_o._object = new createjs.Bitmap( _o._source );
 	// 	_o._reset();
 	// }
-
-	/** 
-	 * @method _reset_size
-	 * @private
-	 */
-	p._reset_size = function(){
-		if( !this.state ) return;
-		
-		var prop_size = this.property.getSize();
-		var bounds = this.getBounds();
-		
-		if( prop_size.w == 0 ){
-			this.property.setSize( bounds.width, prop_size.h );
-			prop_size = this.property.getSize();
-		}
-		if( prop_size.h == 0 ){
-			this.property.setSize( prop_size.w, bounds.height );
-			prop_size = this.property.getSize();
-		}
-		
-		if( prop_size.w != bounds.width )
-			this.property.scaleX = prop_size.w / bounds.width;
-		if( prop_size.h != bounds.height )
-			this.property.scaleY = prop_size.h / bounds.height;
-			
-		this._reset_scale();
-	}
-	/**
-	 * 重置坐标
-	 * @private
-	 * @method _reset_position
-	 */
-	p._reset_position = function(){
-		var pos = this.property.getPosition();
-		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
-		var x = pos.x;
-		var y = pos.y;
-		
-		this.setReg( this.getReg().x, this.getReg().y );
-		if( this.property.alignX == 2 ){
-			x = relative_pos.w - this.getSize().w - x;
-		}else if( this.property.alignX == 1 ){
-			this.setReg( this.getSize().w / 2, this.getReg().y );
-			x = ( relative_pos.w / 2 ) + x;
-		}
-		
-		if( this.property.alignY == 2 ){
-			y = relative_pos.h - this.getSize().h - y;
-		}else if( this.property.alignY == 1 ){
-			this.setReg( this.getReg().x, this.getSize().h / 2 );
-			console.log( this.getReg() );
-			y = ( relative_pos.h / 2 ) + y;
-		}
-		this.x = x;
-		this.y = y;
-	}
-	// /**
-	//  * @method _reset_rect
-	//  * @private
-	//  */
-	// p._reset_rect = function(){
-	// 	if( !this._state ) return;
-	// 	this._object.sourceRect = this._rect;
-	// }
-	/**
-	 * @method _reset_scale
-	 * @private
-	 */
-	p._reset_scale = function(){
-		if( !this.state ) return;
-		
-		this.scaleX = this.property.scaleX;
-		this.scaleY = this.property.scaleY;
-		
-		if( this.region ){
-			var b = this.getBounds();
-			this.sourceRect = jees.CJS.newRect( 0, 0, b.width, b.height );
-		}
-	}
-    
 	jees.UI.ImageBox = createjs.promote( ImageBox, "Bitmap");
 })();

@@ -1,0 +1,36 @@
+﻿@charset "UTF-8";
+/***<jscompress sourcefile="jees.css" />*/
+*{
+	border:0;
+	margin:0 auto;
+	padding:0 auto;
+	box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+}
+label,a,i,span{
+	font-size:12px;
+	color:#2B1406;
+}
+html,body{
+	oveflow:hidden;border:0;
+}
+html{
+	-ms-touch-action:manipulation;
+	touch-action:manipulation;
+}
+input{
+	background-color:transparent;
+	outline: none;
+	color:#fff;
+	FILTER: alpha(opacity=0); /*androd*/
+	appearance:none;  /*下拉框去掉右侧图标*/
+  	-moz-appearance:none;
+  	-webkit-appearance:none;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+#canvas{
+	position: absolute;
+	margin:0 auto;
+}
+

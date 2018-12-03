@@ -33,7 +33,6 @@ this.jees = this.jees || {};
 		DEBUG : 4,
 		CONSOLE : 5,
 	};
-	CanvasManager.LEVEL_UI = 0;
 // private static properties:
 	/**
 	 * @private
@@ -42,6 +41,8 @@ this.jees = this.jees || {};
 	 * @type {Map}
 	 */
 	CanvasManager._caches = null;
+	
+	CanvasManager._containers = null;
 // private static methods: ====================================================
 	/**
 	 * 绘制缓存池内容
@@ -53,9 +54,12 @@ this.jees = this.jees || {};
 	CanvasManager.__update_cache_level = function( _v ){
 		if( this._caches.has( _v ) ){
 			var eles = this._caches.get( _v );
-			
 			if( eles.length > 0 ){
-				eles.pop().initialize();
+				var wgt = eles.pop();
+				wgt.initialize();
+				
+				var c = this._containers.get( _v );
+				c.addChild( wgt );
 			}
 		}
 	}
@@ -68,7 +72,7 @@ this.jees = this.jees || {};
 	 */
 	CanvasManager._update_cache = function(){
 		// 根据层级优先加入绘制
-		this.__update_cache_level( CanvasManager.LEVEL_UI );
+		this.__update_cache_level( CanvasManager.Container.DEFAULT );
 	}
 // public static methods: =====================================================
 	/**
@@ -79,6 +83,7 @@ this.jees = this.jees || {};
 	 **/
 	CanvasManager.startup = function() {
 		this._caches = new Map();
+		this._containers = new Map();
 	};
 	/**
 	 * 刷新画布，并重建画布缓存
@@ -95,17 +100,22 @@ this.jees = this.jees || {};
      * @static
 	 * @method addChild
      * @param {createjs.DisplayObject|jeesjs.Widget} _w 添加的控件
-     * @param {Boolean} _u 立即刷新画布
      * @param {CanvasManager.Container}
 	 */
 	CanvasManager.addChild = function( _w, _v ){
-		if( this._caches.has( _v ) ){
-			var eles = this._caches.get( _v );
+		var v = _v || CanvasManager.Container.DEFAULT;
+		
+		if( this._caches.has( v ) ){
+			var eles = this._caches.get( v );
 			eles.push( _w );
 		}else{
 			var eles = new Array();
 			eles.push( _w );
-			this._caches.set( _v, eles );
+			this._caches.set( v, eles );
+			
+			var c = new jees.CJS.newContainer();
+			this._containers.set( v, c );
+			jees.APP.addChild( c );
 		}
 	}
 	

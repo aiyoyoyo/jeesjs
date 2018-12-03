@@ -139,8 +139,7 @@ this.jees = this.jees || {};
 	    		w = [_r.l, _w - _r.l - _r.r, _r.r];
 	    		x = [0, _r.l, _w - _r.r];
 	    	}
-			
-			return {x:x,y:y,w:w,h:h};
+			return {x: x, y: y, w: w, h: h};
 		}
 		
 		return function( _r, _w, _h, _tw, _th ){
@@ -165,10 +164,24 @@ this.jees = this.jees || {};
 	    	var draw = Region( _r, row, col, _tw, _th );
 	    	for( var i = 0; i < row; i ++ ){
 	    		for( var j = 0; j < col; j ++ ){
-	    			regions.push( { x: rect.x[j], y: rect.y[i], w: rect.w[j], h: rect.h[i], 
+	    			
+	    			var rg = { x: rect.x[j], y: rect.y[i], w: rect.w[j], h: rect.h[i], 
 	    				dx: draw.x[j], dy: draw.y[i], dw: draw.w[j], dh: draw.h[i] ,
 	    				sw: draw.w[j] / rect.w[j], sh: draw.h[i] / rect.h[i],
-	    			} );
+	    			} 
+	    			
+	    			if( typeof rg.x == "string" ) rg.x = parseInt( rg.x );
+					if( typeof rg.y == "string" ) rg.y = parseInt( rg.y );
+					if( typeof rg.w == "string" ) rg.w = parseInt( rg.w );
+					if( typeof rg.h == "string" ) rg.h = parseInt( rg.h );
+					if( typeof rg.dx == "string" ) rg.dx = parseInt( rg.dx );
+					if( typeof rg.dy == "string" ) rg.dy = parseInt( rg.dy );
+					if( typeof rg.dw == "string" ) rg.dw = parseInt( rg.dw );
+					if( typeof rg.dh == "string" ) rg.dh = parseInt( rg.dh );
+					if( typeof rg.sw == "string" ) rg.sw = parseFloat( rg.sw );
+					if( typeof rg.sh == "string" ) rg.sh = parseFloat( rg.sh );
+	    			
+	    			regions.push( rg );
 	    		}
 	    	}
 	    	

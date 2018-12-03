@@ -40,6 +40,13 @@ this.jees = this.jees || {};
 	 **/
     Application._module = null;
     /**
+     * 连接模块
+	 * @property _connector
+	 * @private
+	 * @type {jees.Connector}
+	 **/
+    Application._connector = null;
+    /**
      * 初始化是否完成
 	 * @property _inited
 	 * @private
@@ -234,7 +241,6 @@ this.jees = this.jees || {};
      * @private
      * @static
      * @method _initialize
-     * @param {jess.Module} _m 初始模块
      *
      */
 	Application._initialize = function(){
@@ -246,17 +252,20 @@ this.jees = this.jees || {};
         this._stage = new createjs.StageGL( this._canvas );
         this._canvas.width = jees.SET.getWidth();
         this._canvas.height = jees.SET.getHeight();
-
 		this._stage.updateViewport( jees.SET.getWidth(), jees.SET.getHeight() );
 		
         createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
         this.setFPS( jees.SET.getFPS() );
         
-        
         createjs.Touch.enable( this._stage );
 		if( jees.SET.enableMouseOver() )
         	this._stage.enableMouseOver();
-
+		
+		if( jees.SET.enableConnector() ){
+			this._connector = new jees.WebSocketConnector( jees.SET.connector.host,jees.SET.connector.port, jees.SET.connector.path );
+			this._connector.connect();
+		}
+    	
 //		window.addEventListener( "orientationchange", this.screenOrientation );
 //		window.addEventListener( "resize", this.screenResize );
 

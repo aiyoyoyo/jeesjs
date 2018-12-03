@@ -36,6 +36,7 @@ this.jees.EX = this.jees.EX || {};
 	};
 	var p = createjs.extend( SkinManager, jees.FileLoadManager );
 // public methods: ============================================================
+	
 	/**
 	 * 启动器
 	 * @public

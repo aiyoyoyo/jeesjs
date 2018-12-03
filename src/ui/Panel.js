@@ -23,14 +23,25 @@ this.jees.UI = this.jees.UI || {};
     	this.Widget_constructor();
 // public properties:
 		/**
-    	 * 使用的皮肤，控件对应自己得控件类型
+    	 * 使用的皮肤
 		 * @public
-    	 * @override
-		 * @property property.skinResource
+		 * @property skinResource
     	 * @type {String}
-    	 * @default "Panel"
+    	 * @default null
     	 */
-		this.property.skinResource = "Panel";
+    	this.property.skinResource = "default";
+    	/**
+    	 * 使用得皮肤类型
+    	 * @public
+    	 * @property skinType
+    	 * @type {String}
+    	 * @default null
+    	 */
+    	this.property.skinType = "Panel";
+    	
+		
+		this.bgScaleX = 1;
+		this.bgScaleY = 1;
 // private properties:
 		/**
 		 * 控件使用得皮肤，为空不使用
@@ -40,76 +51,144 @@ this.jees.UI = this.jees.UI || {};
 		 * @default null
 		 */
 		this._skin = null;
+		/**
+		 * @private
+		 * @property _object
+		 * @extend
+		 * @type {jees.UI.ImageBox}
+		 * @default null
+		 */
+		this._background = null;
     };
   	var p = createjs.extend( Panel, jees.UI.Widget );
 // public methods: ============================================================
     p.initialize = function(){
-    	this._reset_size();
-    	this._reset_position();
+    	if( this.property.state ) return;
     	
-    	// 如果没有指定图片源则使用皮肤
-    	if( this.property.resource && this.property.resource != "" ){
-    		this._init_custom();
-    	}else{
-    		this._init_skin();
-    	}
-    	this._reset_scale();
-    	this._reset_mask();
-	    this._init_childs();
+    	this.Widget_initialize();
+		this._reset_background();
+		
+//		this._cache();
 	};
-	
+	p.setSkinType = function( _t ){
+		this.property.skinType = _t;
+		this._reset_background();
+	}
 // private method: ============================================================
-	p._init_custom = function(){
-		var size = this.getSize();
-		// jees.Images see Define.js 
-		var img = jees.Resource.get( this.property.resource );
-		
-		var w = size.w;
-		var h = size.h;
-		var style = this.property.style;
-		
-		this._object = new jees.UI.ImageBox();
-		if( style == 1 ){ // Streach
-			var sx = w / img.width;
-			var sy = h / img.height;
-			if( this.visibleMask ){
-				this.addChildAt( this._object, 1 );
-			}else{
-				this.addChildAt( this._object, 0 );
-			}
-			this._object.property.resource = this.property.resource;
-			this._object.initialize();
-			this._object.setScale( sx, sy );
-		}else if( style == 2 ){ // Tile
-			// 平铺时如果缩放了控件，则绘制和缓存区域要除以缩放比例
-			var scale = this.property.getScale();
-			var dw = w / scale.x;
-			var dh = h / scale.y;
-			this._object = jees.CJS.newShape();
-			this._object.graphics.beginBitmapFill( img ).drawRect( 0, 0, dw, dh );
-			this._object.cache( 0, 0, dw, dh );
-			if( this.visibleMask ){
-				this.addChildAt( this._object, 1 );
-			}else{
-				this.addChildAt( this._object, 0 );
-			}
-		}
+	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		this.Widget__reset_size();
+		// 重设背景大小
+		this._reset_background();
 	}
-	p._init_skin = function(){
-    	var size = this.getSize();
-		this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
-		this.property.resource = this._skin.getCacheDataURL();
+	/**
+	 * @private
+	 * @method _reset_background
+	 */
+	p._reset_background = function(){
+		if( !this._background ){
+			this._background = new jees.UI.ImageBox();
+			this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
+			this._background.initialize();
+		}
 		
-		
-		this._object = new jees.UI.ImageBox();
-		this._object.property.resource = this.property.resource;
-		this._object.initialize();
-		if( this.visibleMask ){
-			this.addChildAt( this._object, 1 );
+		if( this.property.enableSkin ){
+			this._reset_skin();
 		}else{
-			this.addChildAt( this._object, 0 );
+			this._reset_custom();
 		}
 	}
-	
+	/**
+	 * @private
+	 * @method _reset_custom_grid
+	 */
+	p._reset_custom_grid = function(){
+		var size = this.getSize();
+		
+		var res = jees.Resource.get( this.property.resource );
+		var rw = res.width;
+		var rh = res.height;
+		var rs = this.property.region.split(",");
+		var rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, size.w, size.h );
+		
+		var tc = jees.CJS.newContainer();
+		var bg = jees.CJS.newBitmap( res );
+		var _this = this;
+		rg.forEach( function( _r ){
+			var o = bg.clone();
+			o.sourceRect = jees.CJS.newRect( _r.x, _r.y, _r.w, _r.h );
+			o.x = _r.dx;
+			o.y = _r.dy;
+			o.scaleX = _r.sw;
+			o.scaleY = _r.sh;
+			o.cache( 0, 0, _r.w , _r.h );
+			tc.addChild( o );
+		} );
+		
+		tc.cache( 0, 0, size.w, size.h );
+		
+		var b = tc.getBounds();
+		this.property.resource = tc.getCacheDataURL();
+		this._background.setSize( size.w, size.h );
+		this._reset_background_resource();
+	}
+	/**
+	 * @private
+	 * @method _reset_custom
+	 */
+	p._reset_custom = function(){
+		var size = this.getSize();
+		this._reset_background_resource();
+		
+		switch( this.property.style ){
+			case 1: // 拉伸
+				var res = jees.Resource.get( this.property.resource );
+				var sx = size.w / res.width;
+				var sy = size.h / res.height;
+				this._background.setScale( sx, sy );
+				break;
+			case 2: // 平铺
+				if( this.mask == null ){
+					this.mask = jees.CJS.newShape();
+				}
+				this.addChildAt( this.mask, 0 );
+				this.mask.graphics.beginBitmapFill( this._background.image ).drawRect( 0, 0, size.w, size.h );
+				this.mask.cache( 0, 0, size.w, size.h );
+				break;
+			case 3: //9宫格
+				this._reset_custom_grid();
+				break;
+		}
+	}
+	/**
+	 * @private
+	 * @method _reset_skin
+	 */
+	p._reset_skin = function(){
+		var size = this.getSize();
+		if( !this._skin ){
+			this._skin = new jees.UI.Skin( this.property.skinType, size.w, size.h, this.property.skinResource );
+		}
+		if( this._skin.getSkinType() != this.property.skinType || this._skin.getSkinResource() != this.property.skinResource ){
+			this._skin = new jees.UI.Skin( this.property.skinType, size.w, size.h, this.property.skinResource );
+		}
+		
+		this.property.resource = this._skin.getCacheDataURL("rect");
+		
+		this._reset_background_resource();
+	}
+	/**
+	 * @private
+	 * @method _reset_background_resource
+	 */
+	p._reset_background_resource = function(){
+		if( this._background.getResource() != this.property.resource ){
+			this._background.setResource( this.property.resource );
+		}
+	}
+
 	jees.UI.Panel = createjs.promote( Panel, "Widget" );
 })();

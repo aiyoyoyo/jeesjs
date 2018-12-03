@@ -41,6 +41,22 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.y = 0;
 		/**
+		 * 控件实际宽度
+		 * @public
+		 * @property w
+    	 * @type {Integer}
+    	 * @default 0
+		 */
+		this.w = 0;
+		/**
+		 * 控件实际高度
+		 * @public
+		 * @property h
+    	 * @type {Integer}
+    	 * @default 0
+		 */
+		this.h = 0;
+		/**
 		 * 控件配置宽度， 可用 100 | "100%" | "auto"
 		 * @public
 		 * @property width
@@ -107,6 +123,13 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.enableMask = false;
 		/**
+		 * @public
+		 * @property visibleMask
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.visibleMask = false;
+		/**
 		 * 是否启用容器布局,必须配置中width|height属性为字符类型AUTO关键字，则会根据同组的layoutGroup进行计算
 		 * 
 		 * @example
@@ -118,15 +141,43 @@ this.jees.UI = this.jees.UI || {};
 		 * @type {String}
 		 * @default null
 		 */
-		this.layoutGroup = null;
+		this.layoutX = null;
 		/**
-    	 * 使用的皮肤，控件对应自己得控件类型
+		 * 是否启用容器布局,必须配置中width|height属性为字符类型AUTO关键字，则会根据同组的layoutGroup进行计算
+		 * 
+		 * @example
+		 * val=100px: w0      | w1       | w2
+		 * w:       auto=0px  | 30px     | 70%
+		 * w:       30px      | auto=50px| 20px 
+		 * @public
+		 * @property layoutGroup
+		 * @type {String}
+		 * @default null
+		 */
+		this.layoutY = null;
+		/**
+		 * @public
+		 * @property enableSkin
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.enableSkin = true;
+		/**
+    	 * 使用的皮肤
 		 * @public
 		 * @property skinResource
     	 * @type {String}
     	 * @default null
     	 */
     	this.skinResource = null;
+    	/**
+    	 * 使用得皮肤类型
+    	 * @public
+    	 * @property skinType
+    	 * @type {String}
+    	 * @default null
+    	 */
+    	this.skinType = null;
 		/**
     	 * 实际使用的资源路径
 		 * @public
@@ -135,6 +186,22 @@ this.jees.UI = this.jees.UI || {};
     	 * @default null
     	 */
     	this.resource = null;
+    	/**
+		 * 使用的图片资源分割区域
+		 * @public
+		 * @property
+		 * @type {String}
+		 * @default null
+		 */
+		this.region = null;
+		/**
+		 * 图片资源的使用区域
+		 * @public
+		 * @property rect
+		 * @type {String}
+		 * @default null
+		 */
+		this.rect = null;
 		/**
 		 * 是否有子节点配置
 		 * @public
@@ -143,11 +210,39 @@ this.jees.UI = this.jees.UI || {};
     	 * @default null
 		 */
 		this.childs = null;
+		/**
+		 * 防止重复初始化
+		 * @public
+		 * @property state
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.state = false;
 // private properties:
+		/**
+		 * 控件备份
+		 * @private
+		 * @property _widget
+		 * @type {jees.UI.Widget}
+		 * @default null
+		 */
+		this._widget = null;
 	};
 
 	var p = Property.prototype;
 // public methods: ============================================================
+	/**
+	 * 这里初始化2组值，配置值和真实值
+	 * @param {Object} _w
+	 */
+	p.initialize = function( _w ){
+		if( !_w ) throw "控件不能为空!";
+		// 主要为坐标和auto类型的宽高
+		this._widget = _w;
+		
+		this._reset_size();
+		this._reset_position();
+	}
 	/**
 	 * @public
 	 * @method getPosition
@@ -167,9 +262,12 @@ this.jees.UI = this.jees.UI || {};
 	/**
 	 * @public
 	 * @method getSize
+	 * @param {Boolean} _t 是否配置的值
 	 * @return {Integer,Integer} {w,h}
 	 */
-	p.getSize = function(){return { w: this.width, h: this.height };}
+	p.getSize = function( _t ){
+		return _t ? { w: this.width , h: this.height } : { w: this.w, h: this.h };
+	}
 	/**
 	 * @public
 	 * @method setSize
@@ -179,6 +277,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function( _w, _h ){
 		if( _w ) this.width = _w;
 		if( _h ) this.height = _h;
+		
+		this._reset_size();
 	}
 	/**
 	 * @public
@@ -196,6 +296,121 @@ this.jees.UI = this.jees.UI || {};
 		if( _x ) this.scaleX = _x;
 		if( _y ) this.scaleY = _y;
 	}
+	/**
+	 * @public
+	 * @method getAlign
+	 * @return {Integer,Integer} {x,y}
+	 */
+	p.getAlign = function(){return { x: this.alignX, y: this.alignY };}
+	/**
+	 * @public
+	 * @method setAlign
+	 * @param {Integer,Integer} _x
+	 * @param {Integer,Integer} _y
+	 */
+	p.setAlign = function( _x, _y ){
+		if( _x ) this.alignX = _x;
+		if( _y ) this.alignY = _y;
+		
+		this._reset_position();
+	}
+// private methods: ===========================================================
+	/**
+	 * @private
+	 * @method _get_size
+	 * @param {Integer|String} _val 纪录的值
+	 * @param {Integer} _parent 父控件的值
+	 * @param {Integer} _child 其他同组子控件的值之和(不包含自己)
+	 */
+	p._calculate_size = function( _val, _parent, _child ){
+		var real_val = 0;
+		if( _val && typeof( _val ) == "string" ){
+			if( _val.toLowerCase() == "auto" ){
+				real_val = _parent - _child;
+			}else if( _val.indexOf( "%" ) != -1 ){
+				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
+			}else{
+				real_val = parseInt( _val );
+			}
+		}else real_val = _val;
+		return real_val;
+	}
+	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		var parent = this._widget.parent;
+		var parent_size = null;
+		if( parent )
+			if( parent instanceof createjs.Stage 
+				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
+			else parent_size = parent.getSize();
+		else parent_size = jees.APP.getScreenSize();
+
+		var childs_size = { w:0, h:0 };
+		var size = this.getSize( true );
+		if( parent && ( this.layoutX || this.layoutY ) ){
+			if( ( typeof( size.w ) == "string" && size.w.toLowerCase() == "auto" )
+				|| ( typeof( size.h ) == "string" && size.h.toLowerCase() == "auto" ) ){
+					
+				if( this.layoutX ){
+					var layoutXWgts = this.layoutX.split(",");
+					layoutXWgts.forEach( function( _w ){
+						var w = parent.getChildByName( _w );
+						if( !w.property.state ) w.initialize();
+						childs_size.w += w.getSize().w;
+					} );
+				}
+				if( this.layoutY ){
+					var layoutYWgts = this.layoutY.split(",");
+					layoutYWgts.forEach( function( _w ){
+						var w = parent.getChildByName( _w );
+						if( !w.property.state ) w.initialize();
+						childs_size.h += w.getSize().h;
+					} );
+				}
+			}
+		}
+		
+		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
+		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
+	}
 	
+	/**
+	 * 重置坐标
+	 * @private
+	 * @method _reset_position
+	 */
+	p._reset_position = function(){
+		var parent = this._widget.parent;
+		var parent_size = null;
+		if( parent )
+			if( parent instanceof createjs.Stage 
+				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
+			else parent_size = parent.getSize();
+		else parent_size = jees.APP.getScreenSize();
+		
+		var pos = this.getPosition();
+		var size = this.getSize();
+		
+		var x = pos.x;
+		var y = pos.y;
+
+		if( this.alignX == 2 ){
+			x = parent_size.w - size.w - x;
+		}else if( this.alignX == 1 ){
+			x = ( parent_size.w - size.w ) / 2 + x;
+		}
+		
+		if( this.alignY == 2 ){
+			y = parent_size.h - size.h - y;
+		}else if( this.alignY == 1 ){
+			y = ( parent_size.h - size.h ) / 2 + y;
+		}
+		
+		this.x = x;
+		this.y = y;
+	};
 	jees.UI.Property = Property;
 })();

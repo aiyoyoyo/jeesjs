@@ -32,18 +32,18 @@ this.jees.UI = this.jees.UI || {};
 		 * @type {String}
 		 * @default "" | "None"
 		 */
-		this._type = _t != undefined ? _t.toLowerCase() : "none";
+		this._type = _t ? _t.toLowerCase() : "none";
 		/**
 		 * 使用的皮肤分组
 		 * @type {String}
 		 * @default "default"
 		 */
-    	this._group = _g != undefined ? _g : "default";
+    	this._skinResource = _g ? _g : "default";
     	/**
     	 * 配置数据
     	 * @type{Object}
     	 */
-    	this._config = jees.Skins.getSkin( this._type, this._group );
+    	this._config = jees.Skins.getSkin( this._type, this._skinResource );
     	/**
     	 * 皮肤资源
     	 * @type {Image | String}
@@ -73,6 +73,12 @@ this.jees.UI = this.jees.UI || {};
 
 	var p = Skin.prototype;
 // public methods: ============================================================
+	p.getSkinType = function(){
+		return this._type;
+	}
+	p.getSkinResource = function(){
+		return this._skinResource;
+	}
 	/**
 	 * 获取皮肤分格融合的图片
 	 * @public
@@ -82,8 +88,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
     p.getCacheDataURL = function( _type ){
 		if( _type && this._bitmaps.has( _type ) ){
-			return this._bitmaps.get( _type ).getCacheDataURL();
-		}else if( this._bitmaps.has("rect") ) return this._bitmaps.get("rect").getCacheDataURL();
+			return this._bitmaps.get( _type );
+		}else if( this._bitmaps.has("rect") ) return this._bitmaps.get("rect");
 		else return null;
     }
 // private methods: ===========================================================
@@ -107,12 +113,7 @@ this.jees.UI = this.jees.UI || {};
     	// 格子类型
     	if( _r ){
     		// config.property.region 根据分割区域计算出各个区域的坐标、大小等
-    		if( this._type == "panel" || this._type == "panel-highlight" || this._type == "button" || this._type == "checkbox" ){
-				this._regions.set( _k, jees.UT.Grid( this._config.property.region, _r.w, _r.h, target_width, target_height ) );
-	    	}else{
-//	    		this._regions.set( _k, jees.UT.Grid( this._config.property.region, _r.w, _r.h, target_width, target_height ) );
-	    	}
-	    	
+    		this._regions.set( _k, jees.UT.Grid( this._config.property.region, _r.w, _r.h, target_width, target_height ) );
     	}
 	}
 	p._init_regions = function( _w, _h ){
@@ -149,9 +150,7 @@ this.jees.UI = this.jees.UI || {};
 				tmp_container.addChild( o );
 			} );
 			tmp_container.cache( 0, 0, _w, _h );
-			// TIPS 这里有个BUG， Container里getCacheDataURL调用的是BitmapCache.getDataURL
-			// Ver.1.0里BitmapCache.getDataURL->BitmapCache.getCacheDataURL
-			this._bitmaps.set( _k, tmp_container.bitmapCache );
+			this._bitmaps.set( _k, tmp_container.getCacheDataURL() );
 		}
 	}
 	p._init_bitmap = function( _w, _h ){
