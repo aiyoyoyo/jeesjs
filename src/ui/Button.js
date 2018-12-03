@@ -293,8 +293,8 @@ this.jees.UI = this.jees.UI || {};
 		txt.setColor( this.color );
 		txt.setItalic( this.italic );
 		txt.setBold( this.bold );
-		txt.setPosition( this.x + ( this.getSize().w / 2 ) - ( txt.getSize().w / 2 ) , 
-			this.y + ( this.getSize().h / 2 - ( txt.getSize().h / 2 ) ) );
+		
+		txt.initialize();
 	}
 	/**
 	 * @private
@@ -367,13 +367,13 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		this.ImageSpt__reset_position();
-		var pos = this.getPosition();
+		
 		var size = this.getSize();
 		var txt = this._text;
 		var txt_size = txt.getSize();
 		
-		txt.setPosition( pos.x + ( size.w / 2 ) - ( txt_size.w / 2 ) , 
-			pos.y + ( size.h / 2 - ( txt_size.h / 2 ) ) );
+		txt.setPosition( this.x + ( size.w / 2 ) - ( txt_size.w / 2 ) , 
+			this.y + ( size.h / 2 - ( txt_size.h / 2 ) ) );
 	}
 
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );

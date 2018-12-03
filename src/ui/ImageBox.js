@@ -44,6 +44,7 @@ this.jees.UI = this.jees.UI || {};
 		this.property.initialize( this );
 		
 		this._reset_bitmap();
+		this._reset_position();
 	}
 	/**
 	 * @public
@@ -184,6 +185,7 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_bitmap
 	 */
  	p._reset_bitmap = function(){
+ 		
    		if( typeof this.property.resource == "string" ){
 			if( this.property.resource.startsWith( "data:image" ) ){
 				this.image = document.createElement("img");
@@ -206,16 +208,22 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_size
 	 */
 	p._reset_size = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
+		if( this.image ){
+			if( this.property.width == "default" ){
+				this.property.setSize( this.image.width, this.property.height );
+			}
+			if( this.property.height == "default" ){
+				this.property.setSize( this.property.width, this.image.height );
+			}
+		}
 		
+		var size = this.getSize();
 		var b = this.getBounds();
 		if( b ){
-			this.property.scaleX = size.w / b.width;
-			this.property.scaleY = size.h / b.height;
-			
-			this._reset_scale();
-			this._cache();
+			if( this.property.scaleX == 1 )
+				this.property.scaleX = size.w / b.width;
+			if( this.property.scaleY == 1 )
+				this.property.scaleY = size.h / b.height;
 		}
 	};
 	/**
@@ -224,8 +232,26 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		var pos = this.getPosition();
-		this.x = pos.x;
-		this.y = pos.y;
+		var size = this.getSize();
+		var scale = this.getScale();
+		// 这里要去掉偏移误差, 包含缩放
+		var x = pos.x, y = pos.y;
+		var w = size.w * scale.x;
+		var h = size.h * scale.y;
+		if( this.property.alignX == 2 ){
+			x = pos.x - w;
+		}else if( this.property.alignX == 1 ){
+			x = pos.x - ( w / 2 );
+		}
+		
+		if( this.property.alignY == 2 ){
+			y = pos.y - h;
+		}else if( this.property.alignY == 1 ){
+			y = pos.y - ( h / 2 );
+		}
+		
+		this.x = x;
+		this.y = y;
 	};
 	/**
 	  * @method _reset_rect
@@ -236,6 +262,7 @@ this.jees.UI = this.jees.UI || {};
 	 		var r = this.property.rect.split(",");
 	 		this.sourceRect = jees.CJS.newRect( r[0], r[1], r[2], r[3] );
 			this.setBounds( r[0], r[1], r[2], r[3]  );
+			this._cache();
 	 	}
 	}
 	/**

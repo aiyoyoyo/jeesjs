@@ -2191,7 +2191,9 @@ this.jees.UI = this.jees.UI || {};
 	p._calculate_size = function( _val, _parent, _child ){
 		var real_val = 0;
 		if( _val && typeof( _val ) == "string" ){
-			if( _val.toLowerCase() == "auto" ){
+			if( _val.toLowerCase() == "default" ){
+				real_val = 0;
+			}else if( _val.toLowerCase() == "auto" ){
 				real_val = _parent - _child;
 			}else if( _val.indexOf( "%" ) != -1 ){
 				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
@@ -2752,6 +2754,7 @@ this.jees.UI = this.jees.UI || {};
 		this.property.initialize( this );
 		
 		this._reset_bitmap();
+		this._reset_position();
 	}
 	/**
 	 * @public
@@ -2892,6 +2895,7 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_bitmap
 	 */
  	p._reset_bitmap = function(){
+ 		
    		if( typeof this.property.resource == "string" ){
 			if( this.property.resource.startsWith( "data:image" ) ){
 				this.image = document.createElement("img");
@@ -2914,16 +2918,22 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_size
 	 */
 	p._reset_size = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
+		if( this.image ){
+			if( this.property.width == "default" ){
+				this.property.setSize( this.image.width, this.property.height );
+			}
+			if( this.property.height == "default" ){
+				this.property.setSize( this.property.width, this.image.height );
+			}
+		}
 		
+		var size = this.getSize();
 		var b = this.getBounds();
 		if( b ){
-			this.property.scaleX = size.w / b.width;
-			this.property.scaleY = size.h / b.height;
-			
-			this._reset_scale();
-			this._cache();
+			if( this.property.scaleX == 1 )
+				this.property.scaleX = size.w / b.width;
+			if( this.property.scaleY == 1 )
+				this.property.scaleY = size.h / b.height;
 		}
 	};
 	/**
@@ -2932,8 +2942,26 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		var pos = this.getPosition();
-		this.x = pos.x;
-		this.y = pos.y;
+		var size = this.getSize();
+		var scale = this.getScale();
+		// 这里要去掉偏移误差, 包含缩放
+		var x = pos.x, y = pos.y;
+		var w = size.w * scale.x;
+		var h = size.h * scale.y;
+		if( this.property.alignX == 2 ){
+			x = pos.x - w;
+		}else if( this.property.alignX == 1 ){
+			x = pos.x - ( w / 2 );
+		}
+		
+		if( this.property.alignY == 2 ){
+			y = pos.y - h;
+		}else if( this.property.alignY == 1 ){
+			y = pos.y - ( h / 2 );
+		}
+		
+		this.x = x;
+		this.y = y;
 	};
 	/**
 	  * @method _reset_rect
@@ -2944,6 +2972,7 @@ this.jees.UI = this.jees.UI || {};
 	 		var r = this.property.rect.split(",");
 	 		this.sourceRect = jees.CJS.newRect( r[0], r[1], r[2], r[3] );
 			this.setBounds( r[0], r[1], r[2], r[3]  );
+			this._cache();
 	 	}
 	}
 	/**
@@ -3365,23 +3394,32 @@ this.jees.UI = this.jees.UI || {};
 	    return {w: this.getMeasuredWidth() , h: this.getMeasuredLineHeight() }
 	};
     /**
-     * 设置坐标
 	 * @public
+	 * @method getPosition
+	 * @return {Integer,Integer} {x,y}
+	 */
+	p.getPosition = function () {
+		return this.property.getPosition();
+	}
+	/**
      * @method setPosition
-     * @param {Number} _x
-     * @param {Number} _y
+     * @extends
+     * @param {Integer} _x
+     * @param {Integer} _y
      */
-	p.setPosition = function (_x, _y) {
+	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
 	};
 	/**
-	 * @public
-	 * @method getPosition
+	 * 绝对位置
+	 * @public 
+	 * @method getAbsPosition
 	 * @returns {Integer,Integer} {x,y}
 	 */
-	p.getPosition = function(){
-		return { x: this.x , y: this.y };
+	p.getAbsPosition = function(){
+		var m = this.getConcatenatedMatrix();
+		return { x: m.tx, y: m.ty };
 	}
 	/**
 	 * 当前颜色
@@ -3625,21 +3663,21 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
-		var pos = this.property.getPosition();
-		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
-		var x = pos.x;
-		var y = pos.y;
-
+		var pos = this.getPosition();
+		var size = this.getSize();
+		// 这里要去掉偏移误差
+		var x = pos.x, y = pos.y;
+		
 		if( this.property.alignX == 2 ){
-			x = relative_pos.w - this.getSize().w - x;
+			x = pos.x - size.w;
 		}else if( this.property.alignX == 1 ){
-			x = ( relative_pos.w - this.getSize().w ) / 2 + x;
+			x = pos.x - ( size.w / 2 );
 		}
 		
 		if( this.property.alignY == 2 ){
-			y = relative_pos.h - this.getSize().h - y;
+			y = pos.y - size.h;
 		}else if( this.property.alignY == 1 ){
-			y = ( relative_pos.h - this.getSize().h ) / 2 + y;
+			y = pos.y - ( size.h / 2 );
 		}
 		
 		this.x = x;
@@ -4024,8 +4062,8 @@ this.jees.UI = this.jees.UI || {};
 		txt.setColor( this.color );
 		txt.setItalic( this.italic );
 		txt.setBold( this.bold );
-		txt.setPosition( this.x + ( this.getSize().w / 2 ) - ( txt.getSize().w / 2 ) , 
-			this.y + ( this.getSize().h / 2 - ( txt.getSize().h / 2 ) ) );
+		
+		txt.initialize();
 	}
 	/**
 	 * @private
@@ -4098,13 +4136,13 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		this.ImageSpt__reset_position();
-		var pos = this.getPosition();
+		
 		var size = this.getSize();
 		var txt = this._text;
 		var txt_size = txt.getSize();
 		
-		txt.setPosition( pos.x + ( size.w / 2 ) - ( txt_size.w / 2 ) , 
-			pos.y + ( size.h / 2 - ( txt_size.h / 2 ) ) );
+		txt.setPosition( this.x + ( size.w / 2 ) - ( txt_size.w / 2 ) , 
+			this.y + ( size.h / 2 - ( txt_size.h / 2 ) ) );
 	}
 
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );

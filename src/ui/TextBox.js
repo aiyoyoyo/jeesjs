@@ -109,23 +109,32 @@ this.jees.UI = this.jees.UI || {};
 	    return {w: this.getMeasuredWidth() , h: this.getMeasuredLineHeight() }
 	};
     /**
-     * 设置坐标
 	 * @public
+	 * @method getPosition
+	 * @return {Integer,Integer} {x,y}
+	 */
+	p.getPosition = function () {
+		return this.property.getPosition();
+	}
+	/**
      * @method setPosition
-     * @param {Number} _x
-     * @param {Number} _y
+     * @extends
+     * @param {Integer} _x
+     * @param {Integer} _y
      */
-	p.setPosition = function (_x, _y) {
+	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
 	};
 	/**
-	 * @public
-	 * @method getPosition
+	 * 绝对位置
+	 * @public 
+	 * @method getAbsPosition
 	 * @returns {Integer,Integer} {x,y}
 	 */
-	p.getPosition = function(){
-		return { x: this.x , y: this.y };
+	p.getAbsPosition = function(){
+		var m = this.getConcatenatedMatrix();
+		return { x: m.tx, y: m.ty };
 	}
 	/**
 	 * 当前颜色
@@ -369,21 +378,21 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
-		var pos = this.property.getPosition();
-		var relative_pos = this.parent != null ? this.parent.getSize() : jees.APP.getScreenSize();
-		var x = pos.x;
-		var y = pos.y;
-
+		var pos = this.getPosition();
+		var size = this.getSize();
+		// 这里要去掉偏移误差
+		var x = pos.x, y = pos.y;
+		
 		if( this.property.alignX == 2 ){
-			x = relative_pos.w - this.getSize().w - x;
+			x = pos.x - size.w;
 		}else if( this.property.alignX == 1 ){
-			x = ( relative_pos.w - this.getSize().w ) / 2 + x;
+			x = pos.x - ( size.w / 2 );
 		}
 		
 		if( this.property.alignY == 2 ){
-			y = relative_pos.h - this.getSize().h - y;
+			y = pos.y - size.h;
 		}else if( this.property.alignY == 1 ){
-			y = ( relative_pos.h - this.getSize().h ) / 2 + y;
+			y = pos.y - ( size.h / 2 );
 		}
 		
 		this.x = x;

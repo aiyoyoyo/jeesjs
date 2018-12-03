@@ -325,7 +325,9 @@ this.jees.UI = this.jees.UI || {};
 	p._calculate_size = function( _val, _parent, _child ){
 		var real_val = 0;
 		if( _val && typeof( _val ) == "string" ){
-			if( _val.toLowerCase() == "auto" ){
+			if( _val.toLowerCase() == "default" ){
+				real_val = 0;
+			}else if( _val.toLowerCase() == "auto" ){
 				real_val = _parent - _child;
 			}else if( _val.indexOf( "%" ) != -1 ){
 				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
