@@ -187,6 +187,22 @@ this.jees.UI = this.jees.UI || {};
     	 */
     	this.resource = null;
     	/**
+    	 * 资源宽度
+		 * @public
+		 * @property resWidth
+    	 * @type {Integer}
+    	 * @default -1
+    	 */
+    	this.resWidth = -1;
+    	/**
+    	 * 资源高度
+		 * @public
+		 * @property resHeight
+    	 * @type {Integer}
+    	 * @default -1
+    	 */
+    	this.resHeight = -1;
+    	/**
 		 * 使用的图片资源分割区域
 		 * @public
 		 * @property
@@ -240,6 +256,7 @@ this.jees.UI = this.jees.UI || {};
 		// 主要为坐标和auto类型的宽高
 		this._widget = _w;
 		
+		this._resource_size();
 		this._reset_size();
 		this._reset_position();
 	}
@@ -256,8 +273,18 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setPosition = function( _x, _y ){
-		if( _x ) this.x = _x;
-		if( _y ) this.y = _y;
+		if( _x != undefined ) this.x = _x;
+		if( _y != undefined ) this.y = _y;
+		
+		this._reset_position();
+	}
+	/**
+	 * @public
+	 * @method getResourceSize
+	 * @return {Integer,Integer} {w,h}
+	 */
+	p.getResourceSize = function(){
+		return { w: this.resWidth, h: this.resHeight };
 	}
 	/**
 	 * @public
@@ -275,8 +302,8 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer|String} _h
 	 */
 	p.setSize = function( _w, _h ){
-		if( _w ) this.width = _w;
-		if( _h ) this.height = _h;
+		if( _w != undefined ) this.width = _w;
+		if( _h != undefined ) this.height = _h;
 		
 		this._reset_size();
 	}
@@ -347,6 +374,10 @@ this.jees.UI = this.jees.UI || {};
 		if( parent )
 			if( parent instanceof createjs.Stage 
 				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
+			else if( parent instanceof createjs.Container ) {
+				var b = parent.getBounds();
+				parent_size = { w: b.width, h: b.height };
+			}
 			else parent_size = parent.getSize();
 		else parent_size = jees.APP.getScreenSize();
 
@@ -377,6 +408,15 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
 		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
+		
+		var pro_size = this.getResourceSize();
+		
+		if( pro_size.w != -1 && this.width == "default" ){
+			this.w = pro_size.w;
+		}
+		if( pro_size.h != -1 && this.height == "default" ){
+			this.h = pro_size.h;
+		}
 	}
 	
 	/**
@@ -392,7 +432,6 @@ this.jees.UI = this.jees.UI || {};
 				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
 			else parent_size = parent.getSize();
 		else parent_size = jees.APP.getScreenSize();
-		
 		var pos = this.getPosition();
 		var size = this.getSize();
 		
@@ -414,5 +453,29 @@ this.jees.UI = this.jees.UI || {};
 		this.x = x;
 		this.y = y;
 	};
+	/**
+	 * @private
+	 * @method _resource_size
+	 */
+	p._resource_size = function(){
+		if( !this.resource ) return;
+		
+		if( typeof this.resource == "string" ){
+			if( this.resource.startsWith( "data:image" ) ){
+				var img = document.createElement("img");
+				img.src = this.resource;
+				this.resWidth = img.width;
+				this.resHeight = img.height;
+			}else if(!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG)$/.test(this.resource)){
+				var res = jees.Resource.get( this.resource );
+				this.resWidth = res.width;
+				this.resHeight = res.height;
+			}
+		}else if( this.resource instanceof createjs.Bitmap ){
+			var b = this.resource.getBounds();
+			this.resWidth = b.width;
+			this.resHeight = b.height;
+		}
+	}
 	jees.UI.Property = Property;
 })();

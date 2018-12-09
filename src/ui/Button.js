@@ -42,10 +42,10 @@ this.jees.UI = this.jees.UI || {};
 		/**
 		 * @public
 		 * @property types
-		 * @type {Integer}
-		 * @default 4
+		 * @type {String}
+		 * @default "normal, highlight, push, disable"
 		 */
-		this.types = 4;
+		this.types = "normal, highlight, push, disable";
 		/**
 		 * 是否禁用控件
 		 * @public
@@ -107,11 +107,25 @@ this.jees.UI = this.jees.UI || {};
 		this.spriteY = 0;
 		/**
 		 * @public
-		 * @property region
-		 * @type {String}
-		 * @default ""
+		 * @property checked
+		 * @type {Boolean}
+		 * @default false
 		 */
-		this.region = "";
+		this.checked = false;
+				/**
+		 * @public
+		 * @property textX
+		 * @type {Integer}
+		 * @defualt 0
+		 */
+		this.textX = 0;
+		/**
+		 * @public
+		 * @property textY
+		 * @type {Integer}
+		 * @defualt 0
+		 */
+		this.textY = 0;
 // private properties:
 		this._text = new jees.UI.TextBox();
 	};
@@ -142,8 +156,8 @@ this.jees.UI = this.jees.UI || {};
         	jees.E.bind( this, "mouseout", function( e ){ _this._handle_mouseout( e, _this ); });
         }
 		this._reset_disable();
-	    this._reset_position();
-	}
+	    this._reset_size_position();
+	};
 	/**
 	 * 设置状态
 	 * @public
@@ -152,7 +166,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setDisabled = function( _e ){
 		this.disable = _e;
-	}
+		this._reset_disable();
+	};
 	/**
 	 * 是否禁用
 	 * @public
@@ -161,7 +176,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.isDisabled = function(){
 		return this.disable;
-	}
+	};
 	/**
 	 * @public
 	 * @method setText
@@ -169,7 +184,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setText = function( _t ){
 		this._text.setText( _t );
-	}
+	};
 	/**
 	 * @public
 	 * @method getText
@@ -177,16 +192,6 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getText = function(){
 		return this._text.text;
-	}
-	/**
-     * @method setPosition
-     * @extends
-     * @param {Integer} _x
-     * @param {Integer} _y
-     */
-	p.setPosition = function( _x, _y ){
-		this.property.setPosition( _x, _y );
-		this._reset_position();
 	};
 // private method: ============================================================
 	/**
@@ -201,7 +206,14 @@ this.jees.UI = this.jees.UI || {};
 		this._data.images.push( this._skin.getCacheDataURL("highlight") );
 		this._data.images.push( this._skin.getCacheDataURL("push") );
 		this._data.images.push( this._skin.getCacheDataURL("disable") );
-	}
+		
+		this._data.animations.normal = [0, 0, "normal"];
+		this._data.animations.highlight = [1, 1, "highlight"];
+		this._data.animations.push = [2, 2, "push"];
+		this._data.animations.disable = [3, 3, "disable"];
+		
+		this._data.frames.count = 4;
+	};
 	/**
 	 * @private
 	 * @method _init_custom
@@ -209,16 +221,20 @@ this.jees.UI = this.jees.UI || {};
 	p._init_custom = function(){
 		var bitmap = jees.CJS.newBitmap( jees.Resource.get( this.property.resource ) );
 		var b = bitmap.getBounds();
-		var c = this.types.split(",").length;
+		var types = this.types.split(",");
+		var c = types.length;
 		var size = this.getSize();
 		var w = this.spriteX == 0 ? size.w : this.spriteX;
 		var h = this.spriteY == 0 ? size.h : this.spriteY;
 		var rw = this.spriteX == 0 ? b.width : this.spriteX;
 		var rh = this.spriteY == 0 ? b.height : this.spriteY;
 		
+		this.cols = b.width / rw;
+		this.rows = b.height / rh;
+		
 		var rg = null;
-		if( this.region != "" ){
-			var rs = this.region.split(",");
+		if( this.property.region ){
+			var rs = this.property.region.split(",");
 			rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, w, h );
 		}
 		
@@ -226,11 +242,11 @@ this.jees.UI = this.jees.UI || {};
 			var bg = bitmap.clone();
 			var x = this.spriteX * i;
 			var y = this.spriteY * i;
-			bg.sourceRect = jees.CJS.newRect( x, y, w, h );
-			bg.cache( 0, 0, w, h );
-			
-			if( this.region != "" ){
+			bg.sourceRect = jees.CJS.newRect( x, y, rw, rh );
+			bg.cache( 0, 0, rw, rh );
+			if( rg ){
 				var tc = jees.CJS.newContainer();
+				
 				rg.forEach( function( _r ){
 					var o = bg.clone();
 					o.sourceRect = jees.CJS.newRect( x + _r.x, y + _r.y, _r.w, _r.h );
@@ -238,17 +254,32 @@ this.jees.UI = this.jees.UI || {};
 					o.y = _r.dy;
 					o.scaleX = _r.sw;
 					o.scaleY = _r.sh;
-					
-					o.cache( 0, 0, w, h );
 					tc.addChild( o );
 				} );
-				tc.cache( 0, 0, w, h );
-				this._data.images.push( tc.bitmapCache.getCacheDataURL() );
+				tc.cache( 0, 0, size.w, size.h );
+				this._data.images.push( tc.getCacheDataURL() );
 			}else{
-				this._data.images.push( bg.bitmapCache.getCacheDataURL() );
+				this._data.images.push( bg.getCacheDataURL() );
 			}
+			if( types[i].toLowerCase().trim() == "normal") this._data.animations.normal = [i, i, "normal"];
+			if( types[i].toLowerCase().trim() == "highlight") this._data.animations.highlight = [i, i, "highlight"];
+			if( types[i].toLowerCase().trim() == "push") this._data.animations.push = [i, i, "push"];
+			if( types[i].toLowerCase().trim() == "disable") this._data.animations.disable = [i, i, "disable"];
+			if( types[i].toLowerCase().trim() == "checked") this._data.animations.checked = [i, i, "checked"];
+			if( types[i].toLowerCase().trim() == "checkedHighlight") this._data.animations.checkedHighlight = [i, i, "checkedHighlight"];
+			if( types[i].toLowerCase().trim() == "checkedPush") this._data.animations.checkedPush = [i, i, "checkedPush"];
+			if( types[i].toLowerCase().trim() == "checkedDisable") this._data.animations.checkedDisable = [i, i, "checkedDisable"];
 		}
-	}
+		this._data.frames.count = c;
+		
+		if(rg){
+			this._data.frames.width = w;
+			this._data.frames.height = h;
+		}else{
+			this._data.frames.width = rw;
+			this._data.frames.height = rh;
+		}
+	};
 	/**
 	 * @private
 	 * @method _init_background
@@ -258,13 +289,9 @@ this.jees.UI = this.jees.UI || {};
 		
 		this._data = {
 			images: [],
-			frames: {width: size.w, height: size.h, count: 4 },
+			frames: {width: size.w, height: size.h, count: 1 },
 	        animations: {
 	        	normal: [0, 0, "normal"],
-	        	highlight: [1, 1, "highlight"],
-	        	push: [2, 2, "push"],
-	        	disable: [3, 3, "disable"],
-	        	test: [0, 3, "test", 0.15],
 	        }
 	   	};
 	   	
@@ -273,10 +300,9 @@ this.jees.UI = this.jees.UI || {};
 		}else{
 			this._init_skin();
 		}
-		
 	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
-		this.gotoAndPlay( "test" );
-	}
+		this.gotoAndPlay( "normal" );
+	};
 	/**
 	 * @private
 	 * @method _init_text
@@ -286,27 +312,25 @@ this.jees.UI = this.jees.UI || {};
 		var txt = this._text;
 		
 		parent.addChildAt( txt, parent.getChildIndex( this ) + 1 );
-		
-		txt.setText( this.text );
-		txt.setFontSize( this.fontSize );
-		txt.setFontStyle( this.fontStyle );
-		txt.setColor( this.color );
-		txt.setItalic( this.italic );
-		txt.setBold( this.bold );
-		
-		txt.initialize();
-	}
+		txt.text = this.text;
+		txt.fontSize = this.fontSize;
+		txt.fontStyle = this.fontStyle;
+		txt.color = this.color;
+		txt.italic = this.italic;
+		txt.bold = this.bold;
+		txt.mouseEnabled = false;
+	};
 	/**
 	 * @private
 	 * @method _reset_disable
 	 */
 	p._reset_disable = function(){
 		if( this.disable ){
-			this.gotoAndPlay( "disable" );
+			this.gotoAndPlay( this.checked ? "checkedDisable" : "disable" );
 		}else{
-			this.gotoAndPlay( "normal" );
+			this.gotoAndPlay( this.checked ? "checked" : "normal" );
 		}
-	}
+	};
 	/**
 	 * 当按钮按下时，文本控件做字体/10大小的偏移
 	 * @private
@@ -321,8 +345,8 @@ this.jees.UI = this.jees.UI || {};
 	 	var offset = txt.getFontSize() / 10;
 	 	
 	 	txt.setPosition( pos.x - offset, pos.y - offset );
-	 	_w.gotoAndPlay( "push" );
-	}
+	 	_w.gotoAndPlay( _w.checked ? "checkedPush":"push" );
+	};
 	/**
 	 * 当按钮弹起时，文本控件恢复字体/10大小的偏移
 	 * @private
@@ -336,8 +360,8 @@ this.jees.UI = this.jees.UI || {};
 	 	var pos = txt.getPosition();
 	 	var offset = txt.getFontSize() / 10;
 	 	txt.setPosition( pos.x + offset, pos.y + offset );
-	 	_w.gotoAndPlay( "normal" );
-	}
+	 	_w.gotoAndPlay( _w.checked ? "checked" : "normal" );
+	};
 	/**
 	 * 当按钮移上按钮时
 	 * @private
@@ -347,8 +371,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._handle_mouseover = function( _e, _w ){
 		if( _w.isDisabled() ) return;
-	 	_w.gotoAndPlay( "highlight" );
-	}
+	 	_w.gotoAndPlay( _w.checked ? "checkedHighlight" : "highlight" );
+	};
 	/**
 	 * 当按钮移上按钮时
 	 * @private
@@ -358,8 +382,28 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._handle_mouseout = function( _e, _w ){
 		if( _w.isDisabled() ) return;
-		_w.gotoAndPlay( "normal" );
-	}
+		_w.gotoAndPlay( _w.checked ? "checked" : "normal" );
+	};
+	/** 
+	 * @method _reset_size
+	 * @private
+	 */
+	p._reset_size = function(){
+		if( !this.property.region ){
+			var pro_size = this.property.getResourceSize();
+			var pro_w = pro_size.w / this.cols;
+			var pro_h = pro_size.h / this.rows;
+			var size = this.getSize();
+			
+			if( pro_w != -1 && size.w != pro_w ){
+				this.property.scaleX = size.w / pro_w;
+			}
+			if( pro_h != -1 && size.h != pro_h ){
+				this.property.scaleY = size.h / pro_h;
+			}
+			this._reset_scale();
+		}
+	};
 	/**
 	 * 重置坐标
 	 * @private
@@ -367,14 +411,18 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		this.ImageSpt__reset_position();
-		
 		var size = this.getSize();
 		var txt = this._text;
 		var txt_size = txt.getSize();
 		
-		txt.setPosition( this.x + ( size.w / 2 ) - ( txt_size.w / 2 ) , 
-			this.y + ( size.h / 2 - ( txt_size.h / 2 ) ) );
-	}
-
+		var x = this.x + ( size.w / 2 ) - ( txt_size.w / 2 ) + this.textX;
+		var y = this.y + ( size.h / 2 - ( txt_size.h / 2 ) ) + this.textY;
+		if( !txt.property.state ){
+			txt.x = x;
+			txt.y = y;
+		}else{
+			txt.setPosition( x, y );
+		}
+	};
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );
 })();

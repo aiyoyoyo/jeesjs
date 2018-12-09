@@ -200,6 +200,20 @@ this.jees = this.jees || {};
 	 * 考虑真锁定(设备锁定)和假锁定(浏览器锁定/绘制锁定)
 	 */
 	Application.screenOrientation = function(){
+		if( jees.DEV.isPortrait() ){
+			jees.APP._stage.x = self.canvasHeight; // 注意：x偏移相当于旋转中点处理，更简单
+			jees.APP._stage.rotation = 90;
+		}else{
+			jees.APP._stage.x = 0;
+  			jees.APP._stage.rotation = 0;
+		}
+//  	var w = window.innerWidth;
+//		var h = window.innerHeight;
+  		// 	jees.APP._canvas.width = w;
+		// 	jees.APP._canvas.height = h;
+
+//		 jees.APP._stage.update();
+		
 		// var o = window.orientation;
 		// var w = window.innerWidth
 		// var h = window.innerHeight;
@@ -226,14 +240,6 @@ this.jees = this.jees || {};
 	 * TODO 待完成
 	 */
 	Application.screenResize = function(){
-		// var w = window.innerWidth
-		// var h = window.innerHeight;
-		
-		// jees.APP._canvas.width = w;
-		// jees.APP._canvas.height = h;
-	
-		// jees.APP._stage.updateViewport(w,h);
-		// jees.APP._stage.update();
 	}
 // private static methods: ====================================================
 	/**
@@ -244,19 +250,28 @@ this.jees = this.jees || {};
      *
      */
 	Application._initialize = function(){
-		jees.SET._config = jees.Config.getContent( "config" );
 		// 实际的初始化工作
-		jees.SET.startup();
+		jees.SET.startup( jees.Config.getContent( "config" ) );
+		
+		var scale = 1 / window.devicePixelRatio;
+		document.querySelector('meta[name="viewport"]')
+			.setAttribute('content',
+				'width=device-width,initial-scale=' + scale + 
+				', maximum-scale=' + scale + 
+				', minimum-scale=' + scale + 
+				', user-scalable=no');
+
+		jees.SET.viewportScale = scale;
 		
 		this._canvas = document.getElementById( jees.SET.getCanvas() );
         this._stage = new createjs.StageGL( this._canvas );
         this._canvas.width = jees.SET.getWidth();
         this._canvas.height = jees.SET.getHeight();
+        
 		this._stage.updateViewport( jees.SET.getWidth(), jees.SET.getHeight() );
 		
         createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
         this.setFPS( jees.SET.getFPS() );
-        
         createjs.Touch.enable( this._stage );
 		if( jees.SET.enableMouseOver() )
         	this._stage.enableMouseOver();
@@ -272,6 +287,7 @@ this.jees = this.jees || {};
 		// TIPS HBuilder API 这里是真锁定
 //		plus.screen.lockOrientation( "portrait" );
 		
+		jees.DEV.startup();
 		jees.RM.reload();
 		jees.CM.startup();
 		jees.Skins.startup();

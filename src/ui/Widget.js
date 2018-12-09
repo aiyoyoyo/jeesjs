@@ -45,9 +45,10 @@ this.jees.UI = this.jees.UI || {};
 		this.property.initialize( this );
 		
 		this._reset_size();
-		this._reset_position();
 		this._reset_scale();
+		this._reset_position();
 		this._reset_mask();
+
 		this._init_childs();
 		
 //		this._cache();
@@ -61,7 +62,7 @@ this.jees.UI = this.jees.UI || {};
 	p.getAbsPosition = function(){
 		var m = this.getConcatenatedMatrix();
 		return { x: m.tx, y: m.ty };
-	}
+	};
 	/**
 	 * @public
 	 * @method setSize
@@ -71,7 +72,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function( _w, _h ){
 		this.property.setSize( _w, _h );
 		this._reset_size();
-	}
+	};
 	/**
 	 * @public
 	 * @method getSize
@@ -80,7 +81,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getSize = function( _t ){
 		return this.property.getSize( _t );
-	}
+	};
 	/**
 	 * @public
 	 * @method setPosition
@@ -90,7 +91,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setPosition = function( _x, _y ){
 		this.property.setPosition( _x, _y );
 		this._reset_position();
-	}
+	};
 	/**
 	 * @public
 	 * @method getPosition
@@ -98,7 +99,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getPosition = function(){
 		return this.property.getPosition();
-	}
+	};
 	/**
 	 * @public
 	 * @method setScale
@@ -108,7 +109,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setScale = function( _x, _y ){
 		this.property.setScale( _x, _y );
 		this._reset_scale();
-	}
+	};
 	/**
 	 * @public
 	 * @method getScale
@@ -116,25 +117,34 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getScale = function(){
 		return this.property.getScale();
-	}
+	};
 	/**
-	 * @public
+	 * 当前字体基于坐标的水平对齐方式
+	 * @method getAlign
+	 * @return {Integer,Integer,} {x,y}
+	 */
+	p.getAlign = function () {
+		return { x: this.property.alignX, y: this.property.alignY };
+	};
+	/**
+	 * 设置文字基于坐标的水平对齐方式
 	 * @method setAlign
 	 * @param {Integer} _x
 	 * @param {Integer} _y
 	 */
-	p.setAlign = function( _x, _y ){
-		this.property.setAlign( _x, _y );
-		this._reset_position();
-	}
-	/**
-	 * @public
-	 * @method getAlign
-	 * @returns {Integer,Integer} {x,y}
-	 */
-	p.getAlign = function(){
-		return this.property.getAlign();
-	}
+	p.setAlign = function ( _x, _y ) {
+		var ax = this.property.alignX;
+		var ay = this.property.alignY;
+		if( _x != undefined ) this.property.alignX = _x;
+		if( _y != undefined ) this.property.alignY = _y;
+		
+		if( ax != this.property.alignX && this.property.alignX == 0 ) 
+			this.property.x = 0;
+		if( ay != this.property.alignY && this.property.alignY == 0 ) 
+			this.property.y = 0;
+		
+		this._reset_size_position();
+	};
 // private methods: ===========================================================
 	/**
 	 * 建立缓存区域
@@ -144,8 +154,7 @@ this.jees.UI = this.jees.UI || {};
 		var size = this.getSize();
 		var b = this.getBounds();
 		this.cache( b.x, b.y, b.width, b.height );
-//		this.cache( pos.x, pos.y, size.w, size.h );
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_size
@@ -158,7 +167,7 @@ this.jees.UI = this.jees.UI || {};
 		if( this.property.enableMask ){
 			this._reset_mask();
 		}
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_position
@@ -168,7 +177,7 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_scale
@@ -196,8 +205,8 @@ this.jees.UI = this.jees.UI || {};
 			
 			if( this.mask && this.property.visibleMask ){
 				this.mask.alpha = 0.5;
-				this.mask.cache( pos.x, pos.y, size.w, size.h );
-				this.mask.graphics.drawRect( pos.x, pos.y, size.w, size.h );
+				this.mask.cache( 0, 0, size.w, size.h );
+				this.mask.graphics.drawRect( 0, 0, size.w, size.h );
 			}
 		}
 	};

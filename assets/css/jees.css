@@ -19,11 +19,12 @@ html{
 	touch-action:manipulation;
 }
 input{
+	position: absolute;
 	background-color:transparent;
 	outline: none;
 	color:#fff;
-	FILTER: alpha(opacity=0); /*androd*/
-	appearance:none;  /*下拉框去掉右侧图标*/
+	FILTER: alpha(opacity=0); androd
+	appearance:none; 
   	-moz-appearance:none;
   	-webkit-appearance:none;
 	-webkit-tap-highlight-color: rgba(0,0,0,0);

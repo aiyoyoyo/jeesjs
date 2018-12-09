@@ -58,6 +58,13 @@ this.jees.UI = this.jees.UI || {};
 		 * @default 12
 		 */
 		this.fontSize = 12;
+		/**
+		 * @public
+		 * @property warp
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.warp = true;
 // private properties:
 		/**
 		 * @private
@@ -65,21 +72,13 @@ this.jees.UI = this.jees.UI || {};
 		 * @function _drawText
 		 */
 		this._drawText = this._reset_text;
+		/**
+		 * @private
+		 * @property _lineCount
+		 */
+		this._lineCount = 1;
 	};
 // public static properties:
-	TextBox.ALIGN_START = "start";
-	TextBox.ALIGN_END = "end";
-	TextBox.ALIGN_LEFT = "left";
-	TextBox.ALIGN_RIGHT = "right";
-	TextBox.ALIGN_CENTER = "center";
-
-	TextBox.BASELINE_TOP = "top";
-	TextBox.BASELINE_HANGING = "hanging";
-	TextBox.BASELINE_MIDDLE = "middle";
-	TextBox.BASELINE_ALPHABETIC = "alphabetic";
-	TextBox.BASELINE_IDEOGRAPHIC = "ideographic";
-	TextBox.BASELINE_BOTTOM = "bottom";
-	
 	var p = createjs.extend( TextBox, createjs.Text );
 // public method: =============================================================
 	/**
@@ -91,14 +90,12 @@ this.jees.UI = this.jees.UI || {};
 		this.property.state = true;
 		
 		this.property.initialize( this );
-		
 		this.font = this._get_font();
-		this.lineHeight = this.getFontSize();
-		this.setColor( this.color );
-		this.setText( this.text );
-		this._reset_position();
-		this._cache();
-	}
+		
+		this.property.setSize( this.getSize().w, this.getSize().h );
+		this.property.setPosition( this.x, this.y );
+		this._reset_size_position();
+	};
     /**
      * 获取文本绘制的宽高
 	 * @public
@@ -106,7 +103,7 @@ this.jees.UI = this.jees.UI || {};
      * @return { w, h }
      */
 	p.getSize = function(){
-	    return {w: this.getMeasuredWidth() , h: this.getMeasuredLineHeight() }
+	    return {w: this.lineWidth ? this.lineWidth : this.getMeasuredWidth() , h: ( this.lineHeight ? this.lineHeight : this.getMeasuredLineHeight() ) * this._lineCount }
 	};
     /**
 	 * @public
@@ -115,7 +112,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getPosition = function () {
 		return this.property.getPosition();
-	}
+	};
 	/**
      * @method setPosition
      * @extends
@@ -135,7 +132,7 @@ this.jees.UI = this.jees.UI || {};
 	p.getAbsPosition = function(){
 		var m = this.getConcatenatedMatrix();
 		return { x: m.tx, y: m.ty };
-	}
+	};
 	/**
 	 * 当前颜色
 	 * @public
@@ -153,6 +150,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setColor = function (_c) {
 		this.color = _c;
+		this._cache();
 	};
 	/**
 	 * 设置完整的字体样式
@@ -167,6 +165,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setFont = function ( _s, _f, _i, _b ) {
 		this._set_font( _s, _f, _i, _b );
 		this.font = this._get_font();
+		this._reset_size_position();
 	};
 	/**
 	 * 当前字体样式
@@ -175,7 +174,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getFontStyle = function () {
 		return this.fontStyle;
-	}
+	};
 	/**
 	 * 设置字体大小
 	 * 
@@ -185,6 +184,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setFontStyle = function (_s) {
 		this.fontStyle = _s;
 		this.font = this._get_font();
+		this._reset_size_position();
 	};
 	/**
 	 * 当前字体大小
@@ -193,7 +193,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getFontSize = function () {
 		return this.fontSize;
-	}
+	};
 	/**
 	 * 设置字体大小
 	 * 
@@ -202,42 +202,36 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setFontSize = function (_s) {
 		this.fontSize = _s;
-		this.lineHeight = this.fontSize + "px";
+		this.lineHeight = this.fontSize;
 		this.font = this._get_font();
+		this._reset_size_position();
 	};
 	/**
 	 * 当前字体基于坐标的水平对齐方式
 	 * @method getAlign
-	 * @return {String}
+	 * @return {Integer,Integer,} {x,y}
 	 */
 	p.getAlign = function () {
-		return this.textAlign;
-	}
-	/**
-	 * 设置文字基于坐标的水平对齐方式
-	 * "start", "end", "left", "right", and "center"
-	 * @method setAlign
-	 * @param {String} _a
-	 */
-	p.setAlign = function (_a) {
-		this.textAlign = _a;
+		return { x: this.property.alignX, y: this.property.alignY };
 	};
 	/**
-	 * 当前字体基于坐标的垂直对齐方式
-	 * @method getAlign
-	 * @return {String}
-	 */
-	p.getBaseline = function () {
-		return this.textBaseline;
-	}
-	/**
-	 * 设置文字基于坐标的垂直对齐方式
-	 * "top", "hanging", "middle", "alphabetic", "ideographic", or "bottom".
+	 * 设置文字基于坐标的水平对齐方式
 	 * @method setAlign
-	 * @param {String} _a
+	 * @param {Integer} _x
+	 * @param {Integer} _y
 	 */
-	p.setBaseline = function (_b) {
-		this.textBaseline = _b;
+	p.setAlign = function ( _x, _y ) {
+		var ax = this.property.alignX;
+		var ay = this.property.alignY;
+		if( _x != undefined ) this.property.alignX = _x;
+		if( _y != undefined ) this.property.alignY = _y;
+		
+		if( ax != this.property.alignX && this.property.alignX == 0 ) 
+			this.property.x = 0;
+		if( ay != this.property.alignY && this.property.alignY == 0 ) 
+			this.property.y = 0;
+		
+		this._reset_size_position();
 	};
 	/**
 	 * 当前显示内容的固定宽度
@@ -246,7 +240,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getMaxWidth = function () {
 		return this.maxWidth;
-	}
+	};
 	/**
 	 * 设置显示内容的固定宽度，内容超出后，会压缩文字宽度至该范围内。
 	 * @method setMaxWidth
@@ -254,7 +248,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setMaxWidth = function (_w) {
 		this.maxWidth = _w;
-	}
+		this._reset_size_position();
+	};
 	/**
 	 * 当前显示范围的固定宽度
 	 * @method getLineWidth
@@ -262,7 +257,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getLineWidth = function () {
 		return this.lineWidth;
-	}
+	};
 	/**
 	 * 设置显示范围的固定宽度，超出后自动换行。可以通过字体大小计算出换行位置。
 	 * @method setLineWidth
@@ -270,7 +265,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setLineWidth = function (_w) {
 		this.lineWidth = _w;
-	}
+		this._reset_size_position();
+	};
 	/**
 	 * 当前显示的内容
 	 * @method getText
@@ -278,7 +274,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getText = function () {
 		return this.text;
-	}
+	};
 	/**
 	 * 设置显示的内容
 	 * @method setText
@@ -286,8 +282,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setText = function (_t) {
 		this.text = _t;
-		this._cache();
-	}
+		this._reset_size_position();
+	};
 	/**
 	 * 是否使用粗体
 	 * @method isBold
@@ -295,7 +291,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.isBold = function () {
 		return this.bold;
-	}
+	};
 	/**
 	 * 使用粗体
 	 * @method setBold
@@ -304,7 +300,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setBold = function (_v) {
 		this.bold = _v;
 		this.font = this._get_font();
-	}
+		this._reset_size_position();
+	};
 	/**
 	 * 是否使用斜体
 	 * @method isItalic
@@ -312,7 +309,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.isItalic = function () {
 		return this.italic;
-	}
+	};
 	/**
 	 * 使用斜体
 	 * @method setItalic
@@ -321,7 +318,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setItalic = function (_v) {
 		this.italic = _v;
 		this.font = this._get_font();
-	}
+		this._reset_size_position();
+	};
 	/**
 	 * 设置是否可见
 	 * @public
@@ -330,7 +328,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setVisible = function(_v){
 		this.visible = _v;
-	}
+	};
 	/**
 	 * 是否可见
 	 * @public
@@ -339,7 +337,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.isVisible = function(){
 		return this.visible;
-	}
+	};
 // private method: ============================================================
 	/**
 	 * @private
@@ -347,8 +345,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._cache = function(){
 		var size = this.getSize();
-		this.cache( 0, 0, size.w, size.h );
-	}
+		this.cache(  0, 0, size.w, size.h );
+	};
 	/**
 	 * 根据字体属性生成控件字体的属性字符串
 	 * @private
@@ -357,7 +355,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._get_font = function () {
 		return ( this.italic ? "italic" : "" ) + ( this.bold ? " bold" : "" ) + " " + this.fontSize + "px " + this.fontStyle;
-	}
+	};
 	/**
 	 * @private
 	 * @method _set_font
@@ -371,7 +369,7 @@ this.jees.UI = this.jees.UI || {};
 		this.fontStyle = _f ? _f : "Arial";
 		this.italic = _i || this.italic;
 		this.bold = _b || this.bold;
-	}
+	};
 	/**
 	 * 重置坐标
 	 * @private
@@ -379,28 +377,37 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		var pos = this.getPosition();
+		
+		this.x = pos.x;
+		this.y = pos.y;
+	};
+	/**
+	 * @private
+	 * @method _reset_size_position
+	 */
+	p._reset_size_position = function(){
+		this._cache();
+		
 		var size = this.getSize();
-		// 这里要去掉偏移误差
-		var x = pos.x, y = pos.y;
+		var pos = this.getPosition();
 		
-		if( this.property.alignX == 2 ){
-			x = pos.x - size.w;
-		}else if( this.property.alignX == 1 ){
-			x = pos.x - ( size.w / 2 );
+		this.property.setSize( size.w, size.h );
+		
+		var x = pos.x;
+		var y = pos.y;
+		if( this.property.alignX != 0 ){
+			x = 0;
 		}
-		
-		if( this.property.alignY == 2 ){
-			y = pos.y - size.h;
-		}else if( this.property.alignY == 1 ){
-			y = pos.y - ( size.h / 2 );
+		if( this.property.alignY != 0 ){
+			y = 0;
 		}
+		this.property.setPosition( x, y );
 		
-		this.x = x;
-		this.y = y;
-	}
+		this._reset_position();
+		this._cache();
+	};
 	/** 
      * Draws multiline text. 修复createjs的text为中文时，自动换行的问题。
-     * TIP: 实测下来，存在BUG，尚未分析具体原因。
      * @method _drawText 
      * @param {CanvasRenderingContext2D} ctx 
      * @param {Object} o 
@@ -410,73 +417,78 @@ this.jees.UI = this.jees.UI || {};
      * @protected 
      * 转载：http://blog.csdn.net/yyf1990cs/article/details/51000447
      **/
-	p._reset_text = function (ctx, o, lines) {
-		var paint = !!ctx;
-		if (!paint) {
-			ctx = createjs.Text._workingContext;
-			ctx.save();
+	p._reset_text = function ( _ctx, _o, _lines ) {
+		var paint = !!_ctx;
+		if ( !paint ) {
+			_ctx = createjs.Text._workingContext;
+			_ctx.save();
 			this._prepContext(ctx);
 		}
+		
 		var lineHeight = this.lineHeight || this.getMeasuredLineHeight();
-
 		var maxW = 0, count = 0;
-		var hardLines = String(this.text).split(/(?:\r\n|\r|\n)/);
-		for (var i = 0, l = hardLines.length; i < l; i++) {
+		if( !this.warp ){
+			if ( paint ) { this._drawTextLine( _ctx, this.text, count * lineHeight ); }
+			if ( _lines ) { _lines.push( this.text ); }
+			return;
+		}
+		var hardLines = String( this.text ).split(/(?:\r\n|\r|\n)/);
+		for ( var i = 0, l = hardLines.length; i < l; i++ ) {
 			var str = hardLines[i];
 			var w = null;
-
-			if (this.lineWidth != null && (w = ctx.measureText(str).width) > this.lineWidth) {
+			if ( this.lineWidth != null && ( w = _ctx.measureText( str ).width ) > this.lineWidth ) {
 				// text wrapping:  
 				var words = str.split(/(\s|[\u4e00-\u9fa5]+)/);//按照中文和空格来分割  
 				var splitChineseWords = [];
 				for (var wordIndex = 0; wordIndex < words.length; wordIndex++) {
 					var chineseWordStr = words[wordIndex];
-					if (chineseWordStr == "")
+					if ( chineseWordStr == "" )
 						continue;
-					if ((/([\u4e00-\u9fa5]+)/).test(chineseWordStr)) {
-						splitChineseWords = splitChineseWords.concat(chineseWordStr.split(""));//再把中文拆分成一个一个的  
+					if ( (/([\u4e00-\u9fa5]+)/).test(chineseWordStr) ) {
+						splitChineseWords = splitChineseWords.concat( chineseWordStr.split("") );//再把中文拆分成一个一个的  
 					}
 					else {
 						splitChineseWords.push(chineseWordStr);
 					}
 				}
 				words = splitChineseWords;//重新组成数组  
-				str = words[0];
-				w = ctx.measureText(str).width;
-
-				for (var j = 1, jl = words.length; j < jl; j += 2) {
-					// Line needs to wrap:  
-					var nextStr = j + 1 < jl ? words[j + 1] : "";
-					var wordW = ctx.measureText(words[j] + nextStr).width;
-					if (w + wordW > this.lineWidth) {
-						if (words[j] != "\s") //原版没有这个IF，  
-							str += words[j]; //英文时为空格，不需要加，中文时为汉字，所以不能漏了  
-						if (paint) { this._drawTextLine(ctx, str, count * lineHeight); }
-						if (lines) { lines.push(str); }
-						if (w > maxW) { maxW = w; }
-						str = nextStr;
-						w = ctx.measureText(str).width;
+				var word = "";
+				// 这里因为原来存在BUG，重新写过。逻辑可能不是最优。
+				for( var j = 0; j < words.length; j ++ ){
+					var w = _ctx.measureText( word + words[j] ).width;
+					if( w >= this.lineWidth ){
+						if( w == this.lineWidth ){
+							if ( words[j] != "\s") word += words[j];
+						}
+						if ( paint ) { this._drawTextLine( _ctx, word, count * lineHeight ); }
+						if ( _lines ) { _lines.push( word ); }
+						word = "";
 						count++;
-					} else {
-						str += words[j] + nextStr;
-						w += wordW;
+					}else{
+						if ( words[j] != "\s") word += words[j];
 					}
 				}
+				if( word != "" ){
+					if ( paint ) { this._drawTextLine( _ctx, word, count * lineHeight ); }
+					if ( _lines ) { _lines.push( word ); }
+					count++;
+				}
+			}else{
+				if ( paint ) { this._drawTextLine( _ctx, str, count * lineHeight); }
+				if ( _lines ) { lines.push( str ); }
+				if ( _o && w == null) { w = ctx.measureText( str ).width; }
+				if ( w > maxW ) { maxW = w; }
+				count++;
 			}
-
-			if (paint) { this._drawTextLine(ctx, str, count * lineHeight); }
-			if (lines) { lines.push(str); }
-			if (o && w == null) { w = ctx.measureText(str).width; }
-			if (w > maxW) { maxW = w; }
-			count++;
 		}
-
-		if (o) {
-			o.width = maxW;
-			o.height = count * lineHeight;
+		
+		this._lineCount = count;
+		if ( _o ) {
+			_o.width = maxW;
+			_o.height = count * lineHeight;
 		}
-		if (!paint) { ctx.restore(); }
-		return o;
+		if ( !paint ) { _ctx.restore(); }
+		return _o;
 	};
 
 	jees.UI.TextBox = createjs.promote( TextBox, "Text" );

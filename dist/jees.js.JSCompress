@@ -5,6 +5,7 @@
     <sourcefile path="..\src\tools\UtilTools.js" />
     <sourcefile path="..\src\tools\StringTools.js" />
     <sourcefile path="..\src\base\CreateJS.js" />
+    <sourcefile path="..\src\base\Device.js" />
     <sourcefile path="..\src\base\Debug.js" />
     <sourcefile path="..\src\base\Event.js" />
     <sourcefile path="..\src\base\Setting.js" />

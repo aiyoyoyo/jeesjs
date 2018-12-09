@@ -67,6 +67,9 @@ this.jees.UI = this.jees.UI || {};
 		 * @default false
 		 */
 		this.password = false;
+		this.paddingX = 0;
+		this.paddingY = 0;
+		this.warp = false;
 // private properties:
 		/**
 		 * 皮肤对象
@@ -98,7 +101,8 @@ this.jees.UI = this.jees.UI || {};
 		this.property.initialize( this );
 		
     	this._init_background();
-		
+    	
+		this.parent.addChildAt( this._object, this.parent.getChildIndex( this ) + 1 );
 		// 遮罩调整
     	if( this.property.enableMask ){
     		this._mask = new jees.UI.TextBox();
@@ -134,6 +138,12 @@ this.jees.UI = this.jees.UI || {};
 	    	}
     	}
 	};
+	/**
+	 * 
+	 */
+	p.setSize = function( _w, _h ){
+		
+	}
 // private method: ============================================================
 	/**
 	 * 建立缓存区域
@@ -178,8 +188,6 @@ this.jees.UI = this.jees.UI || {};
 			o.y = _r.dy;
 			o.scaleX = _r.sw;
 			o.scaleY = _r.sh;
-			
-			o.cache( 0, 0, size.w, size.h );
 			tc.addChild( o );
 		} );
 		tc.cache( 0, 0, size.w, size.h );
@@ -190,7 +198,6 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _init_custom
 	 */
 	p._init_custom = function(){
-		//
 		if( this.property.region != "" ){
 			this._init_custom_grid();
 		}else{
@@ -215,26 +222,49 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._init_text = function(){
 		this.parent.addChildAt( this._mask, this.parent.getChildIndex( this ) + 1 );
-		this._mask.setFontSize( this.fontSize );
-		this._mask.setColor( this.color );
+		
+		this._mask.warp = this.warp;
+		this._mask.fontSize = this.fontSize;
+		this._mask.color = this.color;
+		
 //		this._mask.setFontStyle( this.fontStyle );
 //		this._mask.setItalic( this.italic );
 //		this._mask.setBold( this.bold );
 	}
 	/**
 	 * @private
-	 * @method _init_text
+	 * @method _reset_position
 	 */
 	p._reset_position = function(){
 		var abs_pos = this.getAbsPosition();
 		var pos = this.getPosition();
+		this.x = pos.x;
+		this.y = pos.y;
+		
+		var sc = jees.SET.getViewportScale();
+		var sx = jees.DEV.width / jees.SET.getWidth();
+		var sy = jees.DEV.height / jees.SET.getHeight();
+		
+		var fix_x = pos.x * sx;
+		var fix_y = pos.y * sy;
+		// TODO DOM实际坐标根据缩放会存在偏差，需要重新计算
 		var style = this._input.style;
-		var fix_x = abs_pos.x + ( this.fontSize / 2 );
-		style.setProperty( "left", fix_x + "px");
-		style.setProperty( "top", abs_pos.y + "px");
+//		style.setProperty( "left", fix_x  + "px" );
+//		style.setProperty( "top", fix_y + "px" );
+		style.setProperty( "padding", this.paddingY + "px " + this.paddingX + "px " + this.paddingY + "px " + this.paddingX + "px " );
+		this._object.x = fix_x;
+		this._object.y = fix_y;
 		
 		if( this._mask ){
-			this._mask.setPosition( pos.x + ( this.fontSize / 2 ), pos.y + this._mask.fontSize );
+			var x = pos.x + this.paddingX;
+			var y = pos.y + this.paddingY;
+			
+			if( !this._mask.property.state ){
+				this._mask.x = x;
+				this._mask.y = y;
+			}else{
+				this._mask.setPosition( x, y );
+			}
 		}
 	}
 	/**
@@ -243,10 +273,24 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_size = function(){
 		var size = this.getSize();
-		var style = this._input.style;
 		// 保证内部背景元素与容器一致
-		style.setProperty( "height", size.h + "px" );
-		style.setProperty( "width", ( size.w - this.fontSize )  + "px" );
+		var sx = jees.DEV.width / jees.SET.getWidth();
+		var sy = jees.DEV.height / jees.SET.getHeight();
+		
+		var fix_w = size.w * sx;
+		var fix_h = size.h * sy;
+		
+		var style = this._input.style;
+		style.setProperty( "width", fix_w  + "px" );
+		style.setProperty( "height", fix_h + "px" );
+		
+		if( this._mask ){
+			if( this._mask.property.state ){
+				this._mask.setLineWidth( size.w - this.paddingX * 2 );
+			}else{
+				this._mask.lineWidth = size.w - this.paddingX * 2;
+			}
+    	}
 	}
 	/**
 	 * @private
@@ -267,7 +311,11 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_text = function(){
 		if( this._mask ){
-			this._mask.setText( this._input.value != "" ? this._input.value : this.placeholder );
+			if( this._mask.property.state ){
+				this._mask.setText( this._input.value != "" ? this._input.value : this.placeholder );
+			}else{
+				this._mask.text = this._input.value != "" ? this._input.value : this.placeholder;
+			}
 		}
 	}
 	jees.UI.InputBox = createjs.promote( InputBox, "ImageBox" );

@@ -47,7 +47,7 @@ this.jees = this.jees || {};
 	 * @return {Event}
 	 */
 	Event.bind = function( _o, _e, _f ){
-		return _o.addEventListener( _e, _f );
+		return _o.on( _e, _f );
 	}
 	/**
 	 * @static
@@ -57,7 +57,7 @@ this.jees = this.jees || {};
 	 * @param {Event} _h
 	 */
 	Event.unbind = function( _o, _e, _h ){
-		_o.removeEventListener( _e, _h );
+		_o.off( _e, _h );
 		_h = null;
 	}
 	/**

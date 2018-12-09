@@ -45,14 +45,14 @@ this.jees.UI = this.jees.UI || {};
 		
 		this._reset_bitmap();
 		this._reset_position();
-	}
+	};
 	/**
 	 * @public
 	 * @method getResource
 	 */
 	p.getResource = function(){
 		return this.property.resource;
-	}
+	};
 	/**
 	 * @public
 	 * @method setResource
@@ -61,7 +61,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setResource = function( _r ){
 		this.property.resource = _r;
 		this._reset_bitmap();
-	}
+	};
 	/**
 	 * @public
 	 * @method getSize
@@ -80,7 +80,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function ( _w, _h ) {
 		// 设置记录值
 		this.property.setSize( _w, _h );
-		this._reset_size();
+		this._reset_size_position();
 	};
 	/**
 	 * @public
@@ -89,7 +89,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getPosition = function () {
 		return this.property.getPosition();
-	}
+	};
 	/**
      * @method setPosition
      * @extends
@@ -109,7 +109,7 @@ this.jees.UI = this.jees.UI || {};
 	p.getAbsPosition = function(){
 		var m = this.getConcatenatedMatrix();
 		return { x: m.tx, y: m.ty };
-	}
+	};
 	/**
 	 * 获取缩放
 	 * @public
@@ -118,7 +118,7 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getScale = function(){
 		return this.property.getScale();
-	}
+	};
 	/**
 	 * 缩放
 	 * @public
@@ -128,48 +128,50 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setScale = function( _sx, _sy ){
 		this.property.setScale( _sx, _sy );
-		this._reset_scale();
-	}
+		var size = this.getSize();
+		
+		var w = size.w;
+		var h = size.h;
+		if( _sx != undefined ) w *= _sx;
+		if( _sy != undefined ) h *= _sy;
+		
+		this.setSize( w, h );
+	};
 	/**
 	 * @public
-	 * @method getRect
-	 * @return {Integer,Integer,Integer,Integer} {x,y,w,h}
+	 * @method setVisible
+	 * @param {Boolean} _v
 	 */
-	p.getRect = function(){
-		return this.sourceRect;
-	}
+	p.setVisible = function( _v ){
+		this.visible = _v;
+	};
 	/**
-	 * 绘制图片的局部
-	 * @public
-	 * @method setRect
+	 * 当前字体基于坐标的水平对齐方式
+	 * @method getAlign
+	 * @return {Integer,Integer,} {x,y}
+	 */
+	p.getAlign = function () {
+		return { x: this.property.alignX, y: this.property.alignY };
+	};
+	/**
+	 * 设置文字基于坐标的水平对齐方式
+	 * @method setAlign
 	 * @param {Integer} _x
 	 * @param {Integer} _y
-	 * @param {Integer} _w
-	 * @param {Integer} _h
 	 */
-	p.setRect = function( _x, _y, _w, _h ){
-		this.property.rect = _x + "," + _y + "," + _w + "," + _h;
-		this._reset_rect();
-	}
-	/**
-	 * 设置图片热点
-	 * @public
-	 * @method setReg
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 */
-	p.setReg = function( _x, _y ){
-		if( _x ) this.regX = _x;
-		if( _y ) this.regY = _y;
-	}
-	/**
-	 * @public
-	 * @method getReg
-	 * @returns {Integer,Integer} {x,y}
-	 */
-	p.getReg = function(){
-		return {x: this.regX, y: this.regY};
-	}
+	p.setAlign = function ( _x, _y ) {
+		var ax = this.property.alignX;
+		var ay = this.property.alignY;
+		if( _x != undefined ) this.property.alignX = _x;
+		if( _y != undefined ) this.property.alignY = _y;
+		
+		if( ax != this.property.alignX && this.property.alignX == 0 ) 
+			this.property.x = 0;
+		if( ay != this.property.alignY && this.property.alignY == 0 ) 
+			this.property.y = 0;
+		
+		this._reset_size_position();
+	};
  // private method: ===========================================================
  	/**
 	 * 建立缓存区域
@@ -179,13 +181,12 @@ this.jees.UI = this.jees.UI || {};
 		var size = this.getSize();
 		var b = this.getBounds();
 		this.cache( 0, 0, b.width, b.height );
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_bitmap
 	 */
  	p._reset_bitmap = function(){
- 		
    		if( typeof this.property.resource == "string" ){
 			if( this.property.resource.startsWith( "data:image" ) ){
 				this.image = document.createElement("img");
@@ -198,33 +199,26 @@ this.jees.UI = this.jees.UI || {};
 				// 这里可能需要延迟加载
 			}
 		}else this.image = this.property.resource; // type = image
-		
+		this.property._resource_size();
+//		this.property._reset_position();
 		this._reset_rect();
 		this._reset_size();
-		this._reset_scale();
- 	}
+ 	};
 	/**
 	 * @private
 	 * @method _reset_size
 	 */
 	p._reset_size = function(){
-		if( this.image ){
-			if( this.property.width == "default" ){
-				this.property.setSize( this.image.width, this.property.height );
-			}
-			if( this.property.height == "default" ){
-				this.property.setSize( this.property.width, this.image.height );
-			}
-		}
-		
+		var pro_size = this.property.getResourceSize();
 		var size = this.getSize();
-		var b = this.getBounds();
-		if( b ){
-			if( this.property.scaleX == 1 )
-				this.property.scaleX = size.w / b.width;
-			if( this.property.scaleY == 1 )
-				this.property.scaleY = size.h / b.height;
+		
+		if( pro_size.w != -1 && size.w != pro_size.w ){
+			this.property.scaleX = size.w / pro_size.w;
 		}
+		if( pro_size.w != -1 && size.h != pro_size.h ){
+			this.property.scaleY = size.h / pro_size.h;
+		}
+		this._reset_scale();
 	};
 	/**
 	 * @private
@@ -232,39 +226,42 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		var pos = this.getPosition();
-		var size = this.getSize();
-		var scale = this.getScale();
-		// 这里要去掉偏移误差, 包含缩放
-		var x = pos.x, y = pos.y;
-		var w = size.w * scale.x;
-		var h = size.h * scale.y;
-		if( this.property.alignX == 2 ){
-			x = pos.x - w;
-		}else if( this.property.alignX == 1 ){
-			x = pos.x - ( w / 2 );
+		
+		this.x = pos.x;
+		this.y = pos.y;
+	};
+	/**
+	 * @private
+	 * @method _reset_size_position
+	 */
+	p._reset_size_position = function(){
+		this._reset_size();
+		var pos = this.getPosition();
+		var x = pos.x;
+		var y = pos.y;
+		
+		if( this.property.alignX != 0 ){
+			x = 0;
+		}
+		if( this.property.alignY != 0 ){
+			y = 0;
 		}
 		
-		if( this.property.alignY == 2 ){
-			y = pos.y - h;
-		}else if( this.property.alignY == 1 ){
-			y = pos.y - ( h / 2 );
-		}
-		
-		this.x = x;
-		this.y = y;
+		this.property.setPosition( x, y );
+		this._reset_position();
 	};
 	/**
 	  * @method _reset_rect
 	  * @private
 	  */
-	 p._reset_rect = function(){
+	p._reset_rect = function(){
 	 	if( this.property.rect ){
 	 		var r = this.property.rect.split(",");
 	 		this.sourceRect = jees.CJS.newRect( r[0], r[1], r[2], r[3] );
 			this.setBounds( r[0], r[1], r[2], r[3]  );
 			this._cache();
 	 	}
-	}
+	};
 	/**
 	 * @method _reset_scale
 	 * @private
@@ -274,7 +271,7 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.scaleX = scale.x;
 		this.scaleY = scale.y;
-	}
+	};
     // /**
 	//  * @method _onload
 	//  * @param {Object|String} _r 

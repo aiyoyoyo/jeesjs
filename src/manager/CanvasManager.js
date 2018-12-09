@@ -117,6 +117,20 @@ this.jees = this.jees || {};
 			this._containers.set( v, c );
 			jees.APP.addChild( c );
 		}
+		this._update_cache();
+	}
+	/**
+	 * 添加一个预加载控件
+	 * @public
+     * @static
+	 * @method addChild
+     * @param {createjs.DisplayObject|jeesjs.Widget} _w 添加的控件
+     * @param {CanvasManager.Container}
+	 */
+	CanvasManager.removeChild = function( _w, _v ){
+		var v = _v || CanvasManager.Container.DEFAULT;
+		var c = this._containers.get( v );
+		c.removeChild( _w );
 	}
 	
 	jees.CM = CanvasManager;

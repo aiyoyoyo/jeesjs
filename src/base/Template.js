@@ -5,7 +5,7 @@
  *
  */
 // namespace:
-this.jeesjs = this.jeesjs || {};
+this.jees = this.jees || {};
 
 (function() {
 	"use strict";
@@ -56,5 +56,5 @@ this.jeesjs = this.jeesjs || {};
      */
 	Template.public = function() {};
     Template.publicFunction = function() {};
-	jeesjs.T = Template;
+	jees.T = Template;
 })();

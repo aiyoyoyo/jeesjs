@@ -123,9 +123,9 @@ this.jees.EX = this.jees.EX || {};
 	p.unload = function( _n ){
 		if( this._layouts.has( _n ) ){
 			var wgt = this._layouts.get( _n );
-			jees.APP.removeChild( wgt );
 			this._layouts.delete( _n );
 			this.del( _n );
+			jees.CM.removeChild( wgt );
 		}
 	}
 	

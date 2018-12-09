@@ -38,10 +38,6 @@ this.jees.UI = this.jees.UI || {};
     	 * @default null
     	 */
     	this.property.skinType = "Panel";
-    	
-		
-		this.bgScaleX = 1;
-		this.bgScaleY = 1;
 // private properties:
 		/**
 		 * 控件使用得皮肤，为空不使用
@@ -66,6 +62,7 @@ this.jees.UI = this.jees.UI || {};
     	if( this.property.state ) return;
     	
     	this.Widget_initialize();
+    	
 		this._reset_background();
 		
 //		this._cache();
@@ -73,7 +70,7 @@ this.jees.UI = this.jees.UI || {};
 	p.setSkinType = function( _t ){
 		this.property.skinType = _t;
 		this._reset_background();
-	}
+	};
 // private method: ============================================================
 	/**
 	 * @private
@@ -83,24 +80,27 @@ this.jees.UI = this.jees.UI || {};
 		this.Widget__reset_size();
 		// 重设背景大小
 		this._reset_background();
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_background
 	 */
 	p._reset_background = function(){
 		if( !this._background ){
-			this._background = new jees.UI.ImageBox();
-			this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
-			this._background.initialize();
+			if( this.property.enableSkin || ( !this.property.enableSkin && this.property.resource ) ){
+				this._background = new jees.UI.ImageBox();
+				this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
+				this._background.initialize();
+			}
 		}
 		
 		if( this.property.enableSkin ){
 			this._reset_skin();
 		}else{
-			this._reset_custom();
+			if( this.property.resource )
+				this._reset_custom();
 		}
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_custom_grid
@@ -134,7 +134,7 @@ this.jees.UI = this.jees.UI || {};
 		this.property.resource = tc.getCacheDataURL();
 		this._background.setSize( size.w, size.h );
 		this._reset_background_resource();
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_custom
@@ -161,8 +161,14 @@ this.jees.UI = this.jees.UI || {};
 			case 3: //9宫格
 				this._reset_custom_grid();
 				break;
+			case 0:
+			default:
+				this._background.alignX = 1;
+				this._background.alignY = 1;
+				this._background.setPosition( 0, 0 );
+				break;
 		}
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_skin
@@ -179,7 +185,7 @@ this.jees.UI = this.jees.UI || {};
 		this.property.resource = this._skin.getCacheDataURL("rect");
 		
 		this._reset_background_resource();
-	}
+	};
 	/**
 	 * @private
 	 * @method _reset_background_resource
@@ -188,7 +194,7 @@ this.jees.UI = this.jees.UI || {};
 		if( this._background.getResource() != this.property.resource ){
 			this._background.setResource( this.property.resource );
 		}
-	}
+	};
 
 	jees.UI.Panel = createjs.promote( Panel, "Widget" );
 })();

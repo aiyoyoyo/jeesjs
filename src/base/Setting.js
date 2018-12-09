@@ -18,15 +18,21 @@ this.jees = this.jees || {};
 // private static properties:
 	Setting.CONFIG_FILE = "../assets/configs/jees.default.config";
 	Setting.SKIN_FILE = "../assets/images/skin_default.png";
-	Setting._config = null;
-    Setting._timestamp = 0;
-	Setting._fps = 30;
-	Setting._canvas = null;
-	Setting._width = 0;
-	Setting._height = 0;
-	Setting._sound = false;
-	Setting._debug = false;
-	Setting._mouseover = false;
+	Setting.config = null;
+    Setting.timestamp = 0;
+	Setting.fps = 30;
+	Setting.canvas = null;
+	Setting.width = 0;
+	Setting.height = 0;
+	Setting.sound = false;
+	Setting.debug = false;
+	Setting.mouseover = false;
+	Setting.display = "default";
+	Setting.skin = "default";
+	/**
+	 * 该配置用于表示viewport缩放了多少
+	 */
+	Setting.viewportScale = 1;
 	
 	Setting.connector = {
 		enable: false,
@@ -36,44 +42,49 @@ this.jees = this.jees || {};
 	}
 // public static getter/setter method: ========================================
 	// getter and setter
-	Setting.getCanvas = function(){ return this._canvas; }
-	Setting.getWidth = function(){ return this._width; }
-    Setting.getHeight = function(){ return this._height; }
-    Setting.getFPS = function(){return this._fps;}
-    Setting.setFPS = function( _f ){this._fps = _f;}
-    Setting.getTimestamp = function(){ return this._timestamp; }
-    Setting.setTimestamp = function( _t ){ this._timestamp = _t; }
-    Setting.getConfig = function(){ return this._config; }
-    Setting.getSkin = function(){ return this._skin; }
-    Setting.enableSound = function(){ return this._sound; }
-    Setting.enableDebug = function(){ return this._debug; }
-    Setting.enableMouseOver = function(){ return this._mouseover; }
-	
+	Setting.getCanvas = function(){ return this.canvas; }
+	Setting.getWidth = function(){ return this.width; }
+    Setting.getHeight = function(){ return this.height; }
+    Setting.getFPS = function(){return this.fps;}
+    Setting.setFPS = function( _f ){this.fps = _f;}
+    Setting.getTimestamp = function(){ return this.timestamp; }
+    Setting.setTimestamp = function( _t ){ this.timestamp = _t; }
+    Setting.getConfig = function(){ return this.config; }
+    Setting.getSkin = function(){ return this.skin.toLowerCase(); }
+    Setting.getDisplay = function(){ return this.display.toLowerCase(); }
+    Setting.getViewportScale = function(){ return this.viewportScale; }
+    
+    Setting.enableSound = function(){ return this.sound; }
+    Setting.enableDebug = function(){ return this.debug; }
+    Setting.enableMouseOver = function(){ return this.mouseover; }
 	Setting.enableConnector = function(){ return this.connector.enable; }
 // public static method: ======================================================
 	/**
 	 * @public
      * @static
 	 * @method startup
-     * @return
+	 * @param {String} _s
      */
-	Setting.startup = function() {
-		var cfg = this._config.Setting;
+	Setting.startup = function( _s ) {
+		this.config = _s;
+		var cfg = this.config.Setting;
 		
-		this._canvas = cfg.canvas;
-		this._fps = cfg.fps;
+		for ( var i in cfg ) {
+            if ( this.hasOwnProperty( i ) ) {
+            	this[i] = cfg[i];
+            }	
+       	}
 		
-		this._width = cfg.width != 0 ? cfg.width : ( document.documentElement.clientWidth || document.body.clientWidth );
-		this._height = cfg.height != 0 ? cfg.height : ( document.documentElement.clientHeight || document.body.clientHeight );
+		if( cfg.width == "auto" ){
+			this.width = document.documentElement.clientWidth || document.body.clientWidth;
+		}
+		if( cfg.height == "auto" ){
+			this.height = document.documentElement.clientHeight || document.body.clientHeight;
+		}
 		
-		this._sound = cfg.sound;
-		this._mouseover = cfg.mouseover;
-		
-		this._skin = cfg.skin;
-		
-		for ( var i in this._config.Connector ) {
+		for ( var i in cfg.Connector ) {
             if ( this.connector.hasOwnProperty( i ) ) {
-            	this.connector[i] = this._config.Connector[i];
+            	this.connector[i] = cfg.Connector[i];
             }	
        	}
 	}
