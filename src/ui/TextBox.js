@@ -89,12 +89,15 @@ this.jees.UI = this.jees.UI || {};
 		if( this.property.state ) return;
 		this.property.state = true;
 		
-		this.property.initialize( this );
 		this.font = this._get_font();
+		this._cache();
 		
-		this.property.setSize( this.getSize().w, this.getSize().h );
-		this.property.setPosition( this.x, this.y );
-		this._reset_size_position();
+		this.property.setResourceSize( this.getSize().w, this.getSize().h );
+		this.property.initialize( this );
+		
+		this._cache();
+		this._reset_scale();
+		this._reset_position();
 	};
     /**
      * 获取文本绘制的宽高
@@ -184,7 +187,9 @@ this.jees.UI = this.jees.UI || {};
 	p.setFontStyle = function (_s) {
 		this.fontStyle = _s;
 		this.font = this._get_font();
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前字体大小
@@ -204,7 +209,9 @@ this.jees.UI = this.jees.UI || {};
 		this.fontSize = _s;
 		this.lineHeight = this.fontSize;
 		this.font = this._get_font();
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前字体基于坐标的水平对齐方式
@@ -221,17 +228,9 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
+		this.property.setAlign( _x, _y );
 		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
+		this._reset_position();
 	};
 	/**
 	 * 当前显示内容的固定宽度
@@ -248,7 +247,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setMaxWidth = function (_w) {
 		this.maxWidth = _w;
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前显示范围的固定宽度
@@ -265,7 +266,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setLineWidth = function (_w) {
 		this.lineWidth = _w;
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前显示的内容
@@ -282,7 +285,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setText = function (_t) {
 		this.text = _t;
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 是否使用粗体
@@ -300,7 +305,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setBold = function (_v) {
 		this.bold = _v;
 		this.font = this._get_font();
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 是否使用斜体
@@ -318,7 +324,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setItalic = function (_v) {
 		this.italic = _v;
 		this.font = this._get_font();
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 设置是否可见
@@ -338,6 +345,41 @@ this.jees.UI = this.jees.UI || {};
 	p.isVisible = function(){
 		return this.visible;
 	};
+	/**
+	 * @public
+	 * @method setScale
+	 * @param {Float} _x
+	 * @param {Float} _y
+	 */
+	p.setScale = function( _x, _y ){
+		this.property.setScale( _x, _y );
+		this._reset_scale();
+	};
+	/**
+	 * @public
+	 * @method getScale
+	 * @returns {Float,Float} {x,y}
+	 */
+	p.getScale = function(){
+		return this.property.getScale();
+	};
+	/**
+	 * @public
+	 * @method isWarp
+	 * @returns {Boolean}
+	 */
+	p.isWarp = function(){
+		return this.warp;
+	}
+	/**
+	 * @public
+	 * @method setWarp
+	 * @param {Boolean} _v
+	 */
+	p.setWarp = function( _v ){
+		this.warp = _v;
+		this.setText( this.text );
+	}
 // private method: ============================================================
 	/**
 	 * @private
@@ -345,7 +387,17 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._cache = function(){
 		var size = this.getSize();
-		this.cache(  0, 0, size.w, size.h );
+		this.cache( 0, 0, size.w, size.h );
+	};
+	/**
+	 * @private
+	 * @method _reset_scale
+	 */
+	p._reset_scale = function(){
+		var scale = this.getScale();
+		
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
 	};
 	/**
 	 * 根据字体属性生成控件字体的属性字符串
@@ -371,40 +423,27 @@ this.jees.UI = this.jees.UI || {};
 		this.bold = _b || this.bold;
 	};
 	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		this._cache();
+
+		this.property.setResourceSize( this.getSize().w, this.getSize().h );
+		this.property.setSize();
+		this.property.setAlign();
+		
+		this._cache();
+	}
+	/**
 	 * 重置坐标
 	 * @private
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
 		var pos = this.getPosition();
-		
 		this.x = pos.x;
 		this.y = pos.y;
-	};
-	/**
-	 * @private
-	 * @method _reset_size_position
-	 */
-	p._reset_size_position = function(){
-		this._cache();
-		
-		var size = this.getSize();
-		var pos = this.getPosition();
-		
-		this.property.setSize( size.w, size.h );
-		
-		var x = pos.x;
-		var y = pos.y;
-		if( this.property.alignX != 0 ){
-			x = 0;
-		}
-		if( this.property.alignY != 0 ){
-			y = 0;
-		}
-		this.property.setPosition( x, y );
-		
-		this._reset_position();
-		this._cache();
 	};
 	/** 
      * Draws multiline text. 修复createjs的text为中文时，自动换行的问题。
@@ -422,7 +461,7 @@ this.jees.UI = this.jees.UI || {};
 		if ( !paint ) {
 			_ctx = createjs.Text._workingContext;
 			_ctx.save();
-			this._prepContext(ctx);
+			this._prepContext( _ctx );
 		}
 		
 		var lineHeight = this.lineHeight || this.getMeasuredLineHeight();
@@ -433,6 +472,7 @@ this.jees.UI = this.jees.UI || {};
 			return;
 		}
 		var hardLines = String( this.text ).split(/(?:\r\n|\r|\n)/);
+		
 		for ( var i = 0, l = hardLines.length; i < l; i++ ) {
 			var str = hardLines[i];
 			var w = null;
@@ -454,8 +494,10 @@ this.jees.UI = this.jees.UI || {};
 				words = splitChineseWords;//重新组成数组  
 				var word = "";
 				// 这里因为原来存在BUG，重新写过。逻辑可能不是最优。
+				
 				for( var j = 0; j < words.length; j ++ ){
 					var w = _ctx.measureText( word + words[j] ).width;
+					console.log( "---", w, this.lineWidth )
 					if( w >= this.lineWidth ){
 						if( w == this.lineWidth ){
 							if ( words[j] != "\s") word += words[j];
@@ -476,7 +518,7 @@ this.jees.UI = this.jees.UI || {};
 			}else{
 				if ( paint ) { this._drawTextLine( _ctx, str, count * lineHeight); }
 				if ( _lines ) { lines.push( str ); }
-				if ( _o && w == null) { w = ctx.measureText( str ).width; }
+				if ( _o && w == null) { w = _ctx.measureText( str ).width; }
 				if ( w > maxW ) { maxW = w; }
 				count++;
 			}

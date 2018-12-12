@@ -32,13 +32,6 @@ this.jees.UI = this.jees.UI || {};
     	 * @default "Button"
     	 */
 		this.property.skinResource = "CheckBox";
-//		/**
-//		 * @public
-//		 * @property checked
-//		 * @type {Boolean}
-//		 * @default false
-//		 */
-//		this.checked = false;
 		/**
 		 * @public
 		 * @property group
@@ -72,6 +65,7 @@ this.jees.UI = this.jees.UI || {};
 	p.initialize = function(){
 		if( this.property.state ) return;
 		this.Button_initialize();
+		
 		var _this = this;
         jees.E.bind( this, "click", function( e ){ _this._handle_click( e, _this ); });
         

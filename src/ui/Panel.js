@@ -63,9 +63,13 @@ this.jees.UI = this.jees.UI || {};
     	
     	this.Widget_initialize();
     	
+    	this._background = new jees.UI.ImageBox();
+    	this._background.initialize();
+    	if( this.property.enableSkin || ( !this.property.enableSkin && this.property.resource ) ){
+			this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
+		}
+    	
 		this._reset_background();
-		
-//		this._cache();
 	};
 	p.setSkinType = function( _t ){
 		this.property.skinType = _t;
@@ -86,14 +90,6 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_background
 	 */
 	p._reset_background = function(){
-		if( !this._background ){
-			if( this.property.enableSkin || ( !this.property.enableSkin && this.property.resource ) ){
-				this._background = new jees.UI.ImageBox();
-				this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
-				this._background.initialize();
-			}
-		}
-		
 		if( this.property.enableSkin ){
 			this._reset_skin();
 		}else{
@@ -168,6 +164,8 @@ this.jees.UI = this.jees.UI || {};
 				this._background.setPosition( 0, 0 );
 				break;
 		}
+		
+		this._background.cache( 0, 0, size.w, size.h );
 	};
 	/**
 	 * @private

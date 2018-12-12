@@ -80,6 +80,8 @@ this.jees.UI = this.jees.UI || {};
 		 * @default 1
 		 */
 		this._frame_count = 1;
+		
+		this.spriteSheet = new createjs.SpriteSheet( this._data );
 	};
 
 	var p = createjs.extend( ImageSpt, createjs.Sprite );
@@ -92,31 +94,29 @@ this.jees.UI = this.jees.UI || {};
 		if( this.property.state ) return;
 		this.property.state = true;
 		
-		this.property.initialize( this );
-		
 		var res =  jees.Resource.get( this.property.resource );
 		var frame_width = res.width / this.cols;
 		var frame_height = res.height / this.rows;
+		
+		this.property.width = frame_width;
+		this.property.height = frame_height;
+		this.property.initialize( this );
 		
 //	    framerate: rate, 这里无视ticker的timingMode，也许是bug也许是我错了。
 		this._frame_count = ( this.cols * this.rows );
 		this._data = {
 	        images: [ res ],
 	        framerate: this._frame_count,
-	        frames: { width: frame_width, height: frame_height, count: this._frame_count, regX: this.regX, regY: this.regY },
+	        frames: { width: frame_width, height: frame_height, count: this._frame_count },
 	        animations: {
 	        	default: [ 0, this._frame_count - 1, "default", 1]
 	        }
 	   	};
-	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
+		this.spriteSheet._parseData( this._data );
 	   	
-		this.property._resource_size();
-		this.property.setSize( frame_width, frame_height );
-		
-		this._reset_size();
 	    this._reset_speed();
 	    this._reset_position();
-	    		
+	    
 	    this._goto( this.start );
 	    if( this.auto ){
 	    	this.gotoAndPlay( "default" );
@@ -140,7 +140,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function ( _w, _h ) {
 		// 设置记录值
 		this.property.setSize( _w, _h );
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * @public
@@ -188,39 +189,15 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setScale = function( _sx, _sy ){
 		this.property.setScale( _sx, _sy );
-		var size = this.getSize();
+		var size = this.property.getResourceSize();
 		
 		var w = size.w;
 		var h = size.h;
+		
 		if( _sx != undefined ) w *= _sx;
 		if( _sy != undefined ) h *= _sy;
 		
 		this.setSize( w, h );
-	};
-	/**
-	 * 绘制图片的局部
-	 * @method setRect
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 * @param {Integer} _w
-	 * @param {Integer} _h
-	 */
-	p.setRect = function( _x, _y, _w, _h ){
-		this.region = _x + "," + _y + "," + _w + "," + _h;
-		this.sourceRect = jees.CJS.newRect( _x, _y, _w, _h );
-		this.setBounds( _x, _y, _w, _h);
-//		this.cache( 0, 0, _w, _h );
-	};
-	/**
-	 * 设置图片热点
-	 * @public
-	 * @method setReg
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 */
-	p.setReg = function( _x, _y ){
-		if( _x ) this.regX = _x;
-		if( _y ) this.regY = _y;
 	};
 	/**
 	 * 
@@ -247,17 +224,17 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
+		this.property.setAlign( _x, _y );
 		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
+		this._reset_position();
+	};
+	/**
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this.visible = _v;
 	};
  // private method: ===========================================================
 	/** 
@@ -266,15 +243,13 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_size = function(){
 		var pro_size = this.property.getResourceSize();
-		var pro_w = pro_size.w / this.cols;
-		var pro_h = pro_size.h / this.rows;
 		var size = this.getSize();
 		
-		if( pro_w != -1 && size.w != pro_w ){
-			this.property.scaleX = size.w / pro_w;
+		if( pro_size.w != -1 && size.w != pro_size.w ){
+			this.property.scaleX = size.w / pro_size.w;
 		}
-		if( pro_h != -1 && size.h != pro_h ){
-			this.property.scaleY = size.h / pro_h;
+		if( pro_size.w != -1 && size.h != pro_size.h ){
+			this.property.scaleY = size.h / pro_size.h;
 		}
 		this._reset_scale();
 	};
@@ -288,28 +263,6 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
-	};
-	/**
-	 * @private
-	 * @method _reset_size_position
-	 */
-	p._reset_size_position = function(){
-		this._reset_size();
-		var pos = this.getPosition();
-		var size = this.getSize();
-		
-		var x = pos.x;
-		var y = pos.y;
-		
-		if( this.property.alignX != 0 ){
-			x = 0;
-		}
-		if( this.property.alignY != 0 ){
-			y = 0;
-		}
-		
-		this.property.setPosition( x, y );
-		this._reset_position();
 	};
 	/**
 	* @private

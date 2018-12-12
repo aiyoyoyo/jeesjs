@@ -127,6 +127,11 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.textY = 0;
 // private properties:
+		/**
+		 * @private
+		 * @property _text
+		 * @type {jees.UI.TextBox}
+		 */
 		this._text = new jees.UI.TextBox();
 	};
 // public static properties:
@@ -156,7 +161,7 @@ this.jees.UI = this.jees.UI || {};
         	jees.E.bind( this, "mouseout", function( e ){ _this._handle_mouseout( e, _this ); });
         }
 		this._reset_disable();
-	    this._reset_size_position();
+	    this._reset_position();
 	};
 	/**
 	 * 设置状态
@@ -192,6 +197,15 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getText = function(){
 		return this._text.text;
+	};
+	/**
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this.visible = _v;
+		this._text.setVisible( this.visible );
 	};
 // private method: ============================================================
 	/**
@@ -319,6 +333,11 @@ this.jees.UI = this.jees.UI || {};
 		txt.italic = this.italic;
 		txt.bold = this.bold;
 		txt.mouseEnabled = false;
+		
+		txt.regX = txt.getSize().w / 2;
+		txt.regY = txt.getSize().h / 2;
+		
+		txt.initialize();
 	};
 	/**
 	 * @private
@@ -340,12 +359,11 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._handle_mousedown = function( _e, _w ){
 		if( _w.isDisabled() ) return;
-	 	var txt = _w._text;
-	 	var pos = txt.getPosition();
-	 	var offset = txt.getFontSize() / 10;
-	 	
-	 	txt.setPosition( pos.x - offset, pos.y - offset );
 	 	_w.gotoAndPlay( _w.checked ? "checkedPush":"push" );
+	 	
+	 	var size = this._text.getSize();
+		this._text.property.offsetY += size.h / 4;		
+		this._text.setPosition();
 	};
 	/**
 	 * 当按钮弹起时，文本控件恢复字体/10大小的偏移
@@ -356,11 +374,11 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._handle_pressup = function( _e, _w ){
 		if( _w.isDisabled() ) return;
-	 	var txt = _w._text;
-	 	var pos = txt.getPosition();
-	 	var offset = txt.getFontSize() / 10;
-	 	txt.setPosition( pos.x + offset, pos.y + offset );
 	 	_w.gotoAndPlay( _w.checked ? "checked" : "normal" );
+	 	
+	 	var size = this._text.getSize();
+		this._text.property.offsetY -= size.h / 4;		
+		this._text.setPosition();
 	};
 	/**
 	 * 当按钮移上按钮时
@@ -411,18 +429,37 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		this.ImageSpt__reset_position();
-		var size = this.getSize();
 		var txt = this._text;
-		var txt_size = txt.getSize();
+		if( !txt ) return;
 		
-		var x = this.x + ( size.w / 2 ) - ( txt_size.w / 2 ) + this.textX;
-		var y = this.y + ( size.h / 2 - ( txt_size.h / 2 ) ) + this.textY;
-		if( !txt.property.state ){
-			txt.x = x;
-			txt.y = y;
-		}else{
-			txt.setPosition( x, y );
+		var txt_size = txt.getSize();
+		var size = this.getSize();
+		var align = this.getAlign();
+		
+		txt.property.alignX = align.x;
+		txt.property.alignY = align.y;
+		if( align.x == 0 ){
+			txt.property.offsetX = this.property.offsetX + ( size.w - txt_size.w ) / 2;
+			txt.property.offsetX += this.textX;
+		}else if( align.x == 1 ){
+			txt.property.offsetX = this.property.offsetX;
+			txt.property.offsetX += this.textX;
+		}else if( align.x == 2 ){
+			txt.property.offsetX = this.property.offsetX + ( size.w - txt_size.w ) / 2;
+			txt.property.offsetX -= this.textX;
 		}
+		if( align.y == 0 ){
+			txt.property.offsetY = this.property.offsetY + ( size.h - txt_size.h ) / 2;
+			txt.property.offsetY += this.textY;	
+		}else if( align.y == 1 ){
+			txt.property.offsetY = this.property.offsetY;
+			txt.property.offsetY += this.textY;	
+		}else if( align.y == 2 ){
+			txt.property.offsetY = this.property.offsetY + ( size.h - txt_size.h ) / 2;
+			txt.property.offsetY -= this.textY;	
+		}	
+		txt.setAlign();
+		txt.setPosition();
 	};
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );
 })();

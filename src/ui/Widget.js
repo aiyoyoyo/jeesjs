@@ -28,8 +28,23 @@ this.jees.UI = this.jees.UI || {};
 		 * 控件的配置属性，用于初始化和部分属性的重置用
 		 * @public
 		 * @property property
+		 * @type jees.UI.Property
 		 */
 		this.property = new jees.UI.Property();
+		/**
+		 * @public
+		 * @property maskColor
+		 * @type {String}
+		 * @default "#000000"
+		 */
+		this.maskColor = "#000000";
+		/**
+		 * @public
+		 * @property maskAlpha
+		 * @type {Float}
+		 * @default 0.5
+		 */
+		this.maskAlpha = 0.5;
 // private properties:
 	};
 	var p = createjs.extend( Widget, createjs.Container );
@@ -43,15 +58,17 @@ this.jees.UI = this.jees.UI || {};
 		this.property.state = true;
 		
 		this.property.initialize( this );
+		this._mask = jees.CJS.newShape( this.property.w, this.property.h, this.maskColor );
+		if( this.property.visibleMask )
+			this.addChildAt( this._mask, 0 );
 		
-		this._reset_size();
 		this._reset_scale();
 		this._reset_position();
 		this._reset_mask();
-
+		
 		this._init_childs();
 		
-//		this._cache();
+		this.cursor = "pointer";
 	};
 	/**
 	 * 绝对位置
@@ -71,7 +88,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setSize = function( _w, _h ){
 		this.property.setSize( _w, _h );
-		this._reset_size();
+		
+		this.property.setPosition();
+		this._reset_mask();
 	};
 	/**
 	 * @public
@@ -133,41 +152,27 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
-		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
-	};
-// private methods: ===========================================================
-	/**
-	 * 建立缓存区域
-	 */
-	p._cache = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
-		var b = this.getBounds();
-		this.cache( b.x, b.y, b.width, b.height );
+		this.property.setAlign( _x, _y );
+		this._reset_position();
 	};
 	/**
-	 * @private
-	 * @method _reset_size
+	 * 
 	 */
-	p._reset_size = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
-		this.setBounds( 0, 0, size.w, size.h );
-		
-		if( this.property.enableMask ){
-			this._reset_mask();
+	p.findChildByName = function( _n ){
+		for( var c in this.children ){
+			var wgt = this.children[c];
+			if( this.children[c].name == _n ){
+				return wgt;
+			}
+			if( wgt.findChildByName ){
+				var child_wgt = wgt.findChildByName( _n );
+				if( child_wgt ) return child_wgt;
+			}
 		}
-	};
+		
+		return null;
+	}
+// private methods: ===========================================================
 	/**
 	 * @private
 	 * @method _reset_position
@@ -177,6 +182,8 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
+		
+		this._reset_mask();
 	};
 	/**
 	 * @private
@@ -193,21 +200,17 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_mask
 	 */
 	p._reset_mask = function(){
-		if( this.property.enableMask ){
-			var size = this.property.getSize();
+		if( this._mask && this.property.enableMask ){
+			var size = this.getSize();
 			var pos = this.getPosition();
+			var align = this.getAlign();
 			
-			if( this.mask == null ){
-				this.mask = jees.CJS.newShape( size.w, size.h, "#000000" );
-				if( this.property.visibleMask )
-					this.addChildAt( this.mask, 0 );
+			if( this.property.visibleMask ){
+				this._mask.alpha = this.maskAlpha;
+				this._mask.graphics.clear().beginFill( this.maskColor ).drawRect( 0, 0, size.w, size.h );
+				this._mask.cache( 0, 0, size.w, size.h );
 			}
 			
-			if( this.mask && this.property.visibleMask ){
-				this.mask.alpha = 0.5;
-				this.mask.cache( 0, 0, size.w, size.h );
-				this.mask.graphics.drawRect( 0, 0, size.w, size.h );
-			}
 		}
 	};
 	/**
@@ -228,7 +231,7 @@ this.jees.UI = this.jees.UI || {};
 				}
 				
 				if( this.property.enableMask ) {
-					c.mask = this.mask;
+					c.mask = this._mask;
 				}
 			}
 		}

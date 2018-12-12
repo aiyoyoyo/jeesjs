@@ -57,21 +57,39 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.h = 0;
 		/**
-		 * 控件配置宽度， 可用 100 | "100%" | "auto"
+		 * 控件配置宽度， 可用 100 | "100%" | "auto" | "default"
 		 * @public
 		 * @property width
     	 * @type {Integer|String}
-    	 * @default 0
+    	 * @default "default"
 		 */
-		this.width = 0;
+		this.width = "default";
 		/**
-		 * 控件配置高度， 可用 100 | "100%" | "auto"
+		 * 控件配置高度， 可用 100 | "100%" | "auto" | "default"
 		 * @public
 		 * @property height
     	 * @type {Integer|String}
-    	 * @default 0
+    	 * @default default
 		 */
-		this.height = 0;
+		this.height = "default";
+		/**
+		 * 偏移坐标，alignX变化时，x属性将会重置为相对位置，之后根据offsetX偏移横坐标。
+		 * alignX==2，offsetX = -offsetX;
+		 * @public
+		 * @property offsetX
+		 * @type {Integer}
+		 * @default 0;
+		 */
+		this.offsetX = 0;
+		/**
+		 * 偏移坐标，alignY变化时，y属性将会重置为相对位置，之后根据offsetY偏移纵坐标。
+		 * alignY==2，offsetY = -offsetY;
+		 * @public
+		 * @property offsetY
+		 * @type {Integer}
+		 * @default 0;
+		 */
+		this.offsetY = 0;
 		/**
 		 * 控件配置横向缩放
 		 * @public
@@ -234,6 +252,27 @@ this.jees.UI = this.jees.UI || {};
 		 * @default false
 		 */
 		this.state = false;
+		/**
+		 * @public
+		 * @property enableDrag
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.enableDrag = false;
+		/**
+		 * @public
+		 * @property dragX
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.dragX = true;
+		/**
+		 * @public
+		 * @property dragY
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.dragY = true;
 // private properties:
 		/**
 		 * 控件备份
@@ -257,26 +296,22 @@ this.jees.UI = this.jees.UI || {};
 		this._widget = _w;
 		
 		this._resource_size();
-		this._reset_size();
-		this._reset_position();
-	}
-	/**
-	 * @public
-	 * @method getPosition
-	 * @return {Integer,Integer} {w,h}
-	 */
-	p.getPosition = function(){return { x: this.x, y: this.y };}
-	/**
-	 * @public
-	 * @method setPosition
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 */
-	p.setPosition = function( _x, _y ){
-		if( _x != undefined ) this.x = _x;
-		if( _y != undefined ) this.y = _y;
 		
-		this._reset_position();
+		this.setSize();
+		this.setAlign();
+		
+		if( this.enableDrag ){
+			var _this = this;
+			jees.E.bind( _w, "mousedown", function ( _evt ) {
+				this.offset = { x: this.x - _evt.stageX, y: this.y - _evt.stageY }
+			});
+			jees.E.bind( _w, "pressmove", function ( _evt ) {
+				if( _this.dragX )
+					this.x = this.property.x = _evt.stageX + this.offset.x;
+				if( _this.dragY )
+					this.y = this.property.y = _evt.stageY + this.offset.y;
+			});
+		}
 	}
 	/**
 	 * @public
@@ -285,6 +320,16 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getResourceSize = function(){
 		return { w: this.resWidth, h: this.resHeight };
+	}
+	/**
+	 * @public
+	 * @method setResourceSize
+	 * @param {Integer} _w
+	 * @param {Integer} _h
+	 */
+	p.setResourceSize = function( _w, _h ){
+		if( _w != undefined ) this.resWidth = _w;
+		if( _h != undefined ) this.resHeight = _h;
 	}
 	/**
 	 * @public
@@ -305,7 +350,31 @@ this.jees.UI = this.jees.UI || {};
 		if( _w != undefined ) this.width = _w;
 		if( _h != undefined ) this.height = _h;
 		
-		this._reset_size();
+		var parent_size = this._get_parnet_size();
+		
+		this.w = this._calculate_size( this.width, this.resWidth, this.layoutX, this._widget.parent, parent_size.w, true );
+		this.h = this._calculate_size( this.height, this.resHeight, this.layoutY, this._widget.parent, parent_size.h, false );
+	}
+	/**
+	 * @public
+	 * @method getPosition
+	 * @return {Integer,Integer} {w,h}
+	 */
+	p.getPosition = function(){return { x: this.x, y: this.y };}
+	/**
+	 * @public
+	 * @method setPosition
+	 * @param {Integer} _x
+	 * @param {Integer} _y
+	 */
+	p.setPosition = function( _x, _y ){
+		if( _x != undefined ) this.offsetX = _x;
+		if( _y != undefined ) this.offsetY = _y;
+		
+		var parent_size = this._get_parnet_size();
+		
+		this.x = this._calculate_position( this.offsetX, this.alignX, parent_size.w, this.w );
+		this.y = this._calculate_position( this.offsetY, this.alignY, parent_size.h, this.h );
 	}
 	/**
 	 * @public
@@ -328,131 +397,106 @@ this.jees.UI = this.jees.UI || {};
 	 * @method getAlign
 	 * @return {Integer,Integer} {x,y}
 	 */
-	p.getAlign = function(){return { x: this.alignX, y: this.alignY };}
+	p.getAlign = function(){return { x: this.alignX, y: this.alignY };};
 	/**
 	 * @public
 	 * @method setAlign
-	 * @param {Integer,Integer} _x
-	 * @param {Integer,Integer} _y
+	 * @param {Integer} _x
+	 * @param {Integer} _y
 	 */
 	p.setAlign = function( _x, _y ){
-		if( _x ) this.alignX = _x;
-		if( _y ) this.alignY = _y;
+		if( _x != undefined ) this.alignX = _x;
+		if( _y != undefined ) this.alignY = _y;
 		
-		this._reset_position();
-	}
+		this._widget.regX = this._calculate_align( this.alignX, this.w );
+		this._widget.regY = this._calculate_align( this.alignY, this.h );
+		
+		this.setPosition();
+	};
 // private methods: ===========================================================
-	/**
-	 * @private
-	 * @method _get_size
-	 * @param {Integer|String} _val 纪录的值
-	 * @param {Integer} _parent 父控件的值
-	 * @param {Integer} _child 其他同组子控件的值之和(不包含自己)
-	 */
-	p._calculate_size = function( _val, _parent, _child ){
-		var real_val = 0;
-		if( _val && typeof( _val ) == "string" ){
-			if( _val.toLowerCase() == "default" ){
-				real_val = 0;
-			}else if( _val.toLowerCase() == "auto" ){
-				real_val = _parent - _child;
-			}else if( _val.indexOf( "%" ) != -1 ){
-				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
-			}else{
-				real_val = parseInt( _val );
-			}
-		}else real_val = _val;
-		return real_val;
-	}
-	/**
-	 * @private
-	 * @method _reset_size
-	 */
-	p._reset_size = function(){
+	p._get_parnet_size = function(){
 		var parent = this._widget.parent;
 		var parent_size = null;
+		
 		if( parent )
-			if( parent instanceof createjs.Stage 
-				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
-			else if( parent instanceof createjs.Container ) {
+			if( parent instanceof jees.UI.Widget ){
+				parent_size = parent.getSize();
+			}else if( parent instanceof createjs.Container ){
 				var b = parent.getBounds();
 				parent_size = { w: b.width, h: b.height };
-			}
-			else parent_size = parent.getSize();
+			}else if( parent instanceof createjs.Stage 
+				|| parent instanceof createjs.StageGL ) {
+				parent_size = jees.APP.getScreenSize();
+			}else parent_size = parent.getSize();
 		else parent_size = jees.APP.getScreenSize();
-
-		var childs_size = { w:0, h:0 };
-		var size = this.getSize( true );
-		if( parent && ( this.layoutX || this.layoutY ) ){
-			if( ( typeof( size.w ) == "string" && size.w.toLowerCase() == "auto" )
-				|| ( typeof( size.h ) == "string" && size.h.toLowerCase() == "auto" ) ){
-					
-				if( this.layoutX ){
-					var layoutXWgts = this.layoutX.split(",");
-					layoutXWgts.forEach( function( _w ){
-						var w = parent.getChildByName( _w );
-						if( !w.property.state ) w.initialize();
-						childs_size.w += w.getSize().w;
-					} );
-				}
-				if( this.layoutY ){
-					var layoutYWgts = this.layoutY.split(",");
-					layoutYWgts.forEach( function( _w ){
-						var w = parent.getChildByName( _w );
-						if( !w.property.state ) w.initialize();
-						childs_size.h += w.getSize().h;
-					} );
-				}
-			}
-		}
-		
-		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
-		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
-		
-		var pro_size = this.getResourceSize();
-		
-		if( pro_size.w != -1 && this.width == "default" ){
-			this.w = pro_size.w;
-		}
-		if( pro_size.h != -1 && this.height == "default" ){
-			this.h = pro_size.h;
-		}
+		return parent_size;
 	}
-	
 	/**
-	 * 重置坐标
 	 * @private
-	 * @method _reset_position
+	 * @method _calculate_size
+	 * @param {Integer} _size 纪录尺寸
+	 * @param {Integer} _resSize 资源值
+	 * @param {Integer} _lxy 同组组名
+	 * @param {Integer} _parent 父控件
+	 * @param {Integer} _parentSize 父控件尺寸
+	 * @param {Integer} _isWidth 是否宽度
 	 */
-	p._reset_position = function(){
-		var parent = this._widget.parent;
-		var parent_size = null;
-		if( parent )
-			if( parent instanceof createjs.Stage 
-				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
-			else parent_size = parent.getSize();
-		else parent_size = jees.APP.getScreenSize();
-		var pos = this.getPosition();
-		var size = this.getSize();
-		
-		var x = pos.x;
-		var y = pos.y;
-
-		if( this.alignX == 2 ){
-			x = parent_size.w - size.w - x;
-		}else if( this.alignX == 1 ){
-			x = ( parent_size.w - size.w ) / 2 + x;
+	p._calculate_size = function( _size, _resSize, _lxy, _parent, _parentSize, _isWidth ){
+		if( typeof _size == "string" ){
+			if( _size == "default" ){
+				// 图片类
+				if( _resSize != -1 ) return _resSize;
+				else return _parentSize;
+			}else if ( _size == "auto" ){
+				var cs = 0;
+				if( _lxy ){
+					var layoutWgts = _lxy.split(",");
+					layoutWgts.forEach( function( _name ){
+						var wgt = _parent.getChildByName( _name );
+						if( !wgt.property.state ) wgt.initialize();
+						cs += _isWidth ? wgt.getSize().w : wgt.getSize().h;
+					} );
+				}
+				return _parentSize - cs;
+			}else if( _size.indexOf( "%" ) != -1 ){
+				return parseInt( _size.substring( 0, _size.length - 1 ) ) * _parentSize / 100 ;
+			}else return parseInt( _size );
 		}
 		
-		if( this.alignY == 2 ){
-			y = parent_size.h - size.h - y;
-		}else if( this.alignY == 1 ){
-			y = ( parent_size.h - size.h ) / 2 + y;
+		return _size;
+	}
+	/**
+	 * @private
+	 * @method _calculate_align
+	 * @param {Integer} _align 对齐方式
+	 * @param {Integer} _size 当前尺寸
+	 */
+	p._calculate_align = function( _align, _size ){
+		if( _align == 2 ){ // 右下对齐
+			return _size;
+		}else if( _align == 1 ){ // 中间对齐
+			return _size / 2;
 		}
 		
-		this.x = x;
-		this.y = y;
-	};
+		return 0;
+	}
+	/**
+	 * @private
+	 * @method _calculate_position
+	 * @param {Integer} _pos 当前值
+	 * @param {Integer} _align 对齐方式
+	 * @param {Integer} _parentSize 父控件尺寸
+	 * @param {Integer} _size 当前尺寸
+	 */
+	p._calculate_position = function( _pos, _align, _parentSize, _size ){
+		if( _align == 2 ){ // 右下对齐
+			return _parentSize - _pos;
+		}else if( _align == 1 ){ // 中间对齐
+			return _parentSize / 2 + _pos;
+		}
+		
+		return _pos;
+	}
 	/**
 	 * @private
 	 * @method _resource_size

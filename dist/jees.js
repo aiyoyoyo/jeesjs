@@ -2012,21 +2012,39 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.h = 0;
 		/**
-		 * 控件配置宽度， 可用 100 | "100%" | "auto"
+		 * 控件配置宽度， 可用 100 | "100%" | "auto" | "default"
 		 * @public
 		 * @property width
     	 * @type {Integer|String}
-    	 * @default 0
+    	 * @default "default"
 		 */
-		this.width = 0;
+		this.width = "default";
 		/**
-		 * 控件配置高度， 可用 100 | "100%" | "auto"
+		 * 控件配置高度， 可用 100 | "100%" | "auto" | "default"
 		 * @public
 		 * @property height
     	 * @type {Integer|String}
-    	 * @default 0
+    	 * @default default
 		 */
-		this.height = 0;
+		this.height = "default";
+		/**
+		 * 偏移坐标，alignX变化时，x属性将会重置为相对位置，之后根据offsetX偏移横坐标。
+		 * alignX==2，offsetX = -offsetX;
+		 * @public
+		 * @property offsetX
+		 * @type {Integer}
+		 * @default 0;
+		 */
+		this.offsetX = 0;
+		/**
+		 * 偏移坐标，alignY变化时，y属性将会重置为相对位置，之后根据offsetY偏移纵坐标。
+		 * alignY==2，offsetY = -offsetY;
+		 * @public
+		 * @property offsetY
+		 * @type {Integer}
+		 * @default 0;
+		 */
+		this.offsetY = 0;
 		/**
 		 * 控件配置横向缩放
 		 * @public
@@ -2189,6 +2207,27 @@ this.jees.UI = this.jees.UI || {};
 		 * @default false
 		 */
 		this.state = false;
+		/**
+		 * @public
+		 * @property enableDrag
+		 * @type {Boolean}
+		 * @default false
+		 */
+		this.enableDrag = false;
+		/**
+		 * @public
+		 * @property dragX
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.dragX = true;
+		/**
+		 * @public
+		 * @property dragY
+		 * @type {Boolean}
+		 * @default true
+		 */
+		this.dragY = true;
 // private properties:
 		/**
 		 * 控件备份
@@ -2212,26 +2251,22 @@ this.jees.UI = this.jees.UI || {};
 		this._widget = _w;
 		
 		this._resource_size();
-		this._reset_size();
-		this._reset_position();
-	}
-	/**
-	 * @public
-	 * @method getPosition
-	 * @return {Integer,Integer} {w,h}
-	 */
-	p.getPosition = function(){return { x: this.x, y: this.y };}
-	/**
-	 * @public
-	 * @method setPosition
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 */
-	p.setPosition = function( _x, _y ){
-		if( _x != undefined ) this.x = _x;
-		if( _y != undefined ) this.y = _y;
 		
-		this._reset_position();
+		this.setSize();
+		this.setAlign();
+		
+		if( this.enableDrag ){
+			var _this = this;
+			jees.E.bind( _w, "mousedown", function ( _evt ) {
+				this.offset = { x: this.x - _evt.stageX, y: this.y - _evt.stageY }
+			});
+			jees.E.bind( _w, "pressmove", function ( _evt ) {
+				if( _this.dragX )
+					this.x = this.property.x = _evt.stageX + this.offset.x;
+				if( _this.dragY )
+					this.y = this.property.y = _evt.stageY + this.offset.y;
+			});
+		}
 	}
 	/**
 	 * @public
@@ -2240,6 +2275,16 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getResourceSize = function(){
 		return { w: this.resWidth, h: this.resHeight };
+	}
+	/**
+	 * @public
+	 * @method setResourceSize
+	 * @param {Integer} _w
+	 * @param {Integer} _h
+	 */
+	p.setResourceSize = function( _w, _h ){
+		if( _w != undefined ) this.resWidth = _w;
+		if( _h != undefined ) this.resHeight = _h;
 	}
 	/**
 	 * @public
@@ -2260,7 +2305,31 @@ this.jees.UI = this.jees.UI || {};
 		if( _w != undefined ) this.width = _w;
 		if( _h != undefined ) this.height = _h;
 		
-		this._reset_size();
+		var parent_size = this._get_parnet_size();
+		
+		this.w = this._calculate_size( this.width, this.resWidth, this.layoutX, this._widget.parent, parent_size.w, true );
+		this.h = this._calculate_size( this.height, this.resHeight, this.layoutY, this._widget.parent, parent_size.h, false );
+	}
+	/**
+	 * @public
+	 * @method getPosition
+	 * @return {Integer,Integer} {w,h}
+	 */
+	p.getPosition = function(){return { x: this.x, y: this.y };}
+	/**
+	 * @public
+	 * @method setPosition
+	 * @param {Integer} _x
+	 * @param {Integer} _y
+	 */
+	p.setPosition = function( _x, _y ){
+		if( _x != undefined ) this.offsetX = _x;
+		if( _y != undefined ) this.offsetY = _y;
+		
+		var parent_size = this._get_parnet_size();
+		
+		this.x = this._calculate_position( this.offsetX, this.alignX, parent_size.w, this.w );
+		this.y = this._calculate_position( this.offsetY, this.alignY, parent_size.h, this.h );
 	}
 	/**
 	 * @public
@@ -2283,131 +2352,106 @@ this.jees.UI = this.jees.UI || {};
 	 * @method getAlign
 	 * @return {Integer,Integer} {x,y}
 	 */
-	p.getAlign = function(){return { x: this.alignX, y: this.alignY };}
+	p.getAlign = function(){return { x: this.alignX, y: this.alignY };};
 	/**
 	 * @public
 	 * @method setAlign
-	 * @param {Integer,Integer} _x
-	 * @param {Integer,Integer} _y
+	 * @param {Integer} _x
+	 * @param {Integer} _y
 	 */
 	p.setAlign = function( _x, _y ){
-		if( _x ) this.alignX = _x;
-		if( _y ) this.alignY = _y;
+		if( _x != undefined ) this.alignX = _x;
+		if( _y != undefined ) this.alignY = _y;
 		
-		this._reset_position();
-	}
+		this._widget.regX = this._calculate_align( this.alignX, this.w );
+		this._widget.regY = this._calculate_align( this.alignY, this.h );
+		
+		this.setPosition();
+	};
 // private methods: ===========================================================
-	/**
-	 * @private
-	 * @method _get_size
-	 * @param {Integer|String} _val 纪录的值
-	 * @param {Integer} _parent 父控件的值
-	 * @param {Integer} _child 其他同组子控件的值之和(不包含自己)
-	 */
-	p._calculate_size = function( _val, _parent, _child ){
-		var real_val = 0;
-		if( _val && typeof( _val ) == "string" ){
-			if( _val.toLowerCase() == "default" ){
-				real_val = 0;
-			}else if( _val.toLowerCase() == "auto" ){
-				real_val = _parent - _child;
-			}else if( _val.indexOf( "%" ) != -1 ){
-				real_val = parseInt( _val.substring( 0, _val.length - 1 ) ) * _parent / 100 ;
-			}else{
-				real_val = parseInt( _val );
-			}
-		}else real_val = _val;
-		return real_val;
-	}
-	/**
-	 * @private
-	 * @method _reset_size
-	 */
-	p._reset_size = function(){
+	p._get_parnet_size = function(){
 		var parent = this._widget.parent;
 		var parent_size = null;
+		
 		if( parent )
-			if( parent instanceof createjs.Stage 
-				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
-			else if( parent instanceof createjs.Container ) {
+			if( parent instanceof jees.UI.Widget ){
+				parent_size = parent.getSize();
+			}else if( parent instanceof createjs.Container ){
 				var b = parent.getBounds();
 				parent_size = { w: b.width, h: b.height };
-			}
-			else parent_size = parent.getSize();
+			}else if( parent instanceof createjs.Stage 
+				|| parent instanceof createjs.StageGL ) {
+				parent_size = jees.APP.getScreenSize();
+			}else parent_size = parent.getSize();
 		else parent_size = jees.APP.getScreenSize();
-
-		var childs_size = { w:0, h:0 };
-		var size = this.getSize( true );
-		if( parent && ( this.layoutX || this.layoutY ) ){
-			if( ( typeof( size.w ) == "string" && size.w.toLowerCase() == "auto" )
-				|| ( typeof( size.h ) == "string" && size.h.toLowerCase() == "auto" ) ){
-					
-				if( this.layoutX ){
-					var layoutXWgts = this.layoutX.split(",");
-					layoutXWgts.forEach( function( _w ){
-						var w = parent.getChildByName( _w );
-						if( !w.property.state ) w.initialize();
-						childs_size.w += w.getSize().w;
-					} );
-				}
-				if( this.layoutY ){
-					var layoutYWgts = this.layoutY.split(",");
-					layoutYWgts.forEach( function( _w ){
-						var w = parent.getChildByName( _w );
-						if( !w.property.state ) w.initialize();
-						childs_size.h += w.getSize().h;
-					} );
-				}
-			}
-		}
-		
-		this.w = this._calculate_size( size.w, parent_size.w, childs_size.w );
-		this.h = this._calculate_size( size.h, parent_size.h, childs_size.h );
-		
-		var pro_size = this.getResourceSize();
-		
-		if( pro_size.w != -1 && this.width == "default" ){
-			this.w = pro_size.w;
-		}
-		if( pro_size.h != -1 && this.height == "default" ){
-			this.h = pro_size.h;
-		}
+		return parent_size;
 	}
-	
 	/**
-	 * 重置坐标
 	 * @private
-	 * @method _reset_position
+	 * @method _calculate_size
+	 * @param {Integer} _size 纪录尺寸
+	 * @param {Integer} _resSize 资源值
+	 * @param {Integer} _lxy 同组组名
+	 * @param {Integer} _parent 父控件
+	 * @param {Integer} _parentSize 父控件尺寸
+	 * @param {Integer} _isWidth 是否宽度
 	 */
-	p._reset_position = function(){
-		var parent = this._widget.parent;
-		var parent_size = null;
-		if( parent )
-			if( parent instanceof createjs.Stage 
-				|| parent instanceof createjs.StageGL ) parent_size = jees.APP.getScreenSize();
-			else parent_size = parent.getSize();
-		else parent_size = jees.APP.getScreenSize();
-		var pos = this.getPosition();
-		var size = this.getSize();
-		
-		var x = pos.x;
-		var y = pos.y;
-
-		if( this.alignX == 2 ){
-			x = parent_size.w - size.w - x;
-		}else if( this.alignX == 1 ){
-			x = ( parent_size.w - size.w ) / 2 + x;
+	p._calculate_size = function( _size, _resSize, _lxy, _parent, _parentSize, _isWidth ){
+		if( typeof _size == "string" ){
+			if( _size == "default" ){
+				// 图片类
+				if( _resSize != -1 ) return _resSize;
+				else return _parentSize;
+			}else if ( _size == "auto" ){
+				var cs = 0;
+				if( _lxy ){
+					var layoutWgts = _lxy.split(",");
+					layoutWgts.forEach( function( _name ){
+						var wgt = _parent.getChildByName( _name );
+						if( !wgt.property.state ) wgt.initialize();
+						cs += _isWidth ? wgt.getSize().w : wgt.getSize().h;
+					} );
+				}
+				return _parentSize - cs;
+			}else if( _size.indexOf( "%" ) != -1 ){
+				return parseInt( _size.substring( 0, _size.length - 1 ) ) * _parentSize / 100 ;
+			}else return parseInt( _size );
 		}
 		
-		if( this.alignY == 2 ){
-			y = parent_size.h - size.h - y;
-		}else if( this.alignY == 1 ){
-			y = ( parent_size.h - size.h ) / 2 + y;
+		return _size;
+	}
+	/**
+	 * @private
+	 * @method _calculate_align
+	 * @param {Integer} _align 对齐方式
+	 * @param {Integer} _size 当前尺寸
+	 */
+	p._calculate_align = function( _align, _size ){
+		if( _align == 2 ){ // 右下对齐
+			return _size;
+		}else if( _align == 1 ){ // 中间对齐
+			return _size / 2;
 		}
 		
-		this.x = x;
-		this.y = y;
-	};
+		return 0;
+	}
+	/**
+	 * @private
+	 * @method _calculate_position
+	 * @param {Integer} _pos 当前值
+	 * @param {Integer} _align 对齐方式
+	 * @param {Integer} _parentSize 父控件尺寸
+	 * @param {Integer} _size 当前尺寸
+	 */
+	p._calculate_position = function( _pos, _align, _parentSize, _size ){
+		if( _align == 2 ){ // 右下对齐
+			return _parentSize - _pos;
+		}else if( _align == 1 ){ // 中间对齐
+			return _parentSize / 2 + _pos;
+		}
+		
+		return _pos;
+	}
 	/**
 	 * @private
 	 * @method _resource_size
@@ -2465,8 +2509,23 @@ this.jees.UI = this.jees.UI || {};
 		 * 控件的配置属性，用于初始化和部分属性的重置用
 		 * @public
 		 * @property property
+		 * @type jees.UI.Property
 		 */
 		this.property = new jees.UI.Property();
+		/**
+		 * @public
+		 * @property maskColor
+		 * @type {String}
+		 * @default "#000000"
+		 */
+		this.maskColor = "#000000";
+		/**
+		 * @public
+		 * @property maskAlpha
+		 * @type {Float}
+		 * @default 0.5
+		 */
+		this.maskAlpha = 0.5;
 // private properties:
 	};
 	var p = createjs.extend( Widget, createjs.Container );
@@ -2480,15 +2539,17 @@ this.jees.UI = this.jees.UI || {};
 		this.property.state = true;
 		
 		this.property.initialize( this );
+		this._mask = jees.CJS.newShape( this.property.w, this.property.h, this.maskColor );
+		if( this.property.visibleMask )
+			this.addChildAt( this._mask, 0 );
 		
-		this._reset_size();
 		this._reset_scale();
 		this._reset_position();
 		this._reset_mask();
-
+		
 		this._init_childs();
 		
-//		this._cache();
+		this.cursor = "pointer";
 	};
 	/**
 	 * 绝对位置
@@ -2508,7 +2569,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setSize = function( _w, _h ){
 		this.property.setSize( _w, _h );
-		this._reset_size();
+		
+		this.property.setPosition();
+		this._reset_mask();
 	};
 	/**
 	 * @public
@@ -2570,41 +2633,27 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
-		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
-	};
-// private methods: ===========================================================
-	/**
-	 * 建立缓存区域
-	 */
-	p._cache = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
-		var b = this.getBounds();
-		this.cache( b.x, b.y, b.width, b.height );
+		this.property.setAlign( _x, _y );
+		this._reset_position();
 	};
 	/**
-	 * @private
-	 * @method _reset_size
+	 * 
 	 */
-	p._reset_size = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
-		this.setBounds( 0, 0, size.w, size.h );
-		
-		if( this.property.enableMask ){
-			this._reset_mask();
+	p.findChildByName = function( _n ){
+		for( var c in this.children ){
+			var wgt = this.children[c];
+			if( this.children[c].name == _n ){
+				return wgt;
+			}
+			if( wgt.findChildByName ){
+				var child_wgt = wgt.findChildByName( _n );
+				if( child_wgt ) return child_wgt;
+			}
 		}
-	};
+		
+		return null;
+	}
+// private methods: ===========================================================
 	/**
 	 * @private
 	 * @method _reset_position
@@ -2614,6 +2663,8 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
+		
+		this._reset_mask();
 	};
 	/**
 	 * @private
@@ -2630,21 +2681,17 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_mask
 	 */
 	p._reset_mask = function(){
-		if( this.property.enableMask ){
-			var size = this.property.getSize();
+		if( this._mask && this.property.enableMask ){
+			var size = this.getSize();
 			var pos = this.getPosition();
+			var align = this.getAlign();
 			
-			if( this.mask == null ){
-				this.mask = jees.CJS.newShape( size.w, size.h, "#000000" );
-				if( this.property.visibleMask )
-					this.addChildAt( this.mask, 0 );
+			if( this.property.visibleMask ){
+				this._mask.alpha = this.maskAlpha;
+				this._mask.graphics.clear().beginFill( this.maskColor ).drawRect( 0, 0, size.w, size.h );
+				this._mask.cache( 0, 0, size.w, size.h );
 			}
 			
-			if( this.mask && this.property.visibleMask ){
-				this.mask.alpha = 0.5;
-				this.mask.cache( 0, 0, size.w, size.h );
-				this.mask.graphics.drawRect( 0, 0, size.w, size.h );
-			}
 		}
 	};
 	/**
@@ -2665,7 +2712,7 @@ this.jees.UI = this.jees.UI || {};
 				}
 				
 				if( this.property.enableMask ) {
-					c.mask = this.mask;
+					c.mask = this._mask;
 				}
 			}
 		}
@@ -2739,9 +2786,13 @@ this.jees.UI = this.jees.UI || {};
     	
     	this.Widget_initialize();
     	
+    	this._background = new jees.UI.ImageBox();
+    	this._background.initialize();
+    	if( this.property.enableSkin || ( !this.property.enableSkin && this.property.resource ) ){
+			this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
+		}
+    	
 		this._reset_background();
-		
-//		this._cache();
 	};
 	p.setSkinType = function( _t ){
 		this.property.skinType = _t;
@@ -2762,14 +2813,6 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_background
 	 */
 	p._reset_background = function(){
-		if( !this._background ){
-			if( this.property.enableSkin || ( !this.property.enableSkin && this.property.resource ) ){
-				this._background = new jees.UI.ImageBox();
-				this.addChildAt( this._background, this.visibeMask ? 1 : 0 );
-				this._background.initialize();
-			}
-		}
-		
 		if( this.property.enableSkin ){
 			this._reset_skin();
 		}else{
@@ -2844,6 +2887,8 @@ this.jees.UI = this.jees.UI || {};
 				this._background.setPosition( 0, 0 );
 				break;
 		}
+		
+		this._background.cache( 0, 0, size.w, size.h );
 	};
 	/**
 	 * @private
@@ -2957,7 +3002,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function ( _w, _h ) {
 		// 设置记录值
 		this.property.setSize( _w, _h );
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * @public
@@ -3037,17 +3083,9 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
+		this.property.setAlign( _x, _y );
 		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
+		this._reset_position();
 	};
  // private method: ===========================================================
  	/**
@@ -3076,8 +3114,13 @@ this.jees.UI = this.jees.UI || {};
 				// 这里可能需要延迟加载
 			}
 		}else this.image = this.property.resource; // type = image
+		
 		this.property._resource_size();
-//		this.property._reset_position();
+		if( this.property.state ){
+			this.property.setSize();
+			this.property.setAlign();
+		}
+		
 		this._reset_rect();
 		this._reset_size();
  	};
@@ -3106,26 +3149,6 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
-	};
-	/**
-	 * @private
-	 * @method _reset_size_position
-	 */
-	p._reset_size_position = function(){
-		this._reset_size();
-		var pos = this.getPosition();
-		var x = pos.x;
-		var y = pos.y;
-		
-		if( this.property.alignX != 0 ){
-			x = 0;
-		}
-		if( this.property.alignY != 0 ){
-			y = 0;
-		}
-		
-		this.property.setPosition( x, y );
-		this._reset_position();
 	};
 	/**
 	  * @method _reset_rect
@@ -3262,6 +3285,8 @@ this.jees.UI = this.jees.UI || {};
 		 * @default 1
 		 */
 		this._frame_count = 1;
+		
+		this.spriteSheet = new createjs.SpriteSheet( this._data );
 	};
 
 	var p = createjs.extend( ImageSpt, createjs.Sprite );
@@ -3274,31 +3299,29 @@ this.jees.UI = this.jees.UI || {};
 		if( this.property.state ) return;
 		this.property.state = true;
 		
-		this.property.initialize( this );
-		
 		var res =  jees.Resource.get( this.property.resource );
 		var frame_width = res.width / this.cols;
 		var frame_height = res.height / this.rows;
+		
+		this.property.width = frame_width;
+		this.property.height = frame_height;
+		this.property.initialize( this );
 		
 //	    framerate: rate, 这里无视ticker的timingMode，也许是bug也许是我错了。
 		this._frame_count = ( this.cols * this.rows );
 		this._data = {
 	        images: [ res ],
 	        framerate: this._frame_count,
-	        frames: { width: frame_width, height: frame_height, count: this._frame_count, regX: this.regX, regY: this.regY },
+	        frames: { width: frame_width, height: frame_height, count: this._frame_count },
 	        animations: {
 	        	default: [ 0, this._frame_count - 1, "default", 1]
 	        }
 	   	};
-	   	this.spriteSheet = new createjs.SpriteSheet( this._data );
+		this.spriteSheet._parseData( this._data );
 	   	
-		this.property._resource_size();
-		this.property.setSize( frame_width, frame_height );
-		
-		this._reset_size();
 	    this._reset_speed();
 	    this._reset_position();
-	    		
+	    
 	    this._goto( this.start );
 	    if( this.auto ){
 	    	this.gotoAndPlay( "default" );
@@ -3322,7 +3345,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function ( _w, _h ) {
 		// 设置记录值
 		this.property.setSize( _w, _h );
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * @public
@@ -3370,39 +3394,15 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setScale = function( _sx, _sy ){
 		this.property.setScale( _sx, _sy );
-		var size = this.getSize();
+		var size = this.property.getResourceSize();
 		
 		var w = size.w;
 		var h = size.h;
+		
 		if( _sx != undefined ) w *= _sx;
 		if( _sy != undefined ) h *= _sy;
 		
 		this.setSize( w, h );
-	};
-	/**
-	 * 绘制图片的局部
-	 * @method setRect
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 * @param {Integer} _w
-	 * @param {Integer} _h
-	 */
-	p.setRect = function( _x, _y, _w, _h ){
-		this.region = _x + "," + _y + "," + _w + "," + _h;
-		this.sourceRect = jees.CJS.newRect( _x, _y, _w, _h );
-		this.setBounds( _x, _y, _w, _h);
-//		this.cache( 0, 0, _w, _h );
-	};
-	/**
-	 * 设置图片热点
-	 * @public
-	 * @method setReg
-	 * @param {Integer} _x
-	 * @param {Integer} _y
-	 */
-	p.setReg = function( _x, _y ){
-		if( _x ) this.regX = _x;
-		if( _y ) this.regY = _y;
 	};
 	/**
 	 * 
@@ -3429,17 +3429,17 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
+		this.property.setAlign( _x, _y );
 		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
+		this._reset_position();
+	};
+	/**
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this.visible = _v;
 	};
  // private method: ===========================================================
 	/** 
@@ -3448,15 +3448,13 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_size = function(){
 		var pro_size = this.property.getResourceSize();
-		var pro_w = pro_size.w / this.cols;
-		var pro_h = pro_size.h / this.rows;
 		var size = this.getSize();
 		
-		if( pro_w != -1 && size.w != pro_w ){
-			this.property.scaleX = size.w / pro_w;
+		if( pro_size.w != -1 && size.w != pro_size.w ){
+			this.property.scaleX = size.w / pro_size.w;
 		}
-		if( pro_h != -1 && size.h != pro_h ){
-			this.property.scaleY = size.h / pro_h;
+		if( pro_size.w != -1 && size.h != pro_size.h ){
+			this.property.scaleY = size.h / pro_size.h;
 		}
 		this._reset_scale();
 	};
@@ -3470,28 +3468,6 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
-	};
-	/**
-	 * @private
-	 * @method _reset_size_position
-	 */
-	p._reset_size_position = function(){
-		this._reset_size();
-		var pos = this.getPosition();
-		var size = this.getSize();
-		
-		var x = pos.x;
-		var y = pos.y;
-		
-		if( this.property.alignX != 0 ){
-			x = 0;
-		}
-		if( this.property.alignY != 0 ){
-			y = 0;
-		}
-		
-		this.property.setPosition( x, y );
-		this._reset_position();
 	};
 	/**
 	* @private
@@ -3607,12 +3583,15 @@ this.jees.UI = this.jees.UI || {};
 		if( this.property.state ) return;
 		this.property.state = true;
 		
-		this.property.initialize( this );
 		this.font = this._get_font();
+		this._cache();
 		
-		this.property.setSize( this.getSize().w, this.getSize().h );
-		this.property.setPosition( this.x, this.y );
-		this._reset_size_position();
+		this.property.setResourceSize( this.getSize().w, this.getSize().h );
+		this.property.initialize( this );
+		
+		this._cache();
+		this._reset_scale();
+		this._reset_position();
 	};
     /**
      * 获取文本绘制的宽高
@@ -3702,7 +3681,9 @@ this.jees.UI = this.jees.UI || {};
 	p.setFontStyle = function (_s) {
 		this.fontStyle = _s;
 		this.font = this._get_font();
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前字体大小
@@ -3722,7 +3703,9 @@ this.jees.UI = this.jees.UI || {};
 		this.fontSize = _s;
 		this.lineHeight = this.fontSize;
 		this.font = this._get_font();
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前字体基于坐标的水平对齐方式
@@ -3739,17 +3722,9 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
+		this.property.setAlign( _x, _y );
 		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
+		this._reset_position();
 	};
 	/**
 	 * 当前显示内容的固定宽度
@@ -3766,7 +3741,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setMaxWidth = function (_w) {
 		this.maxWidth = _w;
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前显示范围的固定宽度
@@ -3783,7 +3760,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setLineWidth = function (_w) {
 		this.lineWidth = _w;
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 当前显示的内容
@@ -3800,7 +3779,9 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.setText = function (_t) {
 		this.text = _t;
-		this._reset_size_position();
+		
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 是否使用粗体
@@ -3818,7 +3799,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setBold = function (_v) {
 		this.bold = _v;
 		this.font = this._get_font();
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 是否使用斜体
@@ -3836,7 +3818,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setItalic = function (_v) {
 		this.italic = _v;
 		this.font = this._get_font();
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * 设置是否可见
@@ -3856,6 +3839,41 @@ this.jees.UI = this.jees.UI || {};
 	p.isVisible = function(){
 		return this.visible;
 	};
+	/**
+	 * @public
+	 * @method setScale
+	 * @param {Float} _x
+	 * @param {Float} _y
+	 */
+	p.setScale = function( _x, _y ){
+		this.property.setScale( _x, _y );
+		this._reset_scale();
+	};
+	/**
+	 * @public
+	 * @method getScale
+	 * @returns {Float,Float} {x,y}
+	 */
+	p.getScale = function(){
+		return this.property.getScale();
+	};
+	/**
+	 * @public
+	 * @method isWarp
+	 * @returns {Boolean}
+	 */
+	p.isWarp = function(){
+		return this.warp;
+	}
+	/**
+	 * @public
+	 * @method setWarp
+	 * @param {Boolean} _v
+	 */
+	p.setWarp = function( _v ){
+		this.warp = _v;
+		this.setText( this.text );
+	}
 // private method: ============================================================
 	/**
 	 * @private
@@ -3863,7 +3881,17 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._cache = function(){
 		var size = this.getSize();
-		this.cache(  0, 0, size.w, size.h );
+		this.cache( 0, 0, size.w, size.h );
+	};
+	/**
+	 * @private
+	 * @method _reset_scale
+	 */
+	p._reset_scale = function(){
+		var scale = this.getScale();
+		
+		this.scaleX = scale.x;
+		this.scaleY = scale.y;
 	};
 	/**
 	 * 根据字体属性生成控件字体的属性字符串
@@ -3889,40 +3917,27 @@ this.jees.UI = this.jees.UI || {};
 		this.bold = _b || this.bold;
 	};
 	/**
+	 * @private
+	 * @method _reset_size
+	 */
+	p._reset_size = function(){
+		this._cache();
+
+		this.property.setResourceSize( this.getSize().w, this.getSize().h );
+		this.property.setSize();
+		this.property.setAlign();
+		
+		this._cache();
+	}
+	/**
 	 * 重置坐标
 	 * @private
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
 		var pos = this.getPosition();
-		
 		this.x = pos.x;
 		this.y = pos.y;
-	};
-	/**
-	 * @private
-	 * @method _reset_size_position
-	 */
-	p._reset_size_position = function(){
-		this._cache();
-		
-		var size = this.getSize();
-		var pos = this.getPosition();
-		
-		this.property.setSize( size.w, size.h );
-		
-		var x = pos.x;
-		var y = pos.y;
-		if( this.property.alignX != 0 ){
-			x = 0;
-		}
-		if( this.property.alignY != 0 ){
-			y = 0;
-		}
-		this.property.setPosition( x, y );
-		
-		this._reset_position();
-		this._cache();
 	};
 	/** 
      * Draws multiline text. 修复createjs的text为中文时，自动换行的问题。
@@ -3940,7 +3955,7 @@ this.jees.UI = this.jees.UI || {};
 		if ( !paint ) {
 			_ctx = createjs.Text._workingContext;
 			_ctx.save();
-			this._prepContext(ctx);
+			this._prepContext( _ctx );
 		}
 		
 		var lineHeight = this.lineHeight || this.getMeasuredLineHeight();
@@ -3951,6 +3966,7 @@ this.jees.UI = this.jees.UI || {};
 			return;
 		}
 		var hardLines = String( this.text ).split(/(?:\r\n|\r|\n)/);
+		
 		for ( var i = 0, l = hardLines.length; i < l; i++ ) {
 			var str = hardLines[i];
 			var w = null;
@@ -3972,8 +3988,10 @@ this.jees.UI = this.jees.UI || {};
 				words = splitChineseWords;//重新组成数组  
 				var word = "";
 				// 这里因为原来存在BUG，重新写过。逻辑可能不是最优。
+				
 				for( var j = 0; j < words.length; j ++ ){
 					var w = _ctx.measureText( word + words[j] ).width;
+					console.log( "---", w, this.lineWidth )
 					if( w >= this.lineWidth ){
 						if( w == this.lineWidth ){
 							if ( words[j] != "\s") word += words[j];
@@ -3994,7 +4012,7 @@ this.jees.UI = this.jees.UI || {};
 			}else{
 				if ( paint ) { this._drawTextLine( _ctx, str, count * lineHeight); }
 				if ( _lines ) { lines.push( str ); }
-				if ( _o && w == null) { w = ctx.measureText( str ).width; }
+				if ( _o && w == null) { w = _ctx.measureText( str ).width; }
 				if ( w > maxW ) { maxW = w; }
 				count++;
 			}
@@ -4141,6 +4159,11 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.textY = 0;
 // private properties:
+		/**
+		 * @private
+		 * @property _text
+		 * @type {jees.UI.TextBox}
+		 */
 		this._text = new jees.UI.TextBox();
 	};
 // public static properties:
@@ -4170,7 +4193,7 @@ this.jees.UI = this.jees.UI || {};
         	jees.E.bind( this, "mouseout", function( e ){ _this._handle_mouseout( e, _this ); });
         }
 		this._reset_disable();
-	    this._reset_size_position();
+	    this._reset_position();
 	};
 	/**
 	 * 设置状态
@@ -4206,6 +4229,15 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getText = function(){
 		return this._text.text;
+	};
+	/**
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this.visible = _v;
+		this._text.setVisible( this.visible );
 	};
 // private method: ============================================================
 	/**
@@ -4333,6 +4365,11 @@ this.jees.UI = this.jees.UI || {};
 		txt.italic = this.italic;
 		txt.bold = this.bold;
 		txt.mouseEnabled = false;
+		
+		txt.regX = txt.getSize().w / 2;
+		txt.regY = txt.getSize().h / 2;
+		
+		txt.initialize();
 	};
 	/**
 	 * @private
@@ -4354,12 +4391,11 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._handle_mousedown = function( _e, _w ){
 		if( _w.isDisabled() ) return;
-	 	var txt = _w._text;
-	 	var pos = txt.getPosition();
-	 	var offset = txt.getFontSize() / 10;
-	 	
-	 	txt.setPosition( pos.x - offset, pos.y - offset );
 	 	_w.gotoAndPlay( _w.checked ? "checkedPush":"push" );
+	 	
+	 	var size = this._text.getSize();
+		this._text.property.offsetY += size.h / 4;		
+		this._text.setPosition();
 	};
 	/**
 	 * 当按钮弹起时，文本控件恢复字体/10大小的偏移
@@ -4370,11 +4406,11 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._handle_pressup = function( _e, _w ){
 		if( _w.isDisabled() ) return;
-	 	var txt = _w._text;
-	 	var pos = txt.getPosition();
-	 	var offset = txt.getFontSize() / 10;
-	 	txt.setPosition( pos.x + offset, pos.y + offset );
 	 	_w.gotoAndPlay( _w.checked ? "checked" : "normal" );
+	 	
+	 	var size = this._text.getSize();
+		this._text.property.offsetY -= size.h / 4;		
+		this._text.setPosition();
 	};
 	/**
 	 * 当按钮移上按钮时
@@ -4425,18 +4461,37 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_position = function(){
 		this.ImageSpt__reset_position();
-		var size = this.getSize();
 		var txt = this._text;
-		var txt_size = txt.getSize();
+		if( !txt ) return;
 		
-		var x = this.x + ( size.w / 2 ) - ( txt_size.w / 2 ) + this.textX;
-		var y = this.y + ( size.h / 2 - ( txt_size.h / 2 ) ) + this.textY;
-		if( !txt.property.state ){
-			txt.x = x;
-			txt.y = y;
-		}else{
-			txt.setPosition( x, y );
+		var txt_size = txt.getSize();
+		var size = this.getSize();
+		var align = this.getAlign();
+		
+		txt.property.alignX = align.x;
+		txt.property.alignY = align.y;
+		if( align.x == 0 ){
+			txt.property.offsetX = this.property.offsetX + ( size.w - txt_size.w ) / 2;
+			txt.property.offsetX += this.textX;
+		}else if( align.x == 1 ){
+			txt.property.offsetX = this.property.offsetX;
+			txt.property.offsetX += this.textX;
+		}else if( align.x == 2 ){
+			txt.property.offsetX = this.property.offsetX + ( size.w - txt_size.w ) / 2;
+			txt.property.offsetX -= this.textX;
 		}
+		if( align.y == 0 ){
+			txt.property.offsetY = this.property.offsetY + ( size.h - txt_size.h ) / 2;
+			txt.property.offsetY += this.textY;	
+		}else if( align.y == 1 ){
+			txt.property.offsetY = this.property.offsetY;
+			txt.property.offsetY += this.textY;	
+		}else if( align.y == 2 ){
+			txt.property.offsetY = this.property.offsetY + ( size.h - txt_size.h ) / 2;
+			txt.property.offsetY -= this.textY;	
+		}	
+		txt.setAlign();
+		txt.setPosition();
 	};
 	jees.UI.Button = createjs.promote( Button, "ImageSpt" );
 })();;
@@ -4475,13 +4530,6 @@ this.jees.UI = this.jees.UI || {};
     	 * @default "Button"
     	 */
 		this.property.skinResource = "CheckBox";
-//		/**
-//		 * @public
-//		 * @property checked
-//		 * @type {Boolean}
-//		 * @default false
-//		 */
-//		this.checked = false;
 		/**
 		 * @public
 		 * @property group
@@ -4515,6 +4563,7 @@ this.jees.UI = this.jees.UI || {};
 	p.initialize = function(){
 		if( this.property.state ) return;
 		this.Button_initialize();
+		
 		var _this = this;
         jees.E.bind( this, "click", function( e ){ _this._handle_click( e, _this ); });
         
@@ -4613,7 +4662,7 @@ this.jees.UI = this.jees.UI || {};
 	 * @constructor
 	 */
     function InputBox(){
-    	this.ImageBox_constructor();
+    	this.Button_constructor();
 // public properties:
 		/**
 		 * 控件的配置属性，用于初始化和部分属性的重置用
@@ -4638,21 +4687,6 @@ this.jees.UI = this.jees.UI || {};
 		 */
 		this.placeholder = "";
 		/**
-		 * 拆分的字体样式-字体大小
-		 * @public
-		 * @property fontSize
-		 * @type {Integer}
-		 * @default 12
-		 */
-		this.fontSize = 12;
-		/**
-		 * @public
-		 * @property color
-		 * @type {String}
-		 * @default "#FFFFFF"
-		 */
-		this.color = "#FFFFFF";
-		/**
 		 * 不为空时用字符替换输入内容
 		 * @public
 		 * @property password
@@ -4664,52 +4698,34 @@ this.jees.UI = this.jees.UI || {};
 		this.paddingY = 0;
 		this.warp = false;
 // private properties:
-		/**
-		 * 皮肤对象
-		 */
-		this._skin = null;
-		
     	var o = document.body;
     	var ipt = document.createElement("INPUT");
     	o.appendChild( ipt );
     	/**
     	 * 输入框对象
     	 */
-    	this._object = new createjs.DOMElement( ipt );
+    	this._domElement = new createjs.DOMElement( ipt );
     	/**
     	 * 输入框的HTML元素
     	 */
-    	this._input = this._object.htmlElement;
-    	/**
-    	 * 遮罩对象
-    	 */
-  		this._mask = null;
+    	this._input = this._domElement.htmlElement;
     };
-  	var p = createjs.extend( InputBox, jees.UI.ImageBox );
+  	var p = createjs.extend( InputBox, jees.UI.Button );
 // public methods: ============================================================
     p.initialize = function(){
     	if( this.property.state ) return;
-		this.property.state = true;
+		this.Button_initialize();
 		
-		this.property.initialize( this );
+		if( this.types.indexOf( "push") != -1 ){
+			jees.E.unbind( this, "mousedown" );
+        	jees.E.unbind( this, "pressup" );
+		}
 		
-    	this._init_background();
-    	
-		this.parent.addChildAt( this._object, this.parent.getChildIndex( this ) + 1 );
-		// 遮罩调整
-    	if( this.property.enableMask ){
-    		this._mask = new jees.UI.TextBox();
-    		this._init_text();
-    	}
+		this._init_input();
 		
-		this._reset_size();
-	    this._reset_position();
-		this._reset_input();
-		
-	    var _this = this;
-	    
     	if( this.property.enableMask ){
     		this._input.hidden = true;
+    		var _this = this;
     		jees.E.bind( this, "click", function( _e ){
     			_this._input.hidden = false;
 	    		_this._input.focus();
@@ -4719,11 +4735,11 @@ this.jees.UI = this.jees.UI || {};
     		
       		this._input.onfocus = function( _e ){
 	    		_this._input.hidden = false;
-    			_this._mask.setVisible( false );
+    			_this._text.setVisible( false );
 	    	}
 	    	this._input.onblur = function( _e ){
 	    		_this._input.hidden = true;
-	    		_this._mask.setVisible( true );
+	    		_this._text.setVisible( true );
 	    		_this._reset_text();
 	    	}
 	    	this._input.onchange = function( _e ){
@@ -4732,132 +4748,78 @@ this.jees.UI = this.jees.UI || {};
     	}
 	};
 	/**
-	 * 
+	 * @public
+	 * @method setText
+	 * @param {String} _t
 	 */
-	p.setSize = function( _w, _h ){
-		
-	}
+	p.setText = function( _t ){
+		this._input.value = _t;
+		this._reset_text();
+	};
 // private method: ============================================================
-	/**
-	 * 建立缓存区域
-	 */
-	p._cache = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
-		var b = this.getBounds();
-		this.cache( 0, 0, b.width, b.height );
-	}
-	/**
-	 * @private
-	 * @method _init_skin
-	 */
-	p._init_skin = function(){
-		var size = this.getSize();
-		if( !this._skin ){
-			this._skin = new jees.UI.Skin( this.property.skinResource, size.w, size.h, jees.SET.getSkin() );
-			this.property.resource = this._skin.getCacheDataURL("rect");
-			
-			this.image.src = this.property.resource;
-		}
-	}
-	/**
-	 * @private
-	 * @method _init_custom_grid
-	 */
-	p._init_custom_grid = function(){
-		var size = this.getSize();
-		var img = jees.Resource.get( this.property.resource );
-		var rw = img.width;
-		var rh = img.height;
-		var rs = this.property.region.split(",");
-		var rg = jees.UT.Grid( {l: rs[0], r: rs[1], t: rs[2], b: rs[3]}, rw, rh, size.w, size.h );
-		
-		var tc = jees.CJS.newContainer();
-		var bg = jees.CJS.newBitmap( img );
-		rg.forEach( function( _r ){
-			var o = bg.clone();
-			o.sourceRect = jees.CJS.newRect( _r.x, _r.y, _r.w, _r.h );
-			o.x = _r.dx;
-			o.y = _r.dy;
-			o.scaleX = _r.sw;
-			o.scaleY = _r.sh;
-			tc.addChild( o );
-		} );
-		tc.cache( 0, 0, size.w, size.h );
-		this.image.src = tc.bitmapCache.getCacheDataURL();
-	}
-	/**
-	 * @private
-	 * @method _init_custom
-	 */
-	p._init_custom = function(){
-		if( this.property.region != "" ){
-			this._init_custom_grid();
-		}else{
-			this.image.src = jees.Resource.get( this.property.resource );
-		}
-	}
-	/**
-	 * @private
-	 * @method _init_background
-	 */
-	p._init_background = function(){
-		this.image = document.createElement("img");
-		if( this.property.resource && this.property.resource != "" ){
-    		this._init_custom();
-		}else{
-			this._init_skin();
-		}
-	}
 	/**
 	 * @private
 	 * @method _init_text
 	 */
 	p._init_text = function(){
-		this.parent.addChildAt( this._mask, this.parent.getChildIndex( this ) + 1 );
+		if( !this.property.enableMask ) return;
 		
-		this._mask.warp = this.warp;
-		this._mask.fontSize = this.fontSize;
-		this._mask.color = this.color;
+		var parent = this.parent;
+		var txt = this._text;
 		
-//		this._mask.setFontStyle( this.fontStyle );
-//		this._mask.setItalic( this.italic );
-//		this._mask.setBold( this.bold );
+		parent.addChildAt( txt, parent.getChildIndex( this ) + 1 );
+		txt.text = this.placeholder;
+		txt.fontSize = this.fontSize;
+		txt.fontStyle = this.fontStyle;
+		txt.color = this.color;
+		txt.italic = this.italic;
+		txt.bold = this.bold;
+		txt.mouseEnabled = false;
+		txt.lineWidth = this.getSize().w - this.paddingX * 2;
+		txt.warp = this.warp;
+		
+		txt.initialize();
+	}
+	p._init_input = function(){
+		var parent = this.parent;
+		var ipt = this._domElement;
+		
+		jees.APP.addChild( ipt );
+		
+		this._reset_input();
 	}
 	/**
 	 * @private
 	 * @method _reset_position
 	 */
 	p._reset_position = function(){
-		var abs_pos = this.getAbsPosition();
-		var pos = this.getPosition();
-		this.x = pos.x;
-		this.y = pos.y;
+		this.ImageSpt__reset_position();
+		if( !this.property.enableMask ) return;
 		
-		var sc = jees.SET.getViewportScale();
-		var sx = jees.DEV.width / jees.SET.getWidth();
-		var sy = jees.DEV.height / jees.SET.getHeight();
+		this._reset_input();
 		
-		var fix_x = pos.x * sx;
-		var fix_y = pos.y * sy;
-		// TODO DOM实际坐标根据缩放会存在偏差，需要重新计算
-		var style = this._input.style;
-//		style.setProperty( "left", fix_x  + "px" );
-//		style.setProperty( "top", fix_y + "px" );
-		style.setProperty( "padding", this.paddingY + "px " + this.paddingX + "px " + this.paddingY + "px " + this.paddingX + "px " );
-		this._object.x = fix_x;
-		this._object.y = fix_y;
-		
-		if( this._mask ){
-			var x = pos.x + this.paddingX;
-			var y = pos.y + this.paddingY;
+		var txt = this._text;
+		if( txt != undefined ){
+			var size = this.getSize();
+			var align = this.getAlign();
 			
-			if( !this._mask.property.state ){
-				this._mask.x = x;
-				this._mask.y = y;
-			}else{
-				this._mask.setPosition( x, y );
+			if( align.x == 0 ){
+				txt.property.offsetX = this.paddingX;
+			}else if( align.x == 1 ){
+				txt.property.offsetX = this.paddingX - size.w / 2 ;
+			}else if( align.x == 2 ){
+				txt.property.offsetX = this.paddingX - size.w;
 			}
+			if( align.y == 0 ){
+				txt.property.offsetY = this.paddingY;
+			}else if( align.y == 1 ){
+				txt.property.offsetY = this.paddingY - size.h / 2;
+			}else if( align.y == 2 ){
+				txt.property.offsetY = this.paddingY - size.h;
+			}
+			
+			txt.x = this.x + txt.property.offsetX;
+			txt.y = this.y + txt.property.offsetY;
 		}
 	}
 	/**
@@ -4865,51 +4827,61 @@ this.jees.UI = this.jees.UI || {};
 	 * @method _reset_size
 	 */
 	p._reset_size = function(){
-		var size = this.getSize();
-		// 保证内部背景元素与容器一致
-		var sx = jees.DEV.width / jees.SET.getWidth();
-		var sy = jees.DEV.height / jees.SET.getHeight();
-		
-		var fix_w = size.w * sx;
-		var fix_h = size.h * sy;
-		
-		var style = this._input.style;
-		style.setProperty( "width", fix_w  + "px" );
-		style.setProperty( "height", fix_h + "px" );
-		
-		if( this._mask ){
-			if( this._mask.property.state ){
-				this._mask.setLineWidth( size.w - this.paddingX * 2 );
-			}else{
-				this._mask.lineWidth = size.w - this.paddingX * 2;
-			}
-    	}
+//		var size = this.getSize();
+//		// 保证内部背景元素与容器一致
+//		var sx = jees.DEV.width / jees.SET.getWidth();
+//		var sy = jees.DEV.height / jees.SET.getHeight();
+//		
+//		var fix_w = size.w * sx;
+//		var fix_h = size.h * sy;
+//		
+//		var style = this._input.style;
+//		style.setProperty( "width", fix_w  + "px" );
+//		style.setProperty( "height", fix_h + "px" );
+//		
+//		if( this._text ){
+//			if( this._text.property.state ){
+//				this._text.setLineWidth( size.w - this.paddingX * 2 );
+//			}else{
+//				this._text.lineWidth = size.w - this.paddingX * 2;
+//			}
+//  	}
 	}
 	/**
 	 * @private
 	 * @method _reset_input
 	 */
 	p._reset_input = function(){
-		var style = this._input.style;
-		
+		var size = this.getSize();
+		// 保证内部背景元素与容器一致
+		var sx = jees.DEV.width / jees.SET.getWidth();
+		var sy = jees.DEV.height / jees.SET.getHeight();
+		var pos = this.getAbsPosition();
+		var fix_w = size.w * sx;
+		var fix_h = size.h * sy;
+		var fix_x = pos.x * sx;
+		var fix_y = pos.y * sy;
+
 		this._input.type = this.password ? "password" : "text";
 		this._input.placeholder = this.placeholder;
+		var style = this._input.style;
 		style.setProperty( "color", this.color );
-		
-		this._reset_text();
+		style.setProperty( "width", fix_w  + "px" );
+		style.setProperty( "height", fix_h + "px" );
+		style.setProperty( "left", fix_x  + "px" );
+		style.setProperty( "top", fix_y + "px" );
+		style.setProperty( "padding", this.paddingX  + "px " + this.paddingY  + "px " + this.paddingX  + "px " + this.paddingY  + "px" );
 	}
 	/**
 	 * @private
 	 * @method _reset_text
 	 */
 	p._reset_text = function(){
-		if( this._mask ){
-			if( this._mask.property.state ){
-				this._mask.setText( this._input.value != "" ? this._input.value : this.placeholder );
-			}else{
-				this._mask.text = this._input.value != "" ? this._input.value : this.placeholder;
-			}
+		if( this._text ){
+			this._text.setText( this._input.value != "" ? this._input.value : this.placeholder );
+			this._text.x = this.x + this._text.property.offsetX;
+			this._text.y = this.y + this._text.property.offsetY;
 		}
 	}
-	jees.UI.InputBox = createjs.promote( InputBox, "ImageBox" );
+	jees.UI.InputBox = createjs.promote( InputBox, "Button" );
 })();;

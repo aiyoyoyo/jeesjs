@@ -80,7 +80,8 @@ this.jees.UI = this.jees.UI || {};
 	p.setSize = function ( _w, _h ) {
 		// 设置记录值
 		this.property.setSize( _w, _h );
-		this._reset_size_position();
+		this._reset_size();
+		this._reset_position();
 	};
 	/**
 	 * @public
@@ -160,17 +161,9 @@ this.jees.UI = this.jees.UI || {};
 	 * @param {Integer} _y
 	 */
 	p.setAlign = function ( _x, _y ) {
-		var ax = this.property.alignX;
-		var ay = this.property.alignY;
-		if( _x != undefined ) this.property.alignX = _x;
-		if( _y != undefined ) this.property.alignY = _y;
+		this.property.setAlign( _x, _y );
 		
-		if( ax != this.property.alignX && this.property.alignX == 0 ) 
-			this.property.x = 0;
-		if( ay != this.property.alignY && this.property.alignY == 0 ) 
-			this.property.y = 0;
-		
-		this._reset_size_position();
+		this._reset_position();
 	};
  // private method: ===========================================================
  	/**
@@ -199,8 +192,13 @@ this.jees.UI = this.jees.UI || {};
 				// 这里可能需要延迟加载
 			}
 		}else this.image = this.property.resource; // type = image
+		
 		this.property._resource_size();
-//		this.property._reset_position();
+		if( this.property.state ){
+			this.property.setSize();
+			this.property.setAlign();
+		}
+		
 		this._reset_rect();
 		this._reset_size();
  	};
@@ -229,26 +227,6 @@ this.jees.UI = this.jees.UI || {};
 		
 		this.x = pos.x;
 		this.y = pos.y;
-	};
-	/**
-	 * @private
-	 * @method _reset_size_position
-	 */
-	p._reset_size_position = function(){
-		this._reset_size();
-		var pos = this.getPosition();
-		var x = pos.x;
-		var y = pos.y;
-		
-		if( this.property.alignX != 0 ){
-			x = 0;
-		}
-		if( this.property.alignY != 0 ){
-			y = 0;
-		}
-		
-		this.property.setPosition( x, y );
-		this._reset_position();
 	};
 	/**
 	  * @method _reset_rect
