@@ -12,6 +12,10 @@
     <!-- ================== END BASE CSS STYLE ================== -->
 
     <!-- ================== BEGIN BASE JS ================== -->
+    <!--[if IE]>
+    <script src="../libs/corejs/core.min.js"></script>
+    <![endif]-->
+    <script src="../libs/jsonjs/json2.js"></script>
     <script src="../libs/createjs/EaselJS-master/lib/easeljs-NEXT.js"></script>
     <script src="../libs/createjs/PreloadJS-master/lib/preloadjs-NEXT.js"></script>
     <script src="../libs/createjs/TweenJS-master/lib/tweenjs-NEXT.js"></script>
@@ -36,13 +40,14 @@
     <script src="../src/base/CreateJS.js"></script>
     <script src="../src/base/Event.js"></script>
     <script src="../src/base/Module.js"></script>
-    <script src="../src/base/Application.js"></script>
     <script src="../src/manager/ModulesManager.js"></script>
     <script src="../src/manager/ResourceManager.js"></script>
     <script src="../src/manager/CanvasManager.js"></script>
     <script src="../src/manager/FileLoadManager.js"></script>
+    <script src="../src/connector/Message.js"></script>
     <script src="../src/connector/Connector.js"></script>
     <script src="../src/connector/WebSocketConnector.js"></script>
+    <script src="../src/base/Application.js"></script>
     <!-- ================== END JEES JS ================== -->
 
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
@@ -54,6 +59,8 @@
     <!-- ================== END PAGE LEVEL JS ================== -->
 </body>
 <script>
-    jees.APP.startup( new jees.UIEditor() );
+	window.onload = function(){		
+		jees.APP.startup( new jees.UIEditor() );
+	};
 </script>
 </html>

@@ -82,9 +82,10 @@ this.jees = this.jees || {};
 			this.height = document.documentElement.clientHeight || document.body.clientHeight;
 		}
 		
-		for ( var i in cfg.Connector ) {
+		var connect = this.config.Connector;
+		for ( var i in connect ) {
             if ( this.connector.hasOwnProperty( i ) ) {
-            	this.connector[i] = cfg.Connector[i];
+            	this.connector[i] = connect[i];
             }	
        	}
 	}

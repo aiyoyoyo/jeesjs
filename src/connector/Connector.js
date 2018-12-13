@@ -34,13 +34,19 @@ this.jees = this.jees || {};
 	var p = Connector.prototype;
 	p._handler_open = function( _e ){
 		this.status = this.STATUS_SUCCESS;
+		console.log( "open:", _e );
 	}
 	p._handler_close = function( _e ){
 		this.status = this.STATUS_DISCONNECT;
+		console.log( "close:", _e )
 	}
 	p._handler_error = function( _e ){
+		console.log( "err:", _e )
 	}
 	p._handler_message = function( _e ){
+		console.log( "msg:", _e );
+		var msg = new jees.Message( _e.data );
+		console.log( msg );
 	}
 	p._get_connect_url = function(){
 		return ( this.host ? this.host : "" )

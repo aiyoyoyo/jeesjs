@@ -100,7 +100,7 @@ this.jees = this.jees || {};
 //			chk.setText( "  确  定" );
 		});
 //		*/
-//		/* TEST InputBox ==
+		/* TEST InputBox ==
 		var align = 0;
         jees.E.bind( wgt, "click", function( _e ){
         	var ipt = ipt1;
@@ -113,6 +113,14 @@ this.jees = this.jees || {};
 //			ipt.setText( "一二三四一二三四一二三四一二三四一二三四" );
 		});
 //		*/
+		// Test
+		var c = jees.APP.getConnector()._connector;
+		jees.E.bind( btn0, "click", function( _e ){
+			var msg = new jees.Message();
+			msg.id = 100;
+			msg.addString( "abcdef" );
+			c.send( JSON.stringify( msg ) );
+		});
     }
     // public static methods: =================================================
     p.enter = function(){

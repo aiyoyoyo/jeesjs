@@ -22,12 +22,7 @@
 > 未完成
 
 # 版本更新
-## Ver 1.1.0
-* 代码结构和命名重新做了整理。
-* 命名空间由jeesjs的改为jees，励志做个最短的男人。
-* demo改为examples，并重新编写了示例代码。
-
-## Ver 1.1.1 alpha
+## Ver 1.1.1 alpha <font color=red>NEW</font>
 * 重新设计了UI控件结构
 * 加入了配置解析方式的UI生成器（详见 https://github.com/aiyoyoyo/jeesjs/tree/master/src/extends/LayoutManager.js )
 * 此版本临时版休整版，部分旧内容已经移除，重新整理控件属性
@@ -47,11 +42,22 @@
 > text used jees.UI.TextBox
 * jees.UI.CheckBox
 > extend jees.UI.Button
-* jees.UI.InputBox
+* jees.UI.InputBox New
 > extend jees.UI.ImageBox
 > enableMask的含义变为是否允许遮罩。
-## 其他说明
-* 最近瞎忙，居然搁置了快一年才更新有价值的内容。
+## WebSocket <font color=red>NEW</font>
+* jees.Message
+> 和jeesupport消息结构一致，互相兼容。
+* jees.Connector
+> 用于处理连接和收发消息
+## 其他说明 <font color=red>NEW</font>
+* 配置文件采用jsonjs读取，最后一项属性结尾的“，”一定不要，不然无法解析。
+* 最近发现，不兼容所有浏览器（猎豹极速模式），找原因中...
+
+## Ver 1.1.0
+* 代码结构和命名重新做了整理。
+* 命名空间由jeesjs的改为jees，励志做个最短的男人。
+* demo改为examples，并重新编写了示例代码。
 
 ## 其他
 CSDN地址： http://blog.csdn.net/aiyoyoyo/

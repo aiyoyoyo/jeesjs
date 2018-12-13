@@ -175,6 +175,13 @@ this.jees = this.jees || {};
 	 */
 	Application.getCanvas = function(){ return this._canvas; }
 	/**
+	 * @public
+	 * @static
+	 * @method getConnector
+	 * @return {Canvas}
+	 */
+	Application.getConnector = function(){ return this._connector; }
+	/**
 	 * 获取屏幕宽高
 	 * @public
 	 * @static

@@ -1,184 +1,212 @@
 {
-	"Widget":{
+	"Widget": {
 		"name": "wgtTest",
 		"enableMask": true,
 		"alignX": 1,
 		"alignY": 1,
 		"width": "default",
 		"height": "default",
-		"childs": [
-			{"Panel":{
-				"name": "topbar",
-				"width": "100%",
-				"height": 40,
-				"skinType": "panel-highlight",
-				"enableMask": true,
-				"childs": [
-					{"ImageBox":{
-						"name": "logo",
-						"resource": "logo",
-						"width": 96,
-						"height": 40,
-						"offsetY": 15,
-						"rect": "0,128,200,72", 
-					}},
-					{"TextBox":{
-						"name": "baseText",
-						"text": "基本控件：",
-						"offsetX": 120,
-						"offsetY": 13,
-					}},
-					{"Button":{
-						"text": "Button",
-						"width": 100,
-						"height": 30,
-						"offsetX": 180,
-						"offsetY": 5,
-					}},
-				],
-			}},
-			{"Panel":{
-				"name": "content",
-				"offsetY": 40,
-				"width": "auto",
-				"height": "auto",
-				"layoutX": "rightSide",
-				"layoutY": "topbar",
-				"enableMask": true,
-				"enableSkin": false,
-				"resource": "cover",
-				"style": 2,
-				"childs": [
-					{"ImageSpt":{
-						"name": "testSprite",
-						"resource": "anima0",
-						"cols": 3,
-						"rows": 2,
-						"speed": 100,
-						"width": "default",
-						"height": "default",
-						"alignX": 1,
-						"alignY": 1,
-					}},
-					{"InputBox":{
-						"name": "testInputBox0",
-						"width": 150,
-						"height": 36,
-						"offsetX": 180,
-						"placeholder": "请输入文字内容",
-						"color": "#ff0000",
-						"password": false,
-						"enableMask": true,
-						"paddingX": 6,
-						"paddingY": 12,
-						"alignX": 1,
-						"alignY": 1,
-					}},
-					{"Button":{
-						"name": "testButton0",
-						"text": "Button",
-						"width": 100,
-						"height": 30,
-						"alignX": 0,
-						"alignY": 0,
-						"color": "#000000",
-						"enableDrag": true,
-					}},
-					{"CheckBox":{
-						"name": "testCheckBox0",
-						"text": "CheckBox",
-						"width": 30,
-						"height": 30,
-						"color": "#000000",
-						"textX": 45,
-						"alignX": 0,
-						"alignY": 0,
-						"offsetY": 100,
-					}},
-					{"Button":{
-						"name": "testButton1",
-						"text": "Button",
-						"resource": "btn_green",
-						"width": 100,
-						"height": 50,
-						"spriteY": 38,
-						"textY": -8,
-						"textX": -5,
-						"alignX": 1,
-						"alignY": 1,
-					}},
-					{"InputBox":{
-						"name": "testInputBox1",
-						"resource": "ipt_short",
-						"region": "5,5,0,0",
-						"width": 150,
-						"height": 36,
-						"placeholder": "请输入文字内容",
-						"color": "#000000",
-						"password": false,
-						"enableMask": true,
-						"fontSize": 12,
-						"paddingX": 6,
-						"paddingY": 12,
-						"alignX": 0,
-						"alignY": 0,
-						"offsetX": 80,
-					}},
-					{"Button":{
-						"text": "Button2",
-						"resource": "btn_short",
-						"width": 88,
-						"height": 38,
-						"region": "3,3,0,0",
-						"spriteY": 38,
-						"textY": 0,
-						"textX": 0,
-						"alignX": 2,
-						"alignY": 2,
-					}},
-					{"TextBox":{
-						"name": "testText",
-						"text": "一二三四五六七八九十一二三四五六七八九十",
-						"alignX": 1,
-						"alignY": 1,
-					}},
-					{"CheckBox":{
-						"name": "testCheckBox1",
-						"text": "test",
-						"resource": "chk",
-						"types": "normal, checked",
-						"width": 34,
-						"height": 34,
-						"spriteX": 34,
-						"checked": true,
-						"color": "#000000",
-						"fontSize": 30,
-						"textX": 45,
-						"alignX": 1,
-						"alignY": 1,
-					}},
-					{"ImageBox":{
-						"name": "testImage",
-						"resource": "logo",
-						"alignX": 0,
-						"alignY": 0,
-						"width": "default",
-						"height": "default",
-						"enableDrag": true,
-						"dragX": false,
-						"dragY": true,
-					}},
-				],
-			}},
-			{"Panel":{
-				"name": "rightSide",
-				"alignX": 2,
-				"width": 300,
-				"height": "auto",
-				"offsetY": 40,
-				"layoutY": "topbar",
-				"enableMask": true,
-			}},
-		],
+		"childs": [{
+				"Panel": {
+					"name": "topbar",
+					"width": "100%",
+					"height": 40,
+					"skinType": "panel-highlight",
+					"enableMask": true,
+					"childs": [{
+							"ImageBox": {
+								"name": "logo",
+								"resource": "logo",
+								"width": 96,
+								"height": 40,
+								"offsetY": 15,
+								"rect": "0,128,200,72"
+							}
+						},
+						{
+							"TextBox": {
+								"name": "baseText",
+								"text": "基本控件：",
+								"offsetX": 120,
+								"offsetY": 13
+							}
+						},
+						{
+							"Button": {
+								"text": "Button",
+								"width": 100,
+								"height": 30,
+								"offsetX": 180,
+								"offsetY": 5
+							}
+						}
+					]
+				}
+			},
+			{
+				"Panel": {
+					"name": "content",
+					"offsetY": 40,
+					"width": "auto",
+					"height": "auto",
+					"layoutX": "rightSide",
+					"layoutY": "topbar",
+					"enableMask": true,
+					"enableSkin": false,
+					"resource": "cover",
+					"style": 2,
+					"childs": [{
+							"ImageSpt": {
+								"name": "testSprite",
+								"resource": "anima0",
+								"cols": 3,
+								"rows": 2,
+								"speed": 100,
+								"width": "default",
+								"height": "default",
+								"alignX": 1,
+								"alignY": 1
+							}
+						},
+						{
+							"InputBox": {
+								"name": "testInputBox0",
+								"width": 150,
+								"height": 36,
+								"offsetX": 180,
+								"placeholder": "请输入文字内容",
+								"color": "#ff0000",
+								"password": false,
+								"enableMask": true,
+								"paddingX": 6,
+								"paddingY": 12,
+								"alignX": 1,
+								"alignY": 1
+							}
+						},
+						{
+							"Button": {
+								"name": "testButton0",
+								"text": "Button",
+								"width": 100,
+								"height": 30,
+								"alignX": 0,
+								"alignY": 0,
+								"color": "#000000"
+							}
+						},
+						{
+							"CheckBox": {
+								"name": "testCheckBox0",
+								"text": "CheckBox",
+								"width": 30,
+								"height": 30,
+								"color": "#000000",
+								"textX": 45,
+								"alignX": 0,
+								"alignY": 0,
+								"offsetY": 100
+							}
+						},
+						{
+							"Button": {
+								"name": "testButton1",
+								"text": "Button",
+								"resource": "btn_green",
+								"width": 100,
+								"height": 50,
+								"spriteY": 38,
+								"textY": -8,
+								"textX": -5,
+								"alignX": 1,
+								"alignY": 1
+							}
+						},
+						{
+							"InputBox": {
+								"name": "testInputBox1",
+								"resource": "ipt_short",
+								"region": "5,5,0,0",
+								"width": 150,
+								"height": 36,
+								"placeholder": "请输入文字内容",
+								"color": "#000000",
+								"password": false,
+								"enableMask": true,
+								"fontSize": 12,
+								"paddingX": 6,
+								"paddingY": 12,
+								"alignX": 0,
+								"alignY": 0,
+								"offsetX": 80
+							}
+						},
+						{
+							"Button": {
+								"text": "Button2",
+								"resource": "btn_short",
+								"width": 88,
+								"height": 38,
+								"region": "3,3,0,0",
+								"spriteY": 38,
+								"textY": 0,
+								"textX": 0,
+								"alignX": 2,
+								"alignY": 2
+							}
+						},
+						{
+							"TextBox": {
+								"name": "testText",
+								"text": "一二三四五六七八九十一二三四五六七八九十",
+								"alignX": 1,
+								"alignY": 1
+							}
+						},
+						{
+							"CheckBox": {
+								"name": "testCheckBox1",
+								"text": "test",
+								"resource": "chk",
+								"types": "normal, checked",
+								"width": 34,
+								"height": 34,
+								"spriteX": 34,
+								"checked": true,
+								"color": "#000000",
+								"fontSize": 30,
+								"textX": 45,
+								"alignX": 1,
+								"alignY": 1
+							}
+						},
+						{
+							"ImageBox": {
+								"name": "testImage",
+								"resource": "logo",
+								"alignX": 0,
+								"alignY": 0,
+								"width": "default",
+								"height": "default",
+								"enableDrag": true,
+								"dragX": false,
+								"dragY": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"Panel": {
+					"name": "rightSide",
+					"alignX": 2,
+					"width": 300,
+					"height": "auto",
+					"offsetY": 40,
+					"layoutY": "topbar",
+					"enableMask": true
+				}
+			}
+		]
 	}
 }

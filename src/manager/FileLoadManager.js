@@ -90,14 +90,15 @@ this.jees = this.jees || {};
 		else jees.RM.del( _n );
 	}
 	/**
-	 * 获取文件内容
+	 * 获取文件内容，这里配置文件等json对象凡是结尾属性的","一律要去掉。
+	 * @link https://github.com/douglascrockford/JSON-js
 	 * @public
 	 * @method getContent
 	 * @param {String} _n
 	 * @return {String}
 	 */
 	p.getContent = function( _n ){
-		return eval( '(' + this.get( _n ) + ')' );
+		return JSON.parse( this.get( _n ) );
 	}
 	
 	jees.FileLoadManager = FileLoadManager;

@@ -653,9 +653,10 @@ this.jees = this.jees || {};
 			this.height = document.documentElement.clientHeight || document.body.clientHeight;
 		}
 		
-		for ( var i in cfg.Connector ) {
+		var connect = this.config.Connector;
+		for ( var i in connect ) {
             if ( this.connector.hasOwnProperty( i ) ) {
-            	this.connector[i] = cfg.Connector[i];
+            	this.connector[i] = connect[i];
             }	
        	}
 	}
@@ -767,9 +768,12 @@ this.jees = this.jees || {};
 	 * @param {Number} _t 绘制时间，单位：毫秒
 	 */
 	ModulesManager.update = function( _t ) {
-        for( var mod of this._modules.values() ) {
-            mod.update( _t );
-        }
+//      for( var mod of this._modules.values() ) {
+//          mod.update( _t );
+//      }
+		this._modules.forEach( function( _mod ){
+			_mod.update( _t );
+		} );
 	};
 	/**
 	 * 获取当前模块
@@ -1234,14 +1238,15 @@ this.jees = this.jees || {};
 		else jees.RM.del( _n );
 	}
 	/**
-	 * 获取文件内容
+	 * 获取文件内容，这里配置文件等json对象凡是结尾属性的","一律要去掉。
+	 * @link https://github.com/douglascrockford/JSON-js
 	 * @public
 	 * @method getContent
 	 * @param {String} _n
 	 * @return {String}
 	 */
 	p.getContent = function( _n ){
-		return eval( '(' + this.get( _n ) + ')' );
+		return JSON.parse( this.get( _n ) );
 	}
 	
 	jees.FileLoadManager = FileLoadManager;
@@ -1423,6 +1428,13 @@ this.jees = this.jees || {};
 	 * @return {Canvas}
 	 */
 	Application.getCanvas = function(){ return this._canvas; }
+	/**
+	 * @public
+	 * @static
+	 * @method getConnector
+	 * @return {Canvas}
+	 */
+	Application.getConnector = function(){ return this._connector; }
 	/**
 	 * 获取屏幕宽高
 	 * @public
