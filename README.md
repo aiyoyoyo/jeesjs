@@ -50,6 +50,8 @@
 > 和jeesupport消息结构一致，互相兼容。
 * jees.Connector
 > 用于处理连接和收发消息
+* jees.Request & jees.Response
+> 通讯收发模型，配合jees.Module类使用。
 ## 其他说明 <font color=red>NEW</font>
 * 配置文件采用jsonjs读取，最后一项属性结尾的“，”一定不要，不然无法解析。
 * 最近发现，不兼容所有浏览器（猎豹极速模式），找原因中...
