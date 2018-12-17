@@ -170,8 +170,6 @@ this.jees.UI = this.jees.UI || {};
 	 * 建立缓存区域
 	 */
 	p._cache = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
 		var b = this.getBounds();
 		this.cache( 0, 0, b.width, b.height );
 	};
@@ -193,14 +191,15 @@ this.jees.UI = this.jees.UI || {};
 			}
 		}else this.image = this.property.resource; // type = image
 		
-		this.property._resource_size();
-		if( this.property.state ){
-			this.property.setSize();
-			this.property.setAlign();
-		}
-		
+//		this.image.height = this.property.h;
+//		this.property._resource_size();
+//		this.property.initialize( this );
+//		this.property.setSize();
+//		this.property.setAlign();
 		this._reset_rect();
 		this._reset_size();
+//		this.property.setSize();
+//		this.property.setAlign();
  	};
 	/**
 	 * @private
@@ -238,7 +237,10 @@ this.jees.UI = this.jees.UI || {};
 	 		this.sourceRect = jees.CJS.newRect( r[0], r[1], r[2], r[3] );
 			this.setBounds( r[0], r[1], r[2], r[3]  );
 			this._cache();
-	 	}
+	 	}else if( this.image ){
+			this.setBounds( 0, 0, this.property.w, this.property.h );
+			this._cache();
+		}
 	};
 	/**
 	 * @method _reset_scale

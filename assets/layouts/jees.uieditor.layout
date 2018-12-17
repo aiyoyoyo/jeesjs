@@ -127,13 +127,13 @@
 								"name": "testInputBox1",
 								"resource": "ipt_short",
 								"region": "5,5,0,0",
-								"width": 150,
-								"height": 36,
+								"width": 300,
+								"height": 40,
 								"placeholder": "请输入文字内容",
 								"color": "#000000",
-								"password": false,
+								"password": true,
 								"enableMask": true,
-								"fontSize": 12,
+								"fontSize": 25,
 								"paddingX": 6,
 								"paddingY": 12,
 								"alignX": 0,
@@ -184,13 +184,23 @@
 							"ImageBox": {
 								"name": "testImage",
 								"resource": "logo",
-								"alignX": 0,
-								"alignY": 0,
+								"alignX": 1,
+								"alignY": 1,
 								"width": "default",
 								"height": "default",
 								"enableDrag": true,
 								"dragX": false,
 								"dragY": true
+							}
+						},
+						{
+							"ImageBox": {
+								"name": "testImage2",
+								"resource": "ipt_short",
+								"width": 300,
+								"height": 40,
+								"alignX": 1,
+								"alignY": 1
 							}
 						}
 					]

@@ -113,14 +113,6 @@ this.jees = this.jees || {};
 //			ipt.setText( "一二三四一二三四一二三四一二三四一二三四" );
 		});
 //		*/
-		// Test
-		var c = jees.APP.getConnector()._connector;
-		jees.E.bind( btn0, "click", function( _e ){
-			var msg = new jees.Message();
-			msg.id = 100;
-			msg.addString( "abcdef" );
-			c.send( JSON.stringify( msg ) );
-		});
     }
     // public static methods: =================================================
     p.enter = function(){

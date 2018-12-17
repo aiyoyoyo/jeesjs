@@ -372,7 +372,7 @@ this.jees.UI = this.jees.UI || {};
 		if( _y != undefined ) this.offsetY = _y;
 		
 		var parent_size = this._get_parnet_size();
-		
+
 		this.x = this._calculate_position( this.offsetX, this.alignX, parent_size.w, this.w );
 		this.y = this._calculate_position( this.offsetY, this.alignY, parent_size.h, this.h );
 	}
@@ -410,6 +410,11 @@ this.jees.UI = this.jees.UI || {};
 		
 		this._widget.regX = this._calculate_align( this.alignX, this.w );
 		this._widget.regY = this._calculate_align( this.alignY, this.h );
+		
+		if( this._widget instanceof jees.UI.ImageBox ){
+			this._widget.regX = this._calculate_align( this.alignX, this.resWidth );
+			this._widget.regY = this._calculate_align( this.alignY, this.resHeight );
+		}
 		
 		this.setPosition();
 	};

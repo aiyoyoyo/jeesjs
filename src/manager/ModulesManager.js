@@ -102,9 +102,6 @@ this.jees = this.jees || {};
 	 * @param {Number} _t 绘制时间，单位：毫秒
 	 */
 	ModulesManager.update = function( _t ) {
-//      for( var mod of this._modules.values() ) {
-//          mod.update( _t );
-//      }
 		this._modules.forEach( function( _mod ){
 			_mod.update( _t );
 		} );

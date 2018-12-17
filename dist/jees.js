@@ -1,4 +1,664 @@
-﻿///<jscompress sourcefile="Module.js" />
+﻿///<jscompress sourcefile="Response.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/connector/Response.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class Request
+	 * @static
+	 * @constructor
+	 */
+	function Response() {
+		this._module_maps = new Map();
+		this._module_id_maps = new Map();
+	};
+// public static properties:
+// private methods: ====================================================
+	var p = Response.prototype;
+	
+// public methods: =====================================================
+	/**
+	 * @public
+	 * @method bind
+	 * @param {Integer} _id
+	 * @param {jees.Module} _handler
+	 */
+	p.bind = function( _id, _module ){
+		var ids = this._module_id_maps.get( _module.id );
+		if( ids == null ){
+			ids = new Set();
+			this._module_id_maps.set( _module.id, ids );
+		}
+		if( ids.has( _id ) ){
+			return;
+		}
+		
+		ids.add( _id );
+		
+		var mods = this._module_maps.get( _id );
+		
+		if( mods == null ){
+			mods = new Set();
+			this._module_maps.set( _id, mods );
+		}
+		if( mods.has( _module ) ){
+			return;
+		}
+		
+		mods.add( _module );
+	}
+	/**
+	 * @public
+	 * @method unbind
+	 * @param {jees.Module} _module
+	 */
+	p.unbind = function( _module ){
+		if( !this._module_id_maps.has( _module.id  ) ) return;
+		
+		var ids = this._module_id_maps.get( _module.id );
+		for( var id of ids ){
+			var mods = this._module_maps.get( id );
+			
+			for( var idx in mods ){
+				var mod = mods[idx];
+				if( mod.id == _module.id ){
+					arrs.slice( id );
+					break;
+				}
+			}
+		}
+		
+		ids.clear();
+	}
+	/**
+	 * 按加入顺序通知对应Module
+	 * @public
+	 * @method notify
+	 * @param {jees.Message} _msg
+	 */
+	p.notify = function( _msg ){
+		if( this._module_maps.has( _msg.id ) ){
+			var mods = this._module_maps.get( _msg.id );
+			mods.forEach( function( _mod ){
+				_mod.notify( _msg );
+			} );
+		}
+	}
+	jees.Response = Response;
+})();;
+///<jscompress sourcefile="Request.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/connector/Request.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class Request
+	 * @static
+	 * @constructor
+	 */
+	function Request() {
+	};
+// public static properties:
+// private methods: ====================================================
+	var p = Request.prototype;
+	
+// public methods: =====================================================
+	/**
+	 * @public
+	 * @method send
+	 * @param {Object} _msg
+	 * @param {Object} _idx
+	 */
+	p.send = function( _msg, _idx ){
+		var c = jees.SM.get( _idx );
+		c.send( JSON.stringify( _msg ) );
+	}
+	jees.Request = Request;
+})();;
+///<jscompress sourcefile="SessionData.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/data/SessionData.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class SessionData
+	 * @static
+	 * @constructor
+	 */
+	function SessionData() { throw "SessionData cannot be instantiated."; };
+// public static properties:
+	SessionData._storage = sessionStorage;
+// public static methods: =====================================================
+	/**
+	 * @public
+	 * @static
+	 * @method set
+	 * @param {String} _k
+	 * @param {String||Object} _v
+	 */
+	SessionData.set = function( _k, _v ){
+		var set_data = null;
+		if( typeof _v == "object" ){
+			set_data = JSON.stringify( _v );
+			
+			var obj_keys = this._storage.getItem( "object_keys" );
+			var keys = _k + ",";
+			if( !obj_keys || obj_keys.indexOf( keys ) == -1 ){
+				obj_keys = obj_keys || "" ;
+				obj_keys += keys;
+				this._storage.setItem( "object_keys", obj_keys );
+			}
+		}else set_data = _v;
+		
+		this._storage.setItem( _k, set_data );
+	};
+	/**
+	 * @public
+	 * @static
+	 * @method get
+	 * @param {String} _k
+	 * @returns {String||Object}
+	 */
+	SessionData.get = function( _k ){
+		var get_data = this._storage.getItem( _k );
+		var obj_keys = this._storage.getItem( "object_keys" );
+		var keys = _k + ",";
+		if( obj_keys && obj_keys.indexOf( keys ) != -1 ){
+			return JSON.parse( get_data );
+		}
+		return get_data;
+	};
+	/**
+	 * @public
+	 * @static
+	 * @method delete
+	 * @param {String} _k
+	 * @returns {String||Object}
+	 */
+	SessionData.delete = function( _k ){
+		var obj_keys = this._storage.getItem( "object_keys" );
+		var keys = _k + ",";
+		if( obj_keys && obj_keys.indexOf( keys ) != -1 ){
+			obj_keys.replace( keys , "" );
+			this._storage.setItem( this._storage.setItem( "object_keys", obj_keys ) );
+		}
+		
+		this._storage.removeItem( _k );
+	};
+	/**
+	 * @public
+	 * @static
+	 * @method clear
+	 */
+	SessionData.clear = function( _k ){
+		this._storage.clear();
+	};
+	jees.SD = SessionData;
+})();;
+///<jscompress sourcefile="LocalData.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/data/LocalData.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class LocalData
+	 * @static
+	 * @constructor
+	 */
+	function LocalData() { throw "LocalData cannot be instantiated."; };
+// public static properties:
+	LocalData._storage = localStorage;
+// public static methods: =====================================================
+	/**
+	 * @public
+	 * @static
+	 * @method set
+	 * @param {String} _k
+	 * @param {String||Object} _v
+	 */
+	LocalData.set = function( _k, _v ){
+		var set_data = null;
+		if( typeof _v == "object" ){
+			set_data = JSON.stringify( _v );
+			
+			var obj_keys = this._storage.getItem( "object_keys" );
+			var keys = _k + ",";
+			if( !obj_keys || obj_keys.indexOf( keys ) == -1 ){
+				obj_keys = obj_keys || "" ;
+				obj_keys += keys;
+				this._storage.setItem( "object_keys", obj_keys );
+			}
+		}else set_data = _v;
+		
+		this._storage.setItem( _k, set_data );
+	};
+	/**
+	 * @public
+	 * @static
+	 * @method get
+	 * @param {String} _k
+	 * @returns {String||Object}
+	 */
+	LocalData.get = function( _k ){
+		var get_data = this._storage.getItem( _k );
+		var obj_keys = this._storage.getItem( "object_keys" );
+		var keys = _k + ",";
+		if( obj_keys && obj_keys.indexOf( keys ) != -1 ){
+			return JSON.parse( get_data );
+		}
+		return get_data;
+	};
+	/**
+	 * @public
+	 * @static
+	 * @method delete
+	 * @param {String} _k
+	 * @returns {String||Object}
+	 */
+	LocalData.delete = function( _k ){
+		var obj_keys = this._storage.getItem( "object_keys" );
+		var keys = _k + ",";
+		if( obj_keys && obj_keys.indexOf( keys ) != -1 ){
+			obj_keys.replace( keys , "" );
+			this._storage.setItem( this._storage.setItem( "object_keys", obj_keys ) );
+		}
+		
+		this._storage.removeItem( _k );
+	};
+	/**
+	 * @public
+	 * @static
+	 * @method clear
+	 */
+	LocalData.clear = function( _k ){
+		this._storage.clear();
+	};
+	jees.LD = LocalData;
+})();;
+///<jscompress sourcefile="Connector.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/connector/Connector.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class Connector
+	 * @static
+	 * @constructor
+	 * @param {String} _host
+	 * @param {Number|String} _port
+	 * @param {String} _path
+	 */
+	function Connector( _host, _port, _path ) {
+		this.host = _host;
+		this.port = _port;
+		this.path = _path;
+		
+		this.status = 0;
+		
+		this._connector = null;
+	};
+// public static properties:
+	Connector.STATUS_DISCONNECT = 1006;
+	Connector.STATUS_SUCCESS = 200;
+// private methods: ====================================================
+	var p = Connector.prototype;
+	p._handler_open = function( _e ){
+		this.status = Connector.STATUS_SUCCESS;
+	};
+	p._handler_close = function( _e ){
+		this.status = _e.code;
+	};
+	p._handler_error = function( _e ){
+		console.error( _e );
+	};
+	p._handler_message = function( _e ){
+		var msg = new jees.Message( _e.data );
+		jees.Response.notify( msg );
+	};
+	p._get_connect_url = function(){
+		return ( this.host ? this.host : "" )
+			+ ( this.port ? ":" + this.port : "" )
+			+ ( this.path ? "/" + this.path : "" )
+	};
+// public methods: =====================================================
+	/**
+	 * @public
+	 * @method connect
+	 */
+	p.connect = function(){
+		if( this instanceof jees.WebSocketConnector ){
+			var _this = this;
+			var connect_url = "ws://" + this._get_connect_url();
+			this._connector = new WebSocket( connect_url ); 
+			this._connector.onopen = function( _e ){_this._handler_open( _e );};
+			this._connector.onclose = function( _e ){_this._handler_close( _e );};
+			this._connector.onerror = function( _e ){_this._handler_error( _e );};
+			this._connector.onmessage = function( _e ){_this._handler_message( _e );};
+		}
+	};
+	/**
+	 * @public
+	 * @method send
+	 * @param {String} _m
+	 */
+	p.send = function( _m ){
+		if( this.isConnecting() )
+			this._connector.send( _m );
+		else throw "已经和服务器断开连接。";
+	};
+	/**
+	 * @public
+	 * @method isConnectin
+	 * @return {Boolean}
+	 */
+	p.isConnecting = function(){
+		return this.status == Connector.STATUS_SUCCESS;
+	};
+	jees.Connector = Connector;
+})();;
+///<jscompress sourcefile="WebSocketConnector.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/connector/WebSocketConnector.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class WebSocketConnector
+	 * @static
+	 * @constructor
+	 * @param {String} _host
+	 * @param {Number|String} _port
+	 * @param {String} _path
+	 */
+	function WebSocketConnector( _host, _port, _path ) {
+		this.Connector_constructor( _host, _port, _path );
+	};
+// private static properties:
+// public static properties:
+// private static methods: ====================================================
+	var p = createjs.extend( WebSocketConnector, jees.Connector );
+// public static methods: =====================================================
+	jees.WebSocketConnector = createjs.promote( WebSocketConnector, "Connector");
+})();;
+///<jscompress sourcefile="Message.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/connector/Message.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class Message
+	 * @static
+	 * @constructor
+	 */
+	function Message( _json ){
+		/**
+		 * 消息ID
+		 * @public
+		 * @property id
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.id = 0;
+		/**
+		 * 客户端用户ID
+		 * @public
+		 * @property userId
+		 * @type {Integer}
+		 * @default 0
+		 */
+		this.userId = 0;
+		/**
+		 * @public
+		 * @property intData
+		 * @type {Array<Integer>}
+		 */
+		this.intData = new Array();
+		/**
+		 * @public
+		 * @property strData
+		 * @type {Array<String>}
+		 */
+		this.strData = new Array();
+		/**
+		 * @public
+		 * @property booData
+		 * @type {Array<Boolean>}
+		 */
+		this.booData = new Array();
+		/**
+		 * @public
+		 * @property floData
+		 * @type {Array<Float>}
+		 */
+		this.floData = new Array();
+		/**
+		 * @public
+		 * @property dblData
+		 * @type {Array<Double>}
+		 */
+		this.dblData = new Array();
+		/**
+		 * @public
+		 * @property lonData
+		 * @type {Array<Long>}
+		 */
+		this.lonData = new Array();
+		/**
+		 * 这里Byte类型的二进制数据不一定能处理，做保留字段
+		 * @public
+		 * @property bytData
+		 * @type {Array<Byte>}
+		 */
+		this.bytData = new Array();
+		/**
+		 * 消息类型
+		 * @link https://github.com/aiyoyoyo/jeesupport/blob/master/jees-jsts/src.core/com/jees/jsts/server/message/Message.java
+		 * @public
+		 * @property type
+		 * @type {Integer}
+		 * @default 1
+		 */
+		this.type = 1;
+		
+		if( typeof _json == "string" ){
+			var o = eval( '(' + _json + ')' );
+			
+			for( var i in this ){
+				if( o.hasOwnProperty( i ) ){
+					this[i] = o[i];
+				}
+			}
+		}
+	};
+// public static properties:
+// private methods: ====================================================
+	var p = Message.prototype;
+// public methods: =====================================================
+	/**
+	 * @public
+	 * @method addInteger
+	 * @param {Integer} _val
+	 */
+	p.addInteger = function( _val ){
+		this.intData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method addString
+	 * @param {String} _val
+	 */
+	p.addString = function( _val ) {
+		this.strData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method floData
+	 * @param {Float} _val
+	 */
+	p.addFloat = function( _val ) {
+		this.floData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method booData
+	 * @param {Boolean} _val
+	 */
+	p.addBoolean = function( _val ) {
+		this.booData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method addDouble
+	 * @param {Double} _val
+	 */
+	p.addDouble = function( _val ) {
+		this.dblData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method lonData
+	 * @param {Long} _val
+	 */
+	p.addLong = function( _val ) {
+		this.lonData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method addBytes
+	 * @param {Byte[]} _val
+	 */
+	p.addBytes = function( _val ) {
+		this.bytData.push( _val );
+	};
+	/**
+	 * @public
+	 * @method getInteger
+	 * @param {Integer} _idx
+	 * @return {Integer}
+	 */
+	p.getInteger = function( _idx ) {
+		if ( _idx >= this.intData.length ) return 0;
+		return this.intData[ _idx ];
+	};
+	/**
+	 * @public
+	 * @method getString
+	 * @param {Integer} _idx
+	 * @return {String}
+	 */
+	p.getString = function( _idx ) {
+		if ( _idx >= this.strData.length ) return null;
+		return this.strData[ _idx ];
+	};
+	/**
+	 * @public
+	 * @method getFloat
+	 * @param {Integer} _idx
+	 * @return {Float}
+	 */
+	p.getFloat = function( _idx ) {
+		if ( _idx >= this.floData.length ) return 0;
+		return this.floData[ _idx ];
+	};
+	/**
+	 * @public
+	 * @method getBoolean
+	 * @param {Integer} _idx
+	 * @return {Boolean}
+	 */
+	p.getBoolean = function( _idx ) {
+		if ( _idx >= this.booData.length ) return null;
+		return this.booData[ _idx ];
+	};
+	/**
+	 * @public
+	 * @method getDouble
+	 * @param {Integer} _idx
+	 * @return {Double}
+	 */
+	p.getDouble = function( _idx ) {
+		if ( _idx >= this.booData.length ) return 0;
+		return this.dblData[ _idx ];
+	};
+	/**
+	 * @public
+	 * @method getLong
+	 * @param {Integer} _idx
+	 * @return {Long}
+	 */
+	p.getLong = function( _idx ) {
+		if ( _idx >= this.lonData.length ) return 0;
+		return this.lonData[ _idx ];
+	};
+	/**
+	 * @public
+	 * @method getBytes
+	 * @param {Integer} _idx
+	 * @return {Byte[]}
+	 */
+	p.getBytes = function( _idx ) {
+		if ( _idx >= this.bytData.length ) return null;
+		return this.bytData[ _idx ];
+	};
+	
+	jees.Message = Message;
+})();;
+///<jscompress sourcefile="Module.js" />
 /*
  * Author: Aiyoyoyo
  * https://www.jeesupport.com/assets/jeesjs/src/base/Module.js
@@ -72,6 +732,14 @@ this.jees = this.jees || {};
 	 * @method interrupt
 	 */
 	p.recovery = function(){};
+	/**
+	 * 模块消息通知
+	 * @public
+	 * @abstract
+	 * @method notify
+	 * @param {jees.Meesage}
+	 */
+	p.notify = function( _m ){}
 	
 	jees.Module = Module;
 })();;
@@ -768,9 +1436,6 @@ this.jees = this.jees || {};
 	 * @param {Number} _t 绘制时间，单位：毫秒
 	 */
 	ModulesManager.update = function( _t ) {
-//      for( var mod of this._modules.values() ) {
-//          mod.update( _t );
-//      }
 		this._modules.forEach( function( _mod ){
 			_mod.update( _t );
 		} );
@@ -1251,6 +1916,66 @@ this.jees = this.jees || {};
 	
 	jees.FileLoadManager = FileLoadManager;
 })();;
+///<jscompress sourcefile="SocketManager.js" />
+/*
+ * Author: Aiyoyoyo
+ * https://github.com/aiyoyoyo/jeesjs/tree/master/src/manager/SocketManager.js
+ * License: MIT license
+ *
+ */
+// namespace:
+this.jees = this.jees || {};
+
+(function() {
+	"use strict";
+// constructor: ===============================================================
+	/**
+	 * @class Request
+	 * @static
+	 * @constructor
+	 */
+	function SocketManager() { throw "jees.SM不允许做初始化操作。"; };
+// public static properties:
+// private methods: ====================================================
+	SocketManager._connectors = new Array();
+	
+// public methods: =====================================================
+	/**
+	 * @public
+	 * @static
+	 * @method startup
+	 * @param {jees.Connector} _c
+	 */
+	SocketManager.startup = function( _c ){
+	}
+	/**
+	 * @public
+	 * @static
+	 * @method register
+	 * @param {jees.Connector} _c
+	 */
+	SocketManager.register = function( _c ){
+		if( !_c instanceof jees.Connector ){
+			throw "连接对象必须为jees.Connector或者其子类。";
+		}
+		this._connectors.push( _c );
+		
+		_c.connect();
+	}
+	/**
+	 * @public
+	 * @static
+	 * @method get
+	 * @param {Integer} _idx
+	 * @return {jees.Connector}
+	 */
+	SocketManager.get = function( _idx ){
+		if( _idx != undefined )
+			return _connectors[_idx];
+		return this._connectors[0];
+	}
+	jees.SM = SocketManager;
+})();;
 ///<jscompress sourcefile="Application.js" />
 /*
  * Author: Aiyoyoyo
@@ -1293,13 +2018,6 @@ this.jees = this.jees || {};
 	 * @type {jees.Module}
 	 **/
     Application._module = null;
-    /**
-     * 连接模块
-	 * @property _connector
-	 * @private
-	 * @type {jees.Connector}
-	 **/
-    Application._connector = null;
     /**
      * 初始化是否完成
 	 * @property _inited
@@ -1538,8 +2256,8 @@ this.jees = this.jees || {};
         	this._stage.enableMouseOver();
 		
 		if( jees.SET.enableConnector() ){
-			this._connector = new jees.WebSocketConnector( jees.SET.connector.host,jees.SET.connector.port, jees.SET.connector.path );
-			this._connector.connect();
+			var connect = new jees.WebSocketConnector( jees.SET.connector.host,jees.SET.connector.port, jees.SET.connector.path );
+			jees.SM.register( connect );
 		}
     	
 //		window.addEventListener( "orientationchange", this.screenOrientation );
@@ -2339,7 +3057,7 @@ this.jees.UI = this.jees.UI || {};
 		if( _y != undefined ) this.offsetY = _y;
 		
 		var parent_size = this._get_parnet_size();
-		
+
 		this.x = this._calculate_position( this.offsetX, this.alignX, parent_size.w, this.w );
 		this.y = this._calculate_position( this.offsetY, this.alignY, parent_size.h, this.h );
 	}
@@ -2377,6 +3095,11 @@ this.jees.UI = this.jees.UI || {};
 		
 		this._widget.regX = this._calculate_align( this.alignX, this.w );
 		this._widget.regY = this._calculate_align( this.alignY, this.h );
+		
+		if( this._widget instanceof jees.UI.ImageBox ){
+			this._widget.regX = this._calculate_align( this.alignX, this.resWidth );
+			this._widget.regY = this._calculate_align( this.alignY, this.resHeight );
+		}
 		
 		this.setPosition();
 	};
@@ -3104,8 +3827,6 @@ this.jees.UI = this.jees.UI || {};
 	 * 建立缓存区域
 	 */
 	p._cache = function(){
-		var pos = this.getPosition();
-		var size = this.getSize();
 		var b = this.getBounds();
 		this.cache( 0, 0, b.width, b.height );
 	};
@@ -3127,14 +3848,15 @@ this.jees.UI = this.jees.UI || {};
 			}
 		}else this.image = this.property.resource; // type = image
 		
-		this.property._resource_size();
-		if( this.property.state ){
-			this.property.setSize();
-			this.property.setAlign();
-		}
-		
+//		this.image.height = this.property.h;
+//		this.property._resource_size();
+//		this.property.initialize( this );
+//		this.property.setSize();
+//		this.property.setAlign();
 		this._reset_rect();
 		this._reset_size();
+//		this.property.setSize();
+//		this.property.setAlign();
  	};
 	/**
 	 * @private
@@ -3172,7 +3894,10 @@ this.jees.UI = this.jees.UI || {};
 	 		this.sourceRect = jees.CJS.newRect( r[0], r[1], r[2], r[3] );
 			this.setBounds( r[0], r[1], r[2], r[3]  );
 			this._cache();
-	 	}
+	 	}else if( this.image ){
+			this.setBounds( 0, 0, this.property.w, this.property.h );
+			this._cache();
+		}
 	};
 	/**
 	 * @method _reset_scale
@@ -4768,6 +5493,14 @@ this.jees.UI = this.jees.UI || {};
 		this._input.value = _t;
 		this._reset_text();
 	};
+	/**
+	 * @public
+	 * @method getText
+	 * @param {String} _t
+	 */
+	p.getText = function(){
+		return this._input.value;
+	}
 // private method: ============================================================
 	/**
 	 * @private
@@ -4883,6 +5616,7 @@ this.jees.UI = this.jees.UI || {};
 		style.setProperty( "left", fix_x  + "px" );
 		style.setProperty( "top", fix_y + "px" );
 		style.setProperty( "padding", this.paddingX  + "px " + this.paddingY  + "px " + this.paddingX  + "px " + this.paddingY  + "px" );
+		style.setProperty( "font-size", this.fontSize + "px" );
 	}
 	/**
 	 * @private
@@ -4890,7 +5624,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_text = function(){
 		if( this._text ){
-			this._text.setText( this._input.value != "" ? this._input.value : this.placeholder );
+			var content = this.password ? "********" : ( this._input.value != "" ? this._input.value : this.placeholder  );
+			this._text.setText( content );
 			this._text.x = this.x + this._text.property.offsetX;
 			this._text.y = this.y + this._text.property.offsetY;
 		}

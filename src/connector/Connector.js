@@ -28,41 +28,61 @@ this.jees = this.jees || {};
 		this._connector = null;
 	};
 // public static properties:
-	Connector.STATUS_DISCONNECT = 9;
-	Connector.STATUS_SUCCESS = 10;
+	Connector.STATUS_DISCONNECT = 1006;
+	Connector.STATUS_SUCCESS = 200;
 // private methods: ====================================================
 	var p = Connector.prototype;
 	p._handler_open = function( _e ){
-		this.status = this.STATUS_SUCCESS;
-		console.log( "open:", _e );
-	}
+		this.status = Connector.STATUS_SUCCESS;
+	};
 	p._handler_close = function( _e ){
-		this.status = this.STATUS_DISCONNECT;
-		console.log( "close:", _e )
-	}
+		this.status = _e.code;
+	};
 	p._handler_error = function( _e ){
-		console.log( "err:", _e )
-	}
+		console.error( _e );
+	};
 	p._handler_message = function( _e ){
-		console.log( "msg:", _e );
 		var msg = new jees.Message( _e.data );
-		console.log( msg );
-	}
+		jees.Response.notify( msg );
+	};
 	p._get_connect_url = function(){
 		return ( this.host ? this.host : "" )
 			+ ( this.port ? ":" + this.port : "" )
 			+ ( this.path ? "/" + this.path : "" )
-	}
+	};
 // public methods: =====================================================
+	/**
+	 * @public
+	 * @method connect
+	 */
 	p.connect = function(){
 		if( this instanceof jees.WebSocketConnector ){
+			var _this = this;
 			var connect_url = "ws://" + this._get_connect_url();
 			this._connector = new WebSocket( connect_url ); 
-			this._connector.onopen = this._handler_open;
-			this._connector.onclose = this._handler_close;
-			this._connector.onerror = this._handler_error;
-			this._connector.onmessage = this._handler_message;
+			this._connector.onopen = function( _e ){_this._handler_open( _e );};
+			this._connector.onclose = function( _e ){_this._handler_close( _e );};
+			this._connector.onerror = function( _e ){_this._handler_error( _e );};
+			this._connector.onmessage = function( _e ){_this._handler_message( _e );};
 		}
-	}
+	};
+	/**
+	 * @public
+	 * @method send
+	 * @param {String} _m
+	 */
+	p.send = function( _m ){
+		if( this.isConnecting() )
+			this._connector.send( _m );
+		else throw "已经和服务器断开连接。";
+	};
+	/**
+	 * @public
+	 * @method isConnectin
+	 * @return {Boolean}
+	 */
+	p.isConnecting = function(){
+		return this.status == Connector.STATUS_SUCCESS;
+	};
 	jees.Connector = Connector;
 })();

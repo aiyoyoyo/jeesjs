@@ -114,6 +114,14 @@ this.jees.UI = this.jees.UI || {};
 		this._input.value = _t;
 		this._reset_text();
 	};
+	/**
+	 * @public
+	 * @method getText
+	 * @param {String} _t
+	 */
+	p.getText = function(){
+		return this._input.value;
+	}
 // private method: ============================================================
 	/**
 	 * @private
@@ -229,6 +237,7 @@ this.jees.UI = this.jees.UI || {};
 		style.setProperty( "left", fix_x  + "px" );
 		style.setProperty( "top", fix_y + "px" );
 		style.setProperty( "padding", this.paddingX  + "px " + this.paddingY  + "px " + this.paddingX  + "px " + this.paddingY  + "px" );
+		style.setProperty( "font-size", this.fontSize + "px" );
 	}
 	/**
 	 * @private
@@ -236,7 +245,8 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p._reset_text = function(){
 		if( this._text ){
-			this._text.setText( this._input.value != "" ? this._input.value : this.placeholder );
+			var content = this.password ? "********" : ( this._input.value != "" ? this._input.value : this.placeholder  );
+			this._text.setText( content );
 			this._text.x = this.x + this._text.property.offsetX;
 			this._text.y = this.y + this._text.property.offsetY;
 		}

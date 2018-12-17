@@ -71,6 +71,14 @@ this.jees = this.jees || {};
 	 * @method interrupt
 	 */
 	p.recovery = function(){};
+	/**
+	 * 模块消息通知
+	 * @public
+	 * @abstract
+	 * @method notify
+	 * @param {jees.Meesage}
+	 */
+	p.notify = function( _m ){}
 	
 	jees.Module = Module;
 })();

@@ -40,13 +40,6 @@ this.jees = this.jees || {};
 	 **/
     Application._module = null;
     /**
-     * 连接模块
-	 * @property _connector
-	 * @private
-	 * @type {jees.Connector}
-	 **/
-    Application._connector = null;
-    /**
      * 初始化是否完成
 	 * @property _inited
 	 * @private
@@ -284,8 +277,8 @@ this.jees = this.jees || {};
         	this._stage.enableMouseOver();
 		
 		if( jees.SET.enableConnector() ){
-			this._connector = new jees.WebSocketConnector( jees.SET.connector.host,jees.SET.connector.port, jees.SET.connector.path );
-			this._connector.connect();
+			var connect = new jees.WebSocketConnector( jees.SET.connector.host,jees.SET.connector.port, jees.SET.connector.path );
+			jees.SM.register( connect );
 		}
     	
 //		window.addEventListener( "orientationchange", this.screenOrientation );
