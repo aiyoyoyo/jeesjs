@@ -200,6 +200,13 @@ this.jees = this.jees || {};
 	 * 考虑真锁定(设备锁定)和假锁定(浏览器锁定/绘制锁定)
 	 */
 	Application.screenOrientation = function(){
+	    // 考虑是否允许旋转
+	    // 是-> 允许旋转的方向有几个
+	    // 否-> 锁定横/竖屏（启动后调整旋转）
+	    // 锁定或者旋转后，需要解决的问题有：
+	    // 1: 不同分辨率下的布局、位置、大小等问题
+	    // 2: 不同分辨率下的缩放问题。
+        // TEST
 		if( jees.DEV.isPortrait() ){
 			jees.APP._stage.x = self.canvasHeight; // 注意：x偏移相当于旋转中点处理，更简单
 			jees.APP._stage.rotation = 90;
@@ -207,33 +214,6 @@ this.jees = this.jees || {};
 			jees.APP._stage.x = 0;
   			jees.APP._stage.rotation = 0;
 		}
-//  	var w = window.innerWidth;
-//		var h = window.innerHeight;
-  		// 	jees.APP._canvas.width = w;
-		// 	jees.APP._canvas.height = h;
-
-//		 jees.APP._stage.update();
-		
-		// var o = window.orientation;
-		// var w = window.innerWidth
-		// var h = window.innerHeight;
-		// if( o == 90 ){
-		// 	jees.APP._stage.children[0].rotation = -o;
-		// 	jees.APP._stage.children[0].y = jees.SET.getWidth();
-		// 	jees.APP._stage.children[0].scaleY = 2;
-		// 	jees.APP._stage.y = jees.SET.getWidth();
-		// 	jees.APP._stage.scaleX = 2;// jees.SET.getHeight() / jees.SET.getWidth();
-		// 	jees.APP._stage.scaleY = 2;
-
-		// 	jees.APP._canvas.width = w;
-		// 	jees.APP._canvas.height = h;
-
-		// 	jees.APP._stage.updateViewport(w,h);
-		// }
-		// var w = window.innerWidth
-		// var h = window.innerHeight;
-		// jees.APP._stage.updateViewport(w,h);
-		// jees.APP._stage.update();
 	}
 	/**
 	 * 屏幕大小
