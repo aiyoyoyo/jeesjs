@@ -1,6 +1,13 @@
 ﻿<jscompress public="http://www.jscompress.cn/" command="import-combineset">
 <combinefile path="jees.js">
     <auto value="1" />
+    <sourcefile path="..\src\connector\Response.js" />
+    <sourcefile path="..\src\connector\Request.js" />
+    <sourcefile path="..\src\data\SessionData.js" />
+    <sourcefile path="..\src\data\LocalData.js" />
+    <sourcefile path="..\src\connector\Connector.js" />
+    <sourcefile path="..\src\connector\WebSocketConnector.js" />
+    <sourcefile path="..\src\connector\Message.js" />
     <sourcefile path="..\src\base\Module.js" />
     <sourcefile path="..\src\tools\UtilTools.js" />
     <sourcefile path="..\src\tools\StringTools.js" />
@@ -13,6 +20,7 @@
     <sourcefile path="..\src\manager\ResourceManager.js" />
     <sourcefile path="..\src\manager\CanvasManager.js" />
     <sourcefile path="..\src\manager\FileLoadManager.js" />
+    <sourcefile path="..\src\manager\SocketManager.js" />
     <sourcefile path="..\src\base\Application.js" />
     <sourcefile path="..\src\extends\ConfigManager.js" />
     <sourcefile path="..\src\extends\LayoutManager.js" />

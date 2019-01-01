@@ -62,21 +62,19 @@ this.jees = this.jees || {};
 	 */
 	p.unbind = function( _module ){
 		if( !this._module_id_maps.has( _module.id  ) ) return;
-		
 		var ids = this._module_id_maps.get( _module.id );
 		for( var id of ids ){
 			var mods = this._module_maps.get( id );
-			
-			for( var idx in mods ){
-				var mod = mods[idx];
-				if( mod.id == _module.id ){
-					arrs.slice( id );
+			for( var m of mods ){
+				if( m.id == _module.id ){
+					mods.delete( m );
 					break;
 				}
-			}
+			};
+			this._module_maps.set( id, mods );
 		}
-		
 		ids.clear();
+		this._module_id_maps.delete( _module.id );
 	}
 	/**
 	 * 按加入顺序通知对应Module
@@ -92,6 +90,13 @@ this.jees = this.jees || {};
 			} );
 		}
 	}
+	/**
+	 * Websocket状态变化
+	 * @public
+	 * @method status
+	 * @param {Object} _s
+	 */
+	p.status = function( _s ){}
 	jees.Response = Response;
 })();;
 ///<jscompress sourcefile="Request.js" />
@@ -344,12 +349,17 @@ this.jees = this.jees || {};
 	var p = Connector.prototype;
 	p._handler_open = function( _e ){
 		this.status = Connector.STATUS_SUCCESS;
+		jees.Response.status( this.status );
 	};
 	p._handler_close = function( _e ){
 		this.status = _e.code;
+		jees.Response.status( this.status );
 	};
 	p._handler_error = function( _e ){
-		console.error( _e );
+		if( _e.target && _e.target.readyState == 3 ){
+			this.status = Connector.STATUS_DISCONNECT;
+		}
+		jees.Response.status( this.status );
 	};
 	p._handler_message = function( _e ){
 		var msg = new jees.Message( _e.data );
@@ -686,8 +696,14 @@ this.jees = this.jees || {};
 		 * 模块ID
 		 */
         this.id = _id;
+        
+        /**
+         * 
+         */
+        this._interrupt = false;
     };
-
+// public static properties:
+	
     var p = Module.prototype;
 // public static methods: =====================================================
 	/**
@@ -724,14 +740,14 @@ this.jees = this.jees || {};
 	 * @abstract
 	 * @method interrupt
 	 */
-	p.interrupt = function(){};
+	p.interrupt = function(){ this._interrupt = true; };
 	/**
 	 * 模块恢复通知
 	 * @public
 	 * @abstract
 	 * @method interrupt
 	 */
-	p.recovery = function(){};
+	p.recovery = function(){ this._interrupt = false; };
 	/**
 	 * 模块消息通知
 	 * @public
@@ -739,7 +755,17 @@ this.jees = this.jees || {};
 	 * @method notify
 	 * @param {jees.Meesage}
 	 */
-	p.notify = function( _m ){}
+	p.notify = function( _m ){};
+	/**
+	 * 是否被中断
+	 * @public
+	 * @abstract
+	 * @method isInterrupt
+	 * @return {Boolean}
+	 */
+	p.isInterrupt = function(){
+		return this._interrupt;
+	};
 	
 	jees.Module = Module;
 })();;
@@ -1194,6 +1220,7 @@ this.jees = this.jees || {};
         MIn: "mouseover",
 	};
 // public static methods: =====================================================
+	Event._handles = new Set();
 	/**
 	 * @static
 	 * @method bind
@@ -1203,6 +1230,17 @@ this.jees = this.jees || {};
 	 * @return {Event}
 	 */
 	Event.bind = function( _o, _e, _f ){
+		if( _o instanceof jees.UI.Button ){
+			var h = function(){
+				if( _o.disable ){
+					return
+				}
+				_f();
+			}
+			
+			return _o.on( _e, h );
+		}
+		
 		return _o.on( _e, _f );
 	}
 	/**
@@ -1424,7 +1462,7 @@ this.jees = this.jees || {};
 	 * @method leave
 	 */
 	ModulesManager.clear = function() {
-		while( this._modules.length > 0 ) {
+		while( this._modules.size > 0 ) {
 			this.leave();
 		}
 	};
@@ -1532,6 +1570,8 @@ this.jees = this.jees || {};
     	this._queue = new createjs.LoadQueue( false, "", "Anonymous" );
     	this._queue.maintainScriptOrder = true;
         
+        var _this = this;
+        jees.E.bind( this._queue, "complete", this._complete_handler );
 	};
 	/**
 	 * 重新配置
@@ -1594,12 +1634,8 @@ this.jees = this.jees || {};
 	ResourceManager.onload = function( _f ){
 	    if( this._callback != null )
 	        throw "上次加载尚未结束。";
-		if( this._callback == null && typeof _f === 'function' ){
+		if( this._callback == null && typeof _f == 'function' ){
 			this._callback = _f;
-			var _this = this;
-			this._handler = jees.E.bind( this._queue, "complete", function( e ) {
-				_this._complete_handler( e );
-			} );
 		}
 		if( this._loader.length != 0 ) this._queue.loadManifest( this._loader );
 		else this._complete_handler();
@@ -1655,19 +1691,17 @@ this.jees = this.jees || {};
      * @param {createjs.Event} _e
      */
     ResourceManager._complete_handler = function( _e ){
-    	if( this._handler != null ){
-    		jees.E.unbind( this._queue, "complete", this._handler );
-    	}
-    	
-    	this._loader.forEach( function( _load ){
+    	jees.RM._loader.forEach( function( _load ){
       		var res = jees.RM._queue.getResult( _load.id );
       		var maps = jees.RM._resources.get( _load.group );
       		maps.set( _load.id, res );
     	} );
-    	this._loader = new Array();
-
-		this._callback( _e );
-		this._callback = null;
+    	jees.RM._loader = new Array();
+    	
+    	if( jees.RM._callback ){
+    		jees.RM._callback( _e );
+    	}
+    	jees.RM._callback = null;
     };
 
 	jees.RM = ResourceManager;
@@ -1971,7 +2005,7 @@ this.jees = this.jees || {};
 	 */
 	SocketManager.get = function( _idx ){
 		if( _idx != undefined )
-			return _connectors[_idx];
+			return this._connectors[_idx];
 		return this._connectors[0];
 	}
 	jees.SM = SocketManager;
@@ -2179,6 +2213,13 @@ this.jees = this.jees || {};
 	 * 考虑真锁定(设备锁定)和假锁定(浏览器锁定/绘制锁定)
 	 */
 	Application.screenOrientation = function(){
+	    // 考虑是否允许旋转
+	    // 是-> 允许旋转的方向有几个
+	    // 否-> 锁定横/竖屏（启动后调整旋转）
+	    // 锁定或者旋转后，需要解决的问题有：
+	    // 1: 不同分辨率下的布局、位置、大小等问题
+	    // 2: 不同分辨率下的缩放问题。
+        // TEST
 		if( jees.DEV.isPortrait() ){
 			jees.APP._stage.x = self.canvasHeight; // 注意：x偏移相当于旋转中点处理，更简单
 			jees.APP._stage.rotation = 90;
@@ -2186,39 +2227,43 @@ this.jees = this.jees || {};
 			jees.APP._stage.x = 0;
   			jees.APP._stage.rotation = 0;
 		}
-//  	var w = window.innerWidth;
-//		var h = window.innerHeight;
-  		// 	jees.APP._canvas.width = w;
-		// 	jees.APP._canvas.height = h;
-
-//		 jees.APP._stage.update();
-		
-		// var o = window.orientation;
-		// var w = window.innerWidth
-		// var h = window.innerHeight;
-		// if( o == 90 ){
-		// 	jees.APP._stage.children[0].rotation = -o;
-		// 	jees.APP._stage.children[0].y = jees.SET.getWidth();
-		// 	jees.APP._stage.children[0].scaleY = 2;
-		// 	jees.APP._stage.y = jees.SET.getWidth();
-		// 	jees.APP._stage.scaleX = 2;// jees.SET.getHeight() / jees.SET.getWidth();
-		// 	jees.APP._stage.scaleY = 2;
-
-		// 	jees.APP._canvas.width = w;
-		// 	jees.APP._canvas.height = h;
-
-		// 	jees.APP._stage.updateViewport(w,h);
-		// }
-		// var w = window.innerWidth
-		// var h = window.innerHeight;
-		// jees.APP._stage.updateViewport(w,h);
-		// jees.APP._stage.update();
 	}
 	/**
 	 * 屏幕大小
 	 * TODO 待完成
 	 */
 	Application.screenResize = function(){
+	}
+	Application.updatePosition = function(x,y,deg,s,w,h){
+		var c = this._stage.getChildAt( 0 );
+		
+		c.rotation = deg;
+		c.scaleX = c.scaleY = s;
+		c.x = x;
+		c.y = y;
+		
+		var c_reset = function( _w ){
+			if( _w instanceof createjs.Shape ) return;
+			_w.setPosition();
+			if( _w.children )
+				_w.children.forEach( c_reset );
+		}
+		c.children.forEach( c_reset );
+		
+		this._canvas.width = w;
+        this._canvas.height = h;
+		this._stage.update();
+	}
+	Application.Orienter = function(){
+		var _this = this;
+//		setTimeout(function() {
+//			var w = window.innerWidth,_ = window.innerHeight;
+//			w<_?_this.updatePosition(w,0,90,w/_this.psdWidth,w,_):_this.updatePosition(0,0,0,_/_this.psdWidth,w,_)
+//		},300);
+		
+		var w = window.innerWidth, _ = window.innerHeight;
+//		w<_?_this.updatePosition( w,0,90,w/_this.psdWidth,w,_ ) : _this.updatePosition( 0,0,0,_/_this.psdWidth,w,_)
+		w<_?_this.updatePosition( w,0,90,w/jees.SET.getWidth(),w,_ ) : _this.updatePosition( 0,0,0,_/jees.SET.getWidth(),w,_)
 	}
 // private static methods: ====================================================
 	/**
@@ -2243,11 +2288,9 @@ this.jees = this.jees || {};
 		jees.SET.viewportScale = scale;
 		
 		this._canvas = document.getElementById( jees.SET.getCanvas() );
+		this._canvas.width = jees.SET.getWidth();
+		this._canvas.height = jees.SET.getHeight();
         this._stage = new createjs.StageGL( this._canvas );
-        this._canvas.width = jees.SET.getWidth();
-        this._canvas.height = jees.SET.getHeight();
-        
-		this._stage.updateViewport( jees.SET.getWidth(), jees.SET.getHeight() );
 		
         createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
         this.setFPS( jees.SET.getFPS() );
@@ -2260,6 +2303,9 @@ this.jees = this.jees || {};
 			jees.SM.register( connect );
 		}
     	
+    	var _this = this;
+//  	window.onresize = function(){_this.Orienter();};
+//		window.onorientationchange = function(){_this.Orienter();};
 //		window.addEventListener( "orientationchange", this.screenOrientation );
 //		window.addEventListener( "resize", this.screenResize );
 
@@ -2427,13 +2473,18 @@ this.jees.EX = this.jees.EX || {};
 	 * @public
 	 * @method unload
 	 * @param {Object} _n
+	 * @param {Boolean} _r
 	 */
-	p.unload = function( _n ){
+	p.unload = function( _n, _r ){
 		if( this._layouts.has( _n ) ){
 			var wgt = this._layouts.get( _n );
-			this._layouts.delete( _n );
-			this.del( _n );
 			jees.CM.removeChild( wgt );
+			
+			var real = _r != undefined ? _r : true;
+			if( real ){
+				this._layouts.delete( _n );
+				this.del( _n );
+			}
 		}
 	}
 	
@@ -3370,6 +3421,24 @@ this.jees.UI = this.jees.UI || {};
 	p.setAlign = function ( _x, _y ) {
 		this.property.setAlign( _x, _y );
 		this._reset_position();
+	};
+	/**
+	 * 设置是否可见
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function(_v){
+		this.visible = _v;
+	};
+	/**
+	 * 是否可见
+	 * @public
+	 * @method isVisible
+	 * @return {Boolean}
+	 */
+	p.isVisible = function(){
+		return this.visible;
 	};
 	/**
 	 * 
@@ -4728,7 +4797,6 @@ this.jees.UI = this.jees.UI || {};
 				
 				for( var j = 0; j < words.length; j ++ ){
 					var w = _ctx.measureText( word + words[j] ).width;
-					console.log( "---", w, this.lineWidth )
 					if( w >= this.lineWidth ){
 						if( w == this.lineWidth ){
 							if ( words[j] != "\s") word += words[j];
@@ -5500,6 +5568,16 @@ this.jees.UI = this.jees.UI || {};
 	 */
 	p.getText = function(){
 		return this._input.value;
+	}
+	/**
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this._input.blur();
+		this._input.hidden = true;
+		this.Button_setVisible( _v );
 	}
 // private method: ============================================================
 	/**
