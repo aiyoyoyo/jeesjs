@@ -156,6 +156,24 @@ this.jees.UI = this.jees.UI || {};
 		this._reset_position();
 	};
 	/**
+	 * 设置是否可见
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function(_v){
+		this.visible = _v;
+	};
+	/**
+	 * 是否可见
+	 * @public
+	 * @method isVisible
+	 * @return {Boolean}
+	 */
+	p.isVisible = function(){
+		return this.visible;
+	};
+	/**
 	 * 
 	 */
 	p.findChildByName = function( _n ){

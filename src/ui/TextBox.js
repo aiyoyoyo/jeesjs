@@ -497,7 +497,6 @@ this.jees.UI = this.jees.UI || {};
 				
 				for( var j = 0; j < words.length; j ++ ){
 					var w = _ctx.measureText( word + words[j] ).width;
-					console.log( "---", w, this.lineWidth )
 					if( w >= this.lineWidth ){
 						if( w == this.lineWidth ){
 							if ( words[j] != "\s") word += words[j];

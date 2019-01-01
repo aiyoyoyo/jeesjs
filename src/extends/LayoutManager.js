@@ -119,13 +119,18 @@ this.jees.EX = this.jees.EX || {};
 	 * @public
 	 * @method unload
 	 * @param {Object} _n
+	 * @param {Boolean} _r
 	 */
-	p.unload = function( _n ){
+	p.unload = function( _n, _r ){
 		if( this._layouts.has( _n ) ){
 			var wgt = this._layouts.get( _n );
-			this._layouts.delete( _n );
-			this.del( _n );
 			jees.CM.removeChild( wgt );
+			
+			var real = _r != undefined ? _r : true;
+			if( real ){
+				this._layouts.delete( _n );
+				this.del( _n );
+			}
 		}
 	}
 	

@@ -61,21 +61,19 @@ this.jees = this.jees || {};
 	 */
 	p.unbind = function( _module ){
 		if( !this._module_id_maps.has( _module.id  ) ) return;
-		
 		var ids = this._module_id_maps.get( _module.id );
 		for( var id of ids ){
 			var mods = this._module_maps.get( id );
-			
-			for( var idx in mods ){
-				var mod = mods[idx];
-				if( mod.id == _module.id ){
-					arrs.slice( id );
+			for( var m of mods ){
+				if( m.id == _module.id ){
+					mods.delete( m );
 					break;
 				}
-			}
+			};
+			this._module_maps.set( id, mods );
 		}
-		
 		ids.clear();
+		this._module_id_maps.delete( _module.id );
 	}
 	/**
 	 * 按加入顺序通知对应Module
@@ -91,5 +89,12 @@ this.jees = this.jees || {};
 			} );
 		}
 	}
+	/**
+	 * Websocket状态变化
+	 * @public
+	 * @method status
+	 * @param {Object} _s
+	 */
+	p.status = function( _s ){}
 	jees.Response = Response;
 })();

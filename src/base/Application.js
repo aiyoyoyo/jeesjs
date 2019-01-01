@@ -221,6 +221,37 @@ this.jees = this.jees || {};
 	 */
 	Application.screenResize = function(){
 	}
+	Application.updatePosition = function(x,y,deg,s,w,h){
+		var c = this._stage.getChildAt( 0 );
+		
+		c.rotation = deg;
+		c.scaleX = c.scaleY = s;
+		c.x = x;
+		c.y = y;
+		
+		var c_reset = function( _w ){
+			if( _w instanceof createjs.Shape ) return;
+			_w.setPosition();
+			if( _w.children )
+				_w.children.forEach( c_reset );
+		}
+		c.children.forEach( c_reset );
+		
+		this._canvas.width = w;
+        this._canvas.height = h;
+		this._stage.update();
+	}
+	Application.Orienter = function(){
+		var _this = this;
+//		setTimeout(function() {
+//			var w = window.innerWidth,_ = window.innerHeight;
+//			w<_?_this.updatePosition(w,0,90,w/_this.psdWidth,w,_):_this.updatePosition(0,0,0,_/_this.psdWidth,w,_)
+//		},300);
+		
+		var w = window.innerWidth, _ = window.innerHeight;
+//		w<_?_this.updatePosition( w,0,90,w/_this.psdWidth,w,_ ) : _this.updatePosition( 0,0,0,_/_this.psdWidth,w,_)
+		w<_?_this.updatePosition( w,0,90,w/jees.SET.getWidth(),w,_ ) : _this.updatePosition( 0,0,0,_/jees.SET.getWidth(),w,_)
+	}
 // private static methods: ====================================================
 	/**
      * 程序初始化完成
@@ -244,11 +275,9 @@ this.jees = this.jees || {};
 		jees.SET.viewportScale = scale;
 		
 		this._canvas = document.getElementById( jees.SET.getCanvas() );
+		this._canvas.width = jees.SET.getWidth();
+		this._canvas.height = jees.SET.getHeight();
         this._stage = new createjs.StageGL( this._canvas );
-        this._canvas.width = jees.SET.getWidth();
-        this._canvas.height = jees.SET.getHeight();
-        
-		this._stage.updateViewport( jees.SET.getWidth(), jees.SET.getHeight() );
 		
         createjs.Ticker.timingMode = createjs.Ticker.RAF_SYNCHED;
         this.setFPS( jees.SET.getFPS() );
@@ -261,6 +290,9 @@ this.jees = this.jees || {};
 			jees.SM.register( connect );
 		}
     	
+    	var _this = this;
+//  	window.onresize = function(){_this.Orienter();};
+//		window.onorientationchange = function(){_this.Orienter();};
 //		window.addEventListener( "orientationchange", this.screenOrientation );
 //		window.addEventListener( "resize", this.screenResize );
 

@@ -38,6 +38,7 @@ this.jees = this.jees || {};
         MIn: "mouseover",
 	};
 // public static methods: =====================================================
+	Event._handles = new Set();
 	/**
 	 * @static
 	 * @method bind
@@ -47,6 +48,17 @@ this.jees = this.jees || {};
 	 * @return {Event}
 	 */
 	Event.bind = function( _o, _e, _f ){
+		if( _o instanceof jees.UI.Button ){
+			var h = function(){
+				if( _o.disable ){
+					return
+				}
+				_f();
+			}
+			
+			return _o.on( _e, h );
+		}
+		
 		return _o.on( _e, _f );
 	}
 	/**

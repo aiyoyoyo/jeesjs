@@ -74,18 +74,22 @@ this.jees = this.jees || {};
 //			spt.setSpeed( 500 );
 		});
 //		*/
-		/* TEST Button ==
+//		/* TEST Button ==
 		var align = 0;
-        jees.E.bind( wgt, "click", function( _e ){
-        	var btn = btn1;
-          	btn.setAlign( align, align );
-          	align ++;
-          	if( align == 3 ) align = 0;
+//		btn0.setDisabled( true );
+        jees.E.bind( btn0, "click", function( _e ){
+//      	var btn = btn1;
+//        	btn.setAlign( align, align );
+//        	align ++;
+//        	if( align == 3 ) align = 0;
 //			btn.setPosition( 100, 100 );
 //			btn.setVisible( false );
 //			btn.setDisabled( true );
 //			btn.setText( "确  定" );
+			console.log( "btn.click" );
 		});
+		
+		jees.E.unbind( btn0, "click", f );
 //		*/
 		/* TEST CheckBox ==
 		var align = 0;

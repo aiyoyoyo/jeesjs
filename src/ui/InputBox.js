@@ -122,6 +122,16 @@ this.jees.UI = this.jees.UI || {};
 	p.getText = function(){
 		return this._input.value;
 	}
+	/**
+	 * @public
+	 * @method setVisible
+	 * @param {Boolean} _v
+	 */
+	p.setVisible = function( _v ){
+		this._input.blur();
+		this._input.hidden = true;
+		this.Button_setVisible( _v );
+	}
 // private method: ============================================================
 	/**
 	 * @private

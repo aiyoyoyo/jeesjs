@@ -25,8 +25,14 @@ this.jees = this.jees || {};
 		 * 模块ID
 		 */
         this.id = _id;
+        
+        /**
+         * 
+         */
+        this._interrupt = false;
     };
-
+// public static properties:
+	
     var p = Module.prototype;
 // public static methods: =====================================================
 	/**
@@ -63,14 +69,14 @@ this.jees = this.jees || {};
 	 * @abstract
 	 * @method interrupt
 	 */
-	p.interrupt = function(){};
+	p.interrupt = function(){ this._interrupt = true; };
 	/**
 	 * 模块恢复通知
 	 * @public
 	 * @abstract
 	 * @method interrupt
 	 */
-	p.recovery = function(){};
+	p.recovery = function(){ this._interrupt = false; };
 	/**
 	 * 模块消息通知
 	 * @public
@@ -78,7 +84,17 @@ this.jees = this.jees || {};
 	 * @method notify
 	 * @param {jees.Meesage}
 	 */
-	p.notify = function( _m ){}
+	p.notify = function( _m ){};
+	/**
+	 * 是否被中断
+	 * @public
+	 * @abstract
+	 * @method isInterrupt
+	 * @return {Boolean}
+	 */
+	p.isInterrupt = function(){
+		return this._interrupt;
+	};
 	
 	jees.Module = Module;
 })();

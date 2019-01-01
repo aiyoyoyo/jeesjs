@@ -90,7 +90,7 @@ this.jees = this.jees || {};
 	 * @method leave
 	 */
 	ModulesManager.clear = function() {
-		while( this._modules.length > 0 ) {
+		while( this._modules.size > 0 ) {
 			this.leave();
 		}
 	};

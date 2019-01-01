@@ -76,6 +76,8 @@ this.jees = this.jees || {};
     	this._queue = new createjs.LoadQueue( false, "", "Anonymous" );
     	this._queue.maintainScriptOrder = true;
         
+        var _this = this;
+        jees.E.bind( this._queue, "complete", this._complete_handler );
 	};
 	/**
 	 * 重新配置
@@ -138,12 +140,8 @@ this.jees = this.jees || {};
 	ResourceManager.onload = function( _f ){
 	    if( this._callback != null )
 	        throw "上次加载尚未结束。";
-		if( this._callback == null && typeof _f === 'function' ){
+		if( this._callback == null && typeof _f == 'function' ){
 			this._callback = _f;
-			var _this = this;
-			this._handler = jees.E.bind( this._queue, "complete", function( e ) {
-				_this._complete_handler( e );
-			} );
 		}
 		if( this._loader.length != 0 ) this._queue.loadManifest( this._loader );
 		else this._complete_handler();
@@ -199,19 +197,17 @@ this.jees = this.jees || {};
      * @param {createjs.Event} _e
      */
     ResourceManager._complete_handler = function( _e ){
-    	if( this._handler != null ){
-    		jees.E.unbind( this._queue, "complete", this._handler );
-    	}
-    	
-    	this._loader.forEach( function( _load ){
+    	jees.RM._loader.forEach( function( _load ){
       		var res = jees.RM._queue.getResult( _load.id );
       		var maps = jees.RM._resources.get( _load.group );
       		maps.set( _load.id, res );
     	} );
-    	this._loader = new Array();
-
-		this._callback( _e );
-		this._callback = null;
+    	jees.RM._loader = new Array();
+    	
+    	if( jees.RM._callback ){
+    		jees.RM._callback( _e );
+    	}
+    	jees.RM._callback = null;
     };
 
 	jees.RM = ResourceManager;

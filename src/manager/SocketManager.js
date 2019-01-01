@@ -52,7 +52,7 @@ this.jees = this.jees || {};
 	 */
 	SocketManager.get = function( _idx ){
 		if( _idx != undefined )
-			return _connectors[_idx];
+			return this._connectors[_idx];
 		return this._connectors[0];
 	}
 	jees.SM = SocketManager;

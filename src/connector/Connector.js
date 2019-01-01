@@ -34,12 +34,17 @@ this.jees = this.jees || {};
 	var p = Connector.prototype;
 	p._handler_open = function( _e ){
 		this.status = Connector.STATUS_SUCCESS;
+		jees.Response.status( this.status );
 	};
 	p._handler_close = function( _e ){
 		this.status = _e.code;
+		jees.Response.status( this.status );
 	};
 	p._handler_error = function( _e ){
-		console.error( _e );
+		if( _e.target && _e.target.readyState == 3 ){
+			this.status = Connector.STATUS_DISCONNECT;
+		}
+		jees.Response.status( this.status );
 	};
 	p._handler_message = function( _e ){
 		var msg = new jees.Message( _e.data );

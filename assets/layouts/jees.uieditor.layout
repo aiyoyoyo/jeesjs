@@ -176,8 +176,8 @@
 								"color": "#000000",
 								"fontSize": 30,
 								"textX": 45,
-								"alignX": 1,
-								"alignY": 1
+								"alignX": 2,
+								"alignY": 2
 							}
 						},
 						{
