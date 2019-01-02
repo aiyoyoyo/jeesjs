@@ -13,6 +13,14 @@
                         <key>url</key>
                         <string>http://139.196.174.22/test.ipa</string>
                     </dict>
+                    <dict>
+                        <key>kind</key>
+                        <string>display-image</string>
+                        <key>needs-shine</key>
+                        <true/>
+                        <key>url</key>
+                        <string>>http://139.196.174.22/512x512.png</string>
+                    </dict>
                 </array>
                 <key>metadata</key>
                 <dict>
